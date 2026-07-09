@@ -1,0 +1,25 @@
+# DCLM CORE task set (lm-eval names where they exist; verify against the
+# dclm repo's eval config in Phase 2 before Tier 1).
+# Requirement #3: run the validity check (scores vs. chance) per task at
+# 124M/355M before using anything quantitative; fallback subset marked *.
+agieval_lsat_ar
+arc_challenge
+arc_easy
+bigbench_cs_algorithms
+bigbench_dyck_languages
+bigbench_language_identification
+bigbench_operators
+bigbench_qa_wikidata
+bigbench_repeat_copy_logic
+boolq
+commonsense_qa
+copa
+hellaswag        # *
+hellaswag_zeroshot
+jeopardy
+lambada_openai   # *
+openbookqa
+piqa             # *
+squad
+winograd         # * (schema-style)
+winogrande       # * (schema-style)

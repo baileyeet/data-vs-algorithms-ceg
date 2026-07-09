@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.venv/
+runs/
+datasets/
+*.bin
+*.pt
+wandb/
+.DS_Store
+train_new/modded-nanogpt/

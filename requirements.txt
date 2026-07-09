@@ -1,0 +1,9 @@
+# core (Phases 0-1)
+torch
+numpy
+tiktoken
+datasets
+matplotlib
+# eval (Phase 2+)
+# lm-eval          # heavy; install when validating CORE
+# wandb            # optional; CSV logging is the default
