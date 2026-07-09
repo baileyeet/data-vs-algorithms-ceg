@@ -13,29 +13,75 @@
 
 ## Required adaptations (Phase 2 work, tracked here)
 
-1. **Size parameterization** from `configs/model_sizes.json` — note the
-   modded-nanogpt architecture is NOT GPT-2 (that's the point); "size" means
-   matching param count class, using its own head/embed conventions.
-2. **BPB logging** at log-spaced checkpoints (`common/checkpoint_schedule.py`),
-   evaluating the same neutral corpus tokens as the old arm.
-3. **Timed compute** already excludes warmup by speedrun convention — keep
-   that, and also exclude our added eval/checkpoint time.
-4. **Data**: reads its own .bin format (`.bin` with header, see its
-   `data/fineweb.py`); our shards need a converter, or point its loader at our
-   flat format. A1D0 must do exactly 2 epochs with reshuffle (requirement #9).
-5. **Token budget override**: 18B tokens at every size (fixed, not scaled).
-6. **Eval wrapper**: `eval/lm_eval_adapter.py` needs a second `make_lm` path
-   that loads modded-nanogpt checkpoints.
-7. **run_config.json parity with train_old**: must record `arm`, `gpu_name`,
-   `torch_version`, `algorithm: "new_modded_nanogpt"`, n_params, and the
-   checkpoint schedule, so analysis code can treat both arms' runs uniformly.
+Implemented via `train_wrapper.py` (entry point, all measurement logic) plus
+`train_gpt_ceg.py` (a copy of `modded-nanogpt/train_gpt.py` with minimal
+edits, every one marked `# CEG:`; the upstream clone stays pristine). Launch:
 
-## Local-validation caveat
+```bash
+torchrun --nproc_per_node=8 train_new/train_wrapper.py --size small --arm a1d1 \
+  --data-glob datasets/dclm_nanogpt/train_*.bin \
+  --neutral-eval-dir datasets/wiki_gpt2 --token-budget 18000000000 \
+  --out-dir runs/a1d1_small     # A1D0 adds --n-epochs 2
+```
 
-Upstream `train_gpt.py` hard-requires CUDA (FlexAttention + Muon distributed
-setup + torch.compile), so full CPU/MPS validation on a Mac is not realistic.
-Phase 2 plan: validate data-format/BPB/checkpoint-schedule plumbing locally
-with unit-level tests, and do the first real end-to-end validation in the
-first minutes on the Tier 1 pod (cost ~ a few dollars) before launching real
-runs. If a genuinely free GPU (Colab) is available, the smoke test can move
-earlier.
+1. **Size parameterization** — `--size small` wired (124M speedrun);
+   `--size medium` raises NotImplementedError until `train_gpt_medium.py`
+   (355M track) is adapted the same way. DONE (small only).
+2. **BPB logging** at log-spaced checkpoints — DONE. The checkpoint schedule
+   comes from `common/checkpoint_schedule.checkpoint_tokens`, mapped onto the
+   *variable* tokens-per-step schedule (upstream batch size grows 8→16→24
+   seqs); BPB uses the same formula/windowing as `common/bpb.py` via a shim
+   over the modded forward API (`model(inputs, targets, cu_seqlens, bigram,
+   schedule_cfg)`), windows packed per forward with varlen cu_seqlens.
+3. **Timed compute** — DONE. Upstream clock convention preserved (starts after
+   kernel warmup/compile); our BPB evals + checkpoint saves pause it exactly
+   where the upstream val loop did.
+4. **Data** — DONE. `--data-glob` takes shards from
+   `scripts/convert_to_nanogpt_bin.py`; the patched generator hard-fails past
+   `--n-epochs` (no silent wrap) and reshuffles shard order + per-shard
+   document traversal with a per-epoch seed (epoch 0 keeps upstream order, so
+   single-epoch runs are byte-identical to upstream).
+5. **Token budget override** — DONE. Step count is derived from
+   `--token-budget` + the upstream stage batch schedule (fractions of total
+   steps preserved; extension phase kept at the upstream 10/1380 ratio).
+6. **Eval wrapper** (`eval/lm_eval_adapter.py` second `make_lm` path) — TODO;
+   checkpoints save the compiled state_dict (`_orig_mod.` prefixes) plus a
+   `model_args` dict for reconstruction.
+7. **run_config.json parity with train_old** — DONE (`arm`, `gpu_name`,
+   `torch_version`, `algorithm: "new_modded_nanogpt"`, `n_params`,
+   `ckpt_steps`, `world_size`, ...); `metrics.csv` has the exact same columns
+   as `train_old/train.py`.
+
+## Validated locally (Mac, CPU)
+
+- `py_compile` on `train_wrapper.py` and `train_gpt_ceg.py`.
+- Unit tests (fake models, CPU): the BPB shim's windowing/masking matches
+  `common.bpb.evaluate_bpb` to float32 precision on identical token streams;
+  step-count derivation reproduces the upstream 1380/10 split exactly at the
+  upstream token total (365,690,880) and preserves stage fractions at other
+  budgets (18B → 67,927 scheduled + 492 extension steps); checkpoint-step
+  mapping; per-epoch shuffle helpers; .bin shard header IO.
+
+## NOT validated until the first pod session
+
+Upstream hard-requires CUDA + torchrun at import (flash-attn kernels, Muon
+distributed comms, torch.compile), so none of the following has actually run:
+
+- The full patched training loop end-to-end (incl. warmup-reset, batch-size
+  transitions, the DataExhausted graceful-stop path, DDP barrier behavior
+  while rank 0 runs BPB evals — long neutral corpora could approach the NCCL
+  barrier timeout; raise `--eval-windows-per-chunk` if so).
+- The BPB shim against the *real* compiled model (dtype/shape plumbing of
+  `cu_seqlens`/bigram inputs, eval-graph recompiles when attention window
+  sizes change stage; recompiles happen while the clock is paused).
+- Checkpoint save/reload of the compiled state_dict.
+- Loss-EMA magnitudes (upstream train loss includes multi-token-prediction
+  weighting, so `train_loss_ema` is inflated early vs plain CE — diagnostic
+  only, never used for CEG measurement).
+- Toy-scale caveats: `--val-batch-size` must be shrunk so the upstream
+  kernel-warmup val pass fits toy val shards, and tiny step counts interact
+  crudely with the fixed 300/50-step Muon momentum warmup/cooldown (upstream
+  constants, deliberately untouched).
+
+First pod session plan: single-GPU toy run (`--val-batch-size 131072
+--eval-windows-per-chunk 16`, few-M token budget) before any paid full run.
