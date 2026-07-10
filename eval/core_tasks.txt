@@ -1,25 +1,32 @@
-# DCLM CORE task set (lm-eval names where they exist; verify against the
-# dclm repo's eval config in Phase 2 before Tier 1).
+# DCLM CORE task set, mapped to lm-eval task names (verified against
+# lm-eval's installed registry on 2026-07-09 — see notes).
 # Requirement #3: run the validity check (scores vs. chance) per task at
 # 124M/355M before using anything quantitative; fallback subset marked *.
+#
+# Loglikelihood/MC tasks (usable with our adapter, which implements
+# loglikelihood only):
 agieval_lsat_ar
 arc_challenge
 arc_easy
-bigbench_cs_algorithms
-bigbench_dyck_languages
-bigbench_language_identification
-bigbench_operators
-bigbench_qa_wikidata
-bigbench_repeat_copy_logic
+bigbench_cs_algorithms_multiple_choice
+bigbench_dyck_languages_multiple_choice
+bigbench_language_identification_multiple_choice
 boolq
 commonsense_qa
 copa
 hellaswag        # *
-hellaswag_zeroshot
-jeopardy
 lambada_openai   # *
 openbookqa
 piqa             # *
-squad
-winograd         # * (schema-style)
 winogrande       # * (schema-style)
+xwinograd_en     # * (schema-style; lm-eval's winograd variant)
+#
+# EXCLUDED from our CORE subset (with reasons, so the writeup can note the
+# deviation from DCLM's exact 22-task CORE):
+#   bigbench_operators / bigbench_qa_wikidata / bigbench_repeat_copy_logic —
+#     only generate_until variants exist in lm-eval; our adapter (and CORE's
+#     loss-based scoring) is loglikelihood-only. DCLM used its own harness.
+#   jeopardy — not in lm-eval registry.
+#   squad — only squad_completion (generation) available; same reason.
+#   hellaswag_zeroshot — MosaicML-gauntlet name; lm-eval's hellaswag is
+#     already zero-shot.

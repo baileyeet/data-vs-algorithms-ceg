@@ -1,0 +1,9 @@
+accelerate==1.14.0
+datasets==5.0.0
+huggingface_hub==1.22.0
+lm_eval==0.4.12
+matplotlib==3.11.0
+numpy==2.5.1
+tiktoken==0.13.0
+torch==2.13.0
+transformers==5.13.0
