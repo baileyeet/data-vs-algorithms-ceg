@@ -65,6 +65,10 @@ def doc_stream(args):
 
     path, config, field = DATASETS[args.dataset]
     ds = load_dataset(path, config, split="train", streaming=True)
+    # For subsetting a large corpus (e.g. 9B/18B tokens from multi-T DCLM),
+    # .shuffle() on a streaming dataset randomizes BOTH the shard order and
+    # docs within the buffer, so the sample isn't the corpus's first shards.
+    # seed + buffer are recorded in meta.json for reproducibility.
     if args.shuffle_buffer:
         ds = ds.shuffle(seed=args.seed, buffer_size=args.shuffle_buffer)
     return (row[field] for row in ds)
@@ -129,6 +133,7 @@ def main():
         "eot_id": int(eot),
         "dtype": "uint16",
         "seed": args.seed,
+        "shuffle_buffer": args.shuffle_buffer,
     }
     for s, d in splits.items():
         meta[f"{s}_tokens"] = d["tokens"]
