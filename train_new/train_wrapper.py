@@ -2,10 +2,12 @@
 
 This is the entry point for A1 runs. It parses our standard CLI, computes the
 step count from --token-budget using the upstream batch-size schedule, then
-executes train_new/train_gpt_ceg.py (a minimally-patched copy of the upstream
-train_gpt.py; every patched region there is marked "# CEG:"). The patched
-trainer calls back into this module (registered as the module alias "ceg") for
-everything measurement-related:
+executes train_new/train_gpt_ceg.py (--size small, 124M speedrun) or
+train_new/train_gpt_medium_ceg.py (--size medium, 355M track) — minimally
+patched copies of the upstream train_gpt.py / train_gpt_medium.py; every
+patched region there is marked "# CEG:". The patched trainer calls back into
+this module (registered as the module alias "ceg") for everything
+measurement-related:
 
   #1 BPB (neutral + own-val) at every checkpoint, via a shim over the
      modded-nanogpt forward/loss API (same formula/windowing as common/bpb.py)
@@ -118,6 +120,33 @@ def simulate_step_tokens(durations, batch_sizes, scheduled: int, extension: int)
     return step_tokens
 
 
+def simulate_step_tokens_medium(bs_schedule, bs_extension: int,
+                                scheduled: int, extension: int) -> list[int]:
+    """Tokens consumed per training step for the medium track, replicating its
+    get_bs() exactly: scheduled step s uses
+    bs_schedule[int(len(bs_schedule) * (s / scheduled))] (equal
+    1/len(bs_schedule) fractions of the scheduled steps, including the float
+    division); extension steps use bs_extension."""
+    n = len(bs_schedule)
+    step_tokens = [bs_schedule[int(n * (s / scheduled))] for s in range(scheduled)]
+    step_tokens.extend([bs_extension] * extension)
+    return step_tokens
+
+
+def _smallest_scheduled(total_fn, token_budget: int) -> int:
+    """Smallest S with total_fn(S) >= token_budget (total_fn nondecreasing)."""
+    lo, hi = 1, 2
+    while total_fn(hi) < token_budget:
+        hi *= 2
+    while lo < hi:
+        mid = (lo + hi) // 2
+        if total_fn(mid) >= token_budget:
+            hi = mid
+        else:
+            lo = mid + 1
+    return lo
+
+
 def solve_scheduled_iterations(durations, batch_sizes, token_budget: int,
                                upstream_scheduled: int, upstream_extension: int):
     """Smallest scheduled-iteration count S such that total trained tokens
@@ -130,15 +159,24 @@ def solve_scheduled_iterations(durations, batch_sizes, token_budget: int,
     def total(s):
         return sum(simulate_step_tokens(durations, batch_sizes, s, ext(s)))
 
-    lo, hi = 1, 2
-    while total(hi) < token_budget:
-        hi *= 2
-    while lo < hi:
-        mid = (lo + hi) // 2
-        if total(mid) >= token_budget:
-            hi = mid
-        else:
-            lo = mid + 1
+    lo = _smallest_scheduled(total, token_budget)
+    return lo, ext(lo)
+
+
+def solve_scheduled_iterations_medium(bs_schedule, bs_extension: int, token_budget: int,
+                                      upstream_scheduled: int, upstream_extension: int):
+    """Medium-track analogue of solve_scheduled_iterations, for the indexed
+    get_bs() batch schedule. Same semantics: smallest scheduled count whose
+    total trained tokens >= token_budget; extension kept at the upstream
+    extension/scheduled ratio (>= 1 step); the batch schedule's equal
+    fractions-of-scheduled-steps are preserved by get_bs()'s indexing."""
+    def ext(s):
+        return max(1, round(s * upstream_extension / upstream_scheduled))
+
+    def total(s):
+        return sum(simulate_step_tokens_medium(bs_schedule, bs_extension, s, ext(s)))
+
+    lo = _smallest_scheduled(total, token_budget)
     return lo, ext(lo)
 
 
@@ -155,6 +193,20 @@ def ckpt_steps_from_step_tokens(step_tokens, n_checkpoints: int, first_frac: flo
     return steps
 
 
+def _finalize_step_schedule(scheduled: int, extension: int, step_tokens):
+    """Cache the derived per-step token schedule + checkpoint schedule on
+    CONFIG (shared tail of derive_step_counts / derive_step_counts_medium)."""
+    CONFIG.scheduled_iterations = scheduled
+    CONFIG.extension_iterations = extension
+    CONFIG.step_tokens = step_tokens
+    CONFIG.cum_tokens = [0, *accumulate(step_tokens)]
+    CONFIG.total_steps = len(step_tokens)
+    CONFIG.total_tokens_trained = CONFIG.cum_tokens[-1]
+    CONFIG.ckpt_steps = ckpt_steps_from_step_tokens(
+        step_tokens, CONFIG.n_checkpoints, CONFIG.first_ckpt_frac)
+    return scheduled, extension
+
+
 def derive_step_counts(stages, upstream_scheduled: int, upstream_extension: int):
     """Called from train_gpt_ceg.py with its TRAINING_STAGES. Derives the step
     counts for CONFIG.token_budget and caches the per-step token schedule plus
@@ -165,15 +217,19 @@ def derive_step_counts(stages, upstream_scheduled: int, upstream_extension: int)
     scheduled, extension = solve_scheduled_iterations(
         durations, batch_sizes, CONFIG.token_budget, upstream_scheduled, upstream_extension)
     step_tokens = simulate_step_tokens(durations, batch_sizes, scheduled, extension)
-    CONFIG.scheduled_iterations = scheduled
-    CONFIG.extension_iterations = extension
-    CONFIG.step_tokens = step_tokens
-    CONFIG.cum_tokens = [0, *accumulate(step_tokens)]
-    CONFIG.total_steps = len(step_tokens)
-    CONFIG.total_tokens_trained = CONFIG.cum_tokens[-1]
-    CONFIG.ckpt_steps = ckpt_steps_from_step_tokens(
-        step_tokens, CONFIG.n_checkpoints, CONFIG.first_ckpt_frac)
-    return scheduled, extension
+    return _finalize_step_schedule(scheduled, extension, step_tokens)
+
+
+def derive_step_counts_medium(bs_schedule, bs_extension: int,
+                              upstream_scheduled: int, upstream_extension: int):
+    """Called from train_gpt_medium_ceg.py with its Hyperparameters batch
+    schedule (train_bs_schedule / train_bs_extension). Same semantics as
+    derive_step_counts, for the medium track's indexed get_bs() schedule."""
+    assert CONFIG is not None, "derive_step_counts_medium requires CONFIG (run via train_wrapper.py)"
+    scheduled, extension = solve_scheduled_iterations_medium(
+        bs_schedule, bs_extension, CONFIG.token_budget, upstream_scheduled, upstream_extension)
+    step_tokens = simulate_step_tokens_medium(bs_schedule, bs_extension, scheduled, extension)
+    return _finalize_step_schedule(scheduled, extension, step_tokens)
 
 
 def stage_summary(step_tokens):
@@ -300,6 +356,24 @@ def _make_eval_forward(model, get_bigram_hash, schedule_cfg):
     return forward
 
 
+def _make_eval_forward_medium(model, schedule_cfg):
+    """Medium-track forward shim: model(inputs, targets, cu_seqlens,
+    schedule_cfg) — no bigram-hash inputs. Returns per-position nats (the
+    medium CEG copy's eval branch uses reduction="none")."""
+    import torch
+
+    @torch.no_grad()
+    def forward(x_np, y_np, cu_np):
+        return model(
+            torch.from_numpy(np.ascontiguousarray(x_np)).to(device="cuda", non_blocking=True),
+            torch.from_numpy(y_np).to(device="cuda", non_blocking=True),
+            torch.from_numpy(cu_np).to(device="cuda", non_blocking=True),
+            schedule_cfg,
+        )
+
+    return forward
+
+
 def _ensure_eval_corpora():
     if STATE.neutral_chunks is not None:
         return
@@ -346,11 +420,15 @@ def write_run_config(model, training_manager, world_size: int, master: bool):
     out_dir = Path(CONFIG.out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     muon_lr = adam_lr = None
-    for p_cfg in training_manager.optimizer.param_cfgs.values():
-        if p_cfg.optim == "normuon" and muon_lr is None:
-            muon_lr = p_cfg.initial_lr
-        elif p_cfg.optim == "adam" and adam_lr is None:
-            adam_lr = p_cfg.initial_lr
+    if hasattr(training_manager, "optimizer"):  # small: combined NorMuonAndAdam
+        for p_cfg in training_manager.optimizer.param_cfgs.values():
+            if p_cfg.optim == "normuon" and muon_lr is None:
+                muon_lr = p_cfg.initial_lr
+            elif p_cfg.optim == "adam" and adam_lr is None:
+                adam_lr = p_cfg.initial_lr
+    else:  # medium: separate NorMuon + DistAdam optimizers
+        muon_lr = training_manager.muon_opt.param_groups[0]["initial_lr"]
+        adam_lr = training_manager.adam_opt.param_groups[0]["initial_lr"]
     cfg = {
         **CONFIG.cli,
         "lr": muon_lr,                      # NorMuon base LR (matrix params)
@@ -364,7 +442,7 @@ def write_run_config(model, training_manager, world_size: int, master: bool):
         "device": f"cuda:{os.environ.get('LOCAL_RANK', '0')}",
         "gpu_name": torch.cuda.get_device_name(),
         "torch_version": torch.__version__,
-        "algorithm": "new_modded_nanogpt",
+        "algorithm": CONFIG.algorithm,
         "ckpt_steps": CONFIG.ckpt_steps,
         "num_scheduled_iterations": CONFIG.scheduled_iterations,
         "num_extension_iterations": CONFIG.extension_iterations,
@@ -375,10 +453,12 @@ def write_run_config(model, training_manager, world_size: int, master: bool):
         csv.writer(f).writerow(CSV_COLUMNS)
 
 
-def run_checkpoint(step: int, model, training_manager, get_bigram_hash,
-                   timed_seconds: float, world_size: int, master: bool, print0=None):
+def run_checkpoint(step: int, model, training_manager, timed_seconds: float,
+                   world_size: int, master: bool, print0=None, get_bigram_hash=None):
     """BPB evals + metrics row + checkpoint save. Master only; the caller
-    pauses the timed clock around this and barriers afterwards."""
+    pauses the timed clock around this and barriers afterwards.
+    get_bigram_hash is the small track's bigram-hash input builder; the medium
+    track's forward takes no bigram inputs, so it omits the argument."""
     if not master:
         return
     import torch
@@ -392,14 +472,20 @@ def run_checkpoint(step: int, model, training_manager, get_bigram_hash,
     if STATE.mtp_ones is None:
         STATE.mtp_ones = torch.ones(1, device="cuda")
     fwd_cfg.mtp_weights = STATE.mtp_ones
-    forward = _make_eval_forward(model, get_bigram_hash, fwd_cfg)
+    if get_bigram_hash is not None:  # small track
+        forward = _make_eval_forward(model, get_bigram_hash, fwd_cfg)
+    else:  # medium track
+        forward = _make_eval_forward_medium(model, fwd_cfg)
     nb = evaluate_bpb_modded(forward, STATE.neutral_chunks, STATE.neutral_bytes)
     ob = {"bpb": float("nan")}
     if STATE.ownval_chunks is not None:
         ob = evaluate_bpb_modded(forward, STATE.ownval_chunks, STATE.ownval_bytes)
     loss_ema = float(STATE.loss_ema.item()) if STATE.loss_ema is not None else float("nan")
-    cur_lr = next(p.lr for p in training_manager.optimizer.param_cfgs.values()
-                  if p.optim == "normuon")
+    if hasattr(training_manager, "optimizer"):  # small: combined NorMuonAndAdam
+        cur_lr = next(p.lr for p in training_manager.optimizer.param_cfgs.values()
+                      if p.optim == "normuon")
+    else:  # medium: separate NorMuon optimizer (lr set each step by step_optimizers)
+        cur_lr = training_manager.muon_opt.param_groups[0]["lr"]
     tokens_done = CONFIG.cum_tokens[min(step, len(CONFIG.cum_tokens) - 1)]
     timed_hours = timed_seconds / 3600
     out_dir = Path(CONFIG.out_dir)
@@ -412,11 +498,19 @@ def run_checkpoint(step: int, model, training_manager, get_bigram_hash,
            f"| gpu_h {timed_hours * world_size:8.4f} | neutral_bpb {nb['bpb']:.4f} "
            f"| ownval_bpb {ob['bpb']:.4f} | loss {loss_ema:.4f}", console=True)
     if CONFIG.save_checkpoints:
+        if CONFIG.size == "small":
+            model_args = {"vocab_size": model.vocab_size, "num_layers": model.num_layers,
+                          "num_heads": model.num_heads, "head_dim": model.head_dim,
+                          "model_dim": model.embed.embedding_dim}
+        else:  # medium GPT keeps head dims on its attention blocks, not the module
+            attn = model.blocks[0].attn
+            model_args = {"vocab_size": model.embed.num_embeddings, "num_layers": model.num_layers,
+                          "num_heads": attn.num_heads, "head_dim": attn.head_dim,
+                          "model_dim": model.embed.embedding_dim,
+                          "max_seq_len": model.yarn.max_seq_len}
         torch.save(
             {"model": model.state_dict(),  # note: compiled module ("_orig_mod." prefixes)
-             "model_args": {"vocab_size": model.vocab_size, "num_layers": model.num_layers,
-                            "num_heads": model.num_heads, "head_dim": model.head_dim,
-                            "model_dim": model.embed.embedding_dim},
+             "model_args": model_args,
              "size": CONFIG.size, "arm": CONFIG.arm, "step": step, "tokens": tokens_done,
              "timed_seconds": timed_seconds, "world_size": world_size},
             out_dir / f"ckpt_{step:06d}.pt")
@@ -456,10 +550,6 @@ def get_args():
 def main():
     global CONFIG
     args = get_args()
-    if args.size != "small":
-        raise NotImplementedError(
-            "--size medium maps to modded-nanogpt/train_gpt_medium.py (355M track); "
-            "only the 124M speedrun (small) is adapted so far.")
     if "RANK" not in os.environ or "LOCAL_RANK" not in os.environ:
         sys.exit("train_wrapper.py must be launched via torchrun (the upstream trainer "
                  "initializes CUDA+distributed at import), e.g.\n"
@@ -487,6 +577,8 @@ def main():
     CONFIG = SimpleNamespace(
         cli=vars(args),
         size=args.size, arm=args.arm,
+        algorithm={"small": "new_modded_nanogpt",
+                   "medium": "new_modded_nanogpt_medium"}[args.size],
         token_budget=args.token_budget, n_epochs=args.n_epochs,
         n_checkpoints=args.n_checkpoints, first_ckpt_frac=args.first_ckpt_frac,
         eval_seq_len=args.eval_seq_len, eval_windows_per_chunk=args.eval_windows_per_chunk,
@@ -502,9 +594,10 @@ def main():
         Path(CONFIG.out_dir).mkdir(parents=True, exist_ok=True)
 
     # Expose this module to the patched trainer as "ceg", then run it.
+    trainer = {"small": "train_gpt_ceg.py", "medium": "train_gpt_medium_ceg.py"}[args.size]
     sys.modules["ceg"] = sys.modules[__name__]
-    runpy.run_path(str(Path(__file__).resolve().parent / "train_gpt_ceg.py"),
-                   run_name="train_gpt_ceg")
+    runpy.run_path(str(Path(__file__).resolve().parent / trainer),
+                   run_name=trainer.removesuffix(".py"))
 
 
 if __name__ == "__main__":
