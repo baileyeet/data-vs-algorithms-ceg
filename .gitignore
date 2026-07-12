@@ -7,4 +7,6 @@ datasets/
 *.pt
 wandb/
 .DS_Store
+.env.local
+.env
 train_new/modded-nanogpt/

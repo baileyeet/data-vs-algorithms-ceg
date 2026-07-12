@@ -31,6 +31,13 @@ def ngrams(text, n):
     return {" ".join(words[i : i + n]) for i in range(len(words) - n + 1)}
 
 
+def _scan_chunk(texts, universe, n):
+    found = set()
+    for t in texts:
+        found |= universe & ngrams(t, n)
+    return found
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--eval-jsonl", required=True)
@@ -38,6 +45,10 @@ def main():
                     help="name from data/prepare.py DATASETS, or a local jsonl path")
     ap.add_argument("--train-docs", type=int, default=0, help="0 = whole stream")
     ap.add_argument("--n", type=int, default=13)
+    ap.add_argument("--workers", type=int, default=1,
+                    help=">1 enables multiprocess scanning (full-scale corpora)")
+    ap.add_argument("--chunk-docs", type=int, default=2000,
+                    help="docs per worker task when --workers > 1")
     ap.add_argument("--max-hits", type=int, default=1,
                     help="drop eval doc if >= this many of its n-grams appear in training data")
     ap.add_argument("--out", required=True)
@@ -58,12 +69,34 @@ def main():
         stream = (row[field] for row in ds)
 
     hit = set()
-    for i, text in enumerate(stream):
-        if args.train_docs and i >= args.train_docs:
-            break
-        hit |= universe & ngrams(text, args.n)
-        if (i + 1) % 100_000 == 0:
-            print(f"  scanned {i + 1:,} training docs, {len(hit):,} contaminated n-grams")
+    if args.workers > 1:
+        # full-scale path: fan out n-gram scanning across processes in chunks
+        from functools import partial
+        from itertools import islice
+        from multiprocessing import Pool
+
+        def batches(it, size):
+            while chunk := list(islice(it, size)):
+                yield chunk
+
+        scanned = 0
+        with Pool(args.workers) as pool:
+            src = islice(stream, args.train_docs) if args.train_docs else stream
+            for found in pool.imap_unordered(
+                    partial(_scan_chunk, universe=universe, n=args.n),
+                    batches(src, args.chunk_docs)):
+                hit |= found
+                scanned += args.chunk_docs
+                if scanned % 100_000 < args.chunk_docs:
+                    print(f"  scanned ~{scanned:,} training docs, "
+                          f"{len(hit):,} contaminated n-grams", flush=True)
+    else:
+        for i, text in enumerate(stream):
+            if args.train_docs and i >= args.train_docs:
+                break
+            hit |= universe & ngrams(text, args.n)
+            if (i + 1) % 100_000 == 0:
+                print(f"  scanned {i + 1:,} training docs, {len(hit):,} contaminated n-grams")
 
     kept, dropped = [], 0
     for d, g in zip(eval_docs, doc_grams):
