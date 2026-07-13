@@ -129,12 +129,15 @@ def doc_stream(args):
 
     path, config, field = DATASETS[args.dataset]
     ds = load_dataset(path, config, split="train", streaming=True)
+    if args.num_stream_shards > 1:
+        # disjoint-by-construction partition of the underlying data files
+        ds = ds.shard(num_shards=args.num_stream_shards, index=args.stream_shard)
     # For subsetting a large corpus (e.g. 9B/18B tokens from multi-T DCLM),
     # .shuffle() on a streaming dataset randomizes BOTH the shard order and
     # docs within the buffer, so the sample isn't the corpus's first shards.
     # seed + buffer are recorded in meta.json for reproducibility.
     if args.shuffle_buffer:
-        ds = ds.shuffle(seed=args.seed, buffer_size=args.shuffle_buffer)
+        ds = ds.shuffle(seed=args.seed + args.stream_shard, buffer_size=args.shuffle_buffer)
     return (row[field] for row in ds)
 
 
@@ -152,6 +155,11 @@ def main():
     ap.add_argument("--workers", type=int, default=1,
                     help=">1 = parallel tokenization (order-preserving; needed for full-scale prep)")
     ap.add_argument("--batch-docs", type=int, default=512, help="docs per worker task")
+    ap.add_argument("--num-stream-shards", type=int, default=1,
+                    help="split the HF stream into N disjoint file-shards; run one "
+                         "process per shard (streaming bandwidth is the full-scale "
+                         "bottleneck). Merge outputs with data/merge_shards.py")
+    ap.add_argument("--stream-shard", type=int, default=0, help="this process's shard index")
     args = ap.parse_args()
 
     enc, eot = get_encoder(args.tokenizer)
