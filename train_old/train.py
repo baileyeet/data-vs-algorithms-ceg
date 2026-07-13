@@ -238,8 +238,20 @@ def main():
             loss_acc += loss.item()
             loss.backward()
         if stop:
+            # final eval/checkpoint on the exhaustion path (mirrors train_new's
+            # DataExhausted handling) — without this the curve silently ends at
+            # the last scheduled checkpoint even though training ran further,
+            # which corrupts the "final BPB" threshold definition for A0D0
+            if device_type == "cuda":
+                torch.cuda.synchronize()
+            timed_seconds += time.perf_counter() - t0
             if master:
-                print("data exhausted; stopping")
+                print(f"data exhausted at step {step}; final eval + checkpoint")
+            run_evals(step, loader.tokens_served * world, timed_seconds,
+                      loss_ema if loss_ema is not None else float("nan"),
+                      cur_lr, wall0)
+            if ddp:
+                torch.distributed.barrier()
             break
         torch.nn.utils.clip_grad_norm_(model.parameters(), args.grad_clip)
         optimizer.step()
