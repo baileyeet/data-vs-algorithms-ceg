@@ -929,12 +929,12 @@ class AttnArgs:
     attn_scale: float
     key_offset: bool
 
-# CEG: kernels>=0.x requires explicit opt-in for repos without verified
-# publisher status plus a pinned revision; this FA3 build is upstream
-# modded-nanogpt's own dependency. TODO before Tier 2 real runs: pin the
-# exact commit hash for reproducibility instead of main.
-flash_attn_interface = get_kernel('varunneal/flash-attention-3', revision='main',
-                                  trust_remote_code=True).flash_attn_interface
+# CEG: upstream medium pins 'varunneal/flash-attention-3', which the current
+# kernels package can no longer fetch anonymously (unverified publisher +
+# 401 on its tree API). Use the verified community build of the same FA3
+# interface instead — identical symbol, and it's what upstream's own small
+# track (train_gpt.py) already uses.
+flash_attn_interface = get_kernel('kernels-community/flash-attn3', version=1).flash_attn_interface
 
 class CausalSelfAttention(nn.Module):
     def __init__(self, dim: int, head_dim: int, num_heads: int, layer_idx: int):
