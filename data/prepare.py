@@ -47,6 +47,70 @@ def get_encoder(name):
     return enc, enc.eot_token
 
 
+_WORKER_ENC = None
+
+
+def _init_worker(tok_name):
+    global _WORKER_ENC
+    _WORKER_ENC = get_encoder(tok_name)
+
+
+def _encode_batch(texts):
+    """Runs in a worker: returns (list of per-doc token arrays, per-doc byte lens).
+    Empty docs return empty arrays so order/indices stay aligned with input."""
+    enc, eot = _WORKER_ENC
+    out_toks, out_bytes = [], []
+    for ids, text in zip(enc.encode_ordinary_batch(texts), texts):
+        if ids:
+            out_toks.append(np.array([eot] + ids, dtype=np.uint16))
+            out_bytes.append(len(text.encode("utf-8")))
+        else:
+            out_toks.append(np.array([], dtype=np.uint16))
+            out_bytes.append(0)
+    return out_toks, out_bytes
+
+
+def encoded_doc_stream(stream, args):
+    """Yield (token_array, n_bytes, text) per doc, in stream order.
+
+    workers==1: serial (original behavior). workers>1: docs are batched and
+    tokenized in a process pool with imap (order-preserving), so the produced
+    corpus is IDENTICAL to the serial one — parallelism changes throughput only.
+    """
+    if args.workers <= 1:
+        enc, eot = get_encoder(args.tokenizer)
+        for text in stream:
+            ids = enc.encode_ordinary(text)
+            if not ids:
+                continue
+            yield np.array([eot] + ids, dtype=np.uint16), len(text.encode("utf-8")), text
+        return
+
+    from itertools import islice
+    from multiprocessing import Pool
+
+    def batches():
+        while chunk := list(islice(stream, args.batch_docs)):
+            yield chunk
+
+    # imap preserves submission order; `pending` holds the texts of in-flight
+    # batches (bounded by the pool's prefetch) so each result can be re-paired
+    # with its input docs for val_text.jsonl.
+    pending = []
+
+    def feed():
+        for chunk in batches():
+            pending.append(chunk)
+            yield chunk
+
+    with Pool(args.workers, initializer=_init_worker, initargs=(args.tokenizer,)) as pool:
+        for toks, nbytes in pool.imap(_encode_batch, feed(), chunksize=1):
+            texts = pending.pop(0)
+            for arr, nb, text in zip(toks, nbytes, texts):
+                if len(arr):
+                    yield arr, nb, text
+
+
 def doc_stream(args):
     if args.dataset == "jsonl":
         def gen():
@@ -85,6 +149,9 @@ def main():
     ap.add_argument("--txt-path")
     ap.add_argument("--seed", type=int, default=1234)
     ap.add_argument("--shuffle-buffer", type=int, default=0, help="streaming shuffle buffer (docs)")
+    ap.add_argument("--workers", type=int, default=1,
+                    help=">1 = parallel tokenization (order-preserving; needed for full-scale prep)")
+    ap.add_argument("--batch-docs", type=int, default=512, help="docs per worker task")
     args = ap.parse_args()
 
     enc, eot = get_encoder(args.tokenizer)
@@ -101,24 +168,26 @@ def main():
     val_text_f = open(out / "val_text.jsonl", "w") if args.val_tokens > 0 else None
 
     stream = doc_stream(args)
+    encoded = encoded_doc_stream(stream, args)
     for split, budget in order:
-        toks, ntok, nbytes, ndocs = [], 0, 0, 0
-        for text in stream:
-            ids = enc.encode_ordinary(text)
-            if not ids:
-                continue
-            toks.append(np.array([eot] + ids, dtype=np.uint16))
-            ntok += len(ids) + 1
-            nbytes += len(text.encode("utf-8"))
-            ndocs += 1
-            if split == "val" and val_text_f:
-                val_text_f.write(json.dumps({"text": text}) + "\n")
-            if ntok >= budget:
-                break
-        arr = np.concatenate(toks) if toks else np.array([], dtype=np.uint16)
-        arr.tofile(out / f"{split}.bin")
-        splits[split] = {"tokens": int(len(arr)), "bytes": int(nbytes), "docs": int(ndocs)}
-        print(f"{split}: {len(arr):,} tokens, {nbytes:,} bytes, {ndocs:,} docs")
+        ntok, nbytes, ndocs = 0, 0, 0
+        # stream tokens to disk incrementally — full-scale splits (18B tokens
+        # = 36GB) must not accumulate in RAM
+        with open(out / f"{split}.bin", "wb") as bin_f:
+            for arr, nb, text in encoded:
+                arr.tofile(bin_f)
+                ntok += len(arr)
+                nbytes += nb
+                ndocs += 1
+                if split == "val" and val_text_f:
+                    val_text_f.write(json.dumps({"text": text}) + "\n")
+                if ndocs % 500_000 == 0:
+                    print(f"  {split}: {ntok:,}/{budget:,} tokens "
+                          f"({ndocs:,} docs)", flush=True)
+                if ntok >= budget:
+                    break
+        splits[split] = {"tokens": int(ntok), "bytes": int(nbytes), "docs": int(ndocs)}
+        print(f"{split}: {ntok:,} tokens, {nbytes:,} bytes, {ndocs:,} docs", flush=True)
         if ntok < budget:
             print(f"WARNING: stream exhausted before {split} budget "
                   f"({ntok:,} < {budget:,})", file=sys.stderr)
