@@ -540,7 +540,13 @@ def get_args():
                     help="BPB windows packed per forward via varlen cu_seqlens")
     ap.add_argument("--val-batch-size", type=int, default=4 * 64 * 1024 * 8,
                     help="upstream val/warmup batch tokens; shrink for toy datasets "
-                         "(also caps model max_seq_len). Keep default for real runs.")
+                         "(val shards must hold >= this many tokens)")
+    ap.add_argument("--model-max-seq-len", type=int, default=0,
+                    help="YaRN/rotary position-table size per rank. 0 = upstream "
+                         "derivation (val_batch_size // world_size), which silently "
+                         "couples the model's position range to the val-pass size; "
+                         "set explicitly (49152 covers the largest training stage) "
+                         "when shrinking --val-batch-size for toy shards")
     ap.add_argument("--seed", type=int, default=1234,
                     help="per-epoch reshuffle seed (epoch 0 keeps upstream order)")
     ap.add_argument("--save-checkpoints", type=int, default=1)
@@ -558,6 +564,17 @@ def main():
     assert args.val_batch_size % 128 == 0, "--val-batch-size must be a multiple of 128"
     assert args.eval_seq_len * args.eval_windows_per_chunk <= args.val_batch_size // 8, \
         "eval chunk exceeds the model's max_seq_len (val_batch_size // 8)"
+    # fail fast (pre-compile) if the model's position table cannot cover the
+    # largest per-rank flattened training sequence: stage batches reach
+    # 24*2048*8 tokens across 8 ranks = 49152 per rank. Without this check the
+    # YaRN rotary assert fires ~7 minutes in, after torch.compile.
+    world = int(os.environ.get("WORLD_SIZE", "1"))
+    max_stage_global = {"small": 24 * 2048 * 8, "medium": 524288}[args.size]
+    max_stage_per_rank = max_stage_global // world
+    model_msl = args.model_max_seq_len or args.val_batch_size // world
+    assert model_msl >= max_stage_per_rank, (
+        f"model max_seq_len {model_msl} < largest per-rank training sequence "
+        f"{max_stage_per_rank}; raise --model-max-seq-len (or --val-batch-size)")
 
     data_glob = os.path.abspath(args.data_glob)
     train_files = sorted(glob.glob(data_glob))
@@ -582,7 +599,7 @@ def main():
         token_budget=args.token_budget, n_epochs=args.n_epochs,
         n_checkpoints=args.n_checkpoints, first_ckpt_frac=args.first_ckpt_frac,
         eval_seq_len=args.eval_seq_len, eval_windows_per_chunk=args.eval_windows_per_chunk,
-        val_batch_size=args.val_batch_size,
+        val_batch_size=args.val_batch_size, model_max_seq_len=args.model_max_seq_len,
         seed=args.seed, save_checkpoints=args.save_checkpoints,
         out_dir=os.path.abspath(args.out_dir),
         neutral_eval_dir=os.path.abspath(args.neutral_eval_dir),

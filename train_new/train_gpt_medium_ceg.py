@@ -1782,7 +1782,9 @@ model: nn.Module = GPT(
     num_heads=8,
     head_dim=128,
     model_dim=1024,
-    max_seq_len=args.val_batch_size // (grad_accum_steps * world_size)
+    # CEG: allow decoupling the rotary table size from the val-pass size
+    max_seq_len=ceg.CONFIG.model_max_seq_len
+                 or args.val_batch_size // (grad_accum_steps * world_size)
 ).cuda()
 for m in model.modules():
     if isinstance(m, (nn.Embedding, nn.Linear)):
