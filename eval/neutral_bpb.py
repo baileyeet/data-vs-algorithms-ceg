@@ -23,7 +23,9 @@ from common.model_gpt2 import GPT, GPTConfig
 def load_ckpt(path, device):
     ckpt = torch.load(path, map_location=device, weights_only=True)
     model = GPT(GPTConfig(**ckpt["config"])).to(device)
-    model.load_state_dict(ckpt["model"])
+    # runs trained with --compile save torch.compile's _orig_mod. key prefixes
+    sd = {k.removeprefix("_orig_mod."): v for k, v in ckpt["model"].items()}
+    model.load_state_dict(sd)
     return model, ckpt
 
 

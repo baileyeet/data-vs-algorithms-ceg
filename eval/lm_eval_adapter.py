@@ -32,7 +32,8 @@ def make_lm(ckpt_path, device, batch_size=8, tokenizer_name="gpt2"):
     enc = tiktoken.get_encoding(tokenizer_name)
     ckpt = torch.load(ckpt_path, map_location=device, weights_only=True)
     model = GPT(GPTConfig(**ckpt["config"])).to(device)
-    model.load_state_dict(ckpt["model"])
+    sd = {k.removeprefix("_orig_mod."): v for k, v in ckpt["model"].items()}
+    model.load_state_dict(sd)
     model.eval()
     block = ckpt["config"]["block_size"]
 

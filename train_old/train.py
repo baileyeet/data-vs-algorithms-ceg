@@ -114,7 +114,8 @@ def main():
         model = torch.compile(model)
     if ddp:
         model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[local_rank])
-        raw_model = model.module
+        # unwrap through DDP AND torch.compile so checkpoints get clean keys
+        raw_model = getattr(model.module, "_orig_mod", model.module)
 
     lr = args.lr or SIZE_HPARAMS[args.size]["lr"]
     optimizer = raw_model.configure_optimizers(args.weight_decay, lr, (0.9, 0.95), device_type)
