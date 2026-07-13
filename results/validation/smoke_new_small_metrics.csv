@@ -1,0 +1,3 @@
+step,tokens,timed_hours,gpu_hours,train_loss_ema,neutral_bpb,ownval_bpb,lr,wallclock_s
+1,131072,0.000021,0.000165,18.9043,3.597050,3.408496,2.30e-02,297.9
+10,2621440,0.000173,0.001384,15.8212,2.531960,2.178905,9.51e-03,313.2
