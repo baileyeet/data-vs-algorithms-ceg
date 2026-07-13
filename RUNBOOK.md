@@ -4,11 +4,18 @@ Every session that spends money follows a written checklist here. Rules:
 user confirms before each launch; track actual vs. estimated cost per tier;
 terminate pods before walking away (volume persists, pods bill while idle).
 
-Costs actually incurred (update as we go):
+Costs actually incurred — two buckets, per user: **prep/validation** vs
+**per-tier training**, so the $10k budget stays auditable:
 
-| Date | Session | Est. | Actual | Notes |
-|------|---------|------|--------|-------|
-| —    | —       | —    | —      | —     |
+| Date | Bucket | Session | Est. | Actual | Notes |
+|------|--------|---------|------|--------|-------|
+| 2026-07-12/13 | prep/validation | Session 0+1 merged (8xH100 @ $23.92/hr) | $50-90 | ~$115 (final at terminate) | 4/4 smokes + CORE validity + 27B-token prep; overage: 3 kernel-dep smoke retries + initial single-stream tokenization |
+
+**Cost-efficiency rule (user, 2026-07-13): CPU-bound work (tokenization,
+decontam scans, merging, re-chunking) is NOT run on GPU pods by default at
+Tier 2+. Flag it to the user first — cheap CPU instance vs. accept-the-cost is
+their explicit call each time.** Using idle GPU/CPU time on an already-running
+pod for validation smokes is fine.
 
 ## Session 0 — account validation + smoke test (~$1-3, single H100)
 

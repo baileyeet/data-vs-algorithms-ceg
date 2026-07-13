@@ -19,7 +19,7 @@ lambada_openai   # *
 openbookqa
 piqa             # *
 winogrande       # * (schema-style)
-xwinograd_en     # * (schema-style; lm-eval's winograd variant)
+wsc273           # * (schema-style; lm-eval's true Winograd WSC273, matches DCLM's "winograd")
 #
 # EXCLUDED from our CORE subset (with reasons, so the writeup can note the
 # deviation from DCLM's exact 22-task CORE):
