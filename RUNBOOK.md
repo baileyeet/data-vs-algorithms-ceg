@@ -48,6 +48,18 @@ Costs actually incurred (update as we go):
 3. Spot-check token counts vs meta.json; `df -h /workspace` (~60-70GB expected)
 4. Terminate pod; record cost. **Stop: user confirms Tier 1 before any GPU run.**
 
+## Tier 1 hard exit criteria (Tier 1 is NOT done until all of these hold)
+
+- [ ] modded-nanoGPT checkpoint loader for eval/lm_eval_adapter.py written AND
+      verified (loads an A1 checkpoint, hellaswag score sanity-checked) — without
+      it the A1 arms never get CORE scores, only BPB. Not allowed to slip.
+- [ ] CORE validity table recorded (per-task score vs chance, toy + A0D0-final
+      checkpoints) and the quantitative-use decision for 124M/355M documented.
+- [ ] verify_row_hparams.py passes on both rows.
+- [ ] All 4 arms' metrics.csv + run_config.json + kept checkpoints copied to
+      results/small/ and pushed.
+- [ ] Actual vs. estimated cost recorded above; user informed before Tier 2.
+
 ## Sessions 2+ — training tiers (8xH100; confirm each with user first)
 
 Tier 1 = 124M all 4 arms; Tier 2 = 355M; Tier 3 = 1.5B (wire XL recipe first);
