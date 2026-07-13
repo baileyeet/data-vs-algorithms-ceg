@@ -929,7 +929,10 @@ class AttnArgs:
     attn_scale: float
     key_offset: bool
 
-flash_attn_interface = get_kernel('varunneal/flash-attention-3').flash_attn_interface
+# CEG: kernels>=0.x requires explicit opt-in for repos without verified
+# publisher status; this FA3 build is upstream modded-nanogpt's own dependency
+flash_attn_interface = get_kernel('varunneal/flash-attention-3',
+                                  trust_remote_code=True).flash_attn_interface
 
 class CausalSelfAttention(nn.Module):
     def __init__(self, dim: int, head_dim: int, num_heads: int, layer_idx: int):
