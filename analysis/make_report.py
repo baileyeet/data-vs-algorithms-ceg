@@ -88,6 +88,13 @@ def main():
               "- Loss metric is bits-per-byte on a fixed, decontaminated Wikipedia "
               "slice (tokenizer-invariant; identical raw text across all runs). "
               "Per-dataset val BPB was logged as same-distribution diagnostics only.",
+              "- Decontamination of the eval corpus (13-gram overlap against the "
+              "actual tokenized training samples) removed 562/2766 candidate docs "
+              "(20.3%): 409 (14.8%) matched OpenWebText — Reddit-curated pages "
+              "quote Wikipedia heavily — and a further 153 (5.5%) matched only "
+              "DCLM-baseline (Common Crawl carries Wikipedia mirrors). Frozen "
+              "corpus: 2,204 docs / 4,425,879 bytes / 1,086,611 GPT-2 tokens, "
+              "sha256 cbdd72ac..., identical across every arm, size, and tier.",
               "- Compute is timed GPU-hours on the runs' actual hardware, excluding "
               "kernel-warmup/compile and eval time; raw FLOPs are never compared "
               "across arms (precision differs).",
