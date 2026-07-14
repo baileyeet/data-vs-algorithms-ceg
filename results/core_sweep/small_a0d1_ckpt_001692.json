@@ -1,0 +1,121 @@
+{
+  "agieval_lsat_ar": {
+    "name": "agieval_lsat_ar",
+    "alias": "agieval_lsat_ar",
+    "sample_len": 230,
+    "acc,none": 0.1956521739130435,
+    "acc_stderr,none": 0.0262147997098196,
+    "acc_norm,none": 0.1956521739130435,
+    "acc_norm_stderr,none": 0.02621479970981959
+  },
+  "arc_challenge": {
+    "name": "arc_challenge",
+    "alias": "arc_challenge",
+    "sample_len": 500,
+    "acc,none": 0.16,
+    "acc_stderr,none": 0.016411540980502307,
+    "acc_norm,none": 0.192,
+    "acc_norm_stderr,none": 0.017632180454360994
+  },
+  "arc_easy": {
+    "name": "arc_easy",
+    "alias": "arc_easy",
+    "sample_len": 500,
+    "acc,none": 0.386,
+    "acc_stderr,none": 0.021793529219281165,
+    "acc_norm,none": 0.38,
+    "acc_norm_stderr,none": 0.02172888143870171
+  },
+  "bigbench_cs_algorithms_multiple_choice": {
+    "name": "bigbench_cs_algorithms_multiple_choice",
+    "alias": "bigbench_cs_algorithms_multiple_choice",
+    "sample_len": 500,
+    "acc,none": 0.242,
+    "acc_stderr,none": 0.019173085678337153
+  },
+  "bigbench_dyck_languages_multiple_choice": {
+    "name": "bigbench_dyck_languages_multiple_choice",
+    "alias": "bigbench_dyck_languages_multiple_choice",
+    "sample_len": 500,
+    "acc,none": 0.162,
+    "acc_stderr,none": 0.016494123566423498
+  },
+  "bigbench_language_identification_multiple_choice": {
+    "name": "bigbench_language_identification_multiple_choice",
+    "alias": "bigbench_language_identification_multiple_choice",
+    "sample_len": 500,
+    "acc,none": 0.102,
+    "acc_stderr,none": 0.013548399102346903
+  },
+  "boolq": {
+    "name": "boolq",
+    "alias": "boolq",
+    "sample_len": 500,
+    "acc,none": 0.604,
+    "acc_stderr,none": 0.021893529941665817
+  },
+  "commonsense_qa": {
+    "name": "commonsense_qa",
+    "alias": "commonsense_qa",
+    "sample_len": 500,
+    "acc,none": 0.188,
+    "acc_stderr,none": 0.017490678880346253
+  },
+  "copa": {
+    "name": "copa",
+    "alias": "copa",
+    "sample_len": 100,
+    "acc,none": 0.6,
+    "acc_stderr,none": 0.04923659639173309
+  },
+  "hellaswag": {
+    "name": "hellaswag",
+    "alias": "hellaswag",
+    "sample_len": 500,
+    "acc,none": 0.322,
+    "acc_stderr,none": 0.020916668330019882,
+    "acc_norm,none": 0.336,
+    "acc_norm_stderr,none": 0.021144791425048867
+  },
+  "lambada_openai": {
+    "name": "lambada_openai",
+    "alias": "lambada_openai",
+    "sample_len": 500,
+    "perplexity,none": 292.73592177887764,
+    "perplexity_stderr,none": 42.8343214526329,
+    "acc,none": 0.174,
+    "acc_stderr,none": 0.016971271257516147
+  },
+  "openbookqa": {
+    "name": "openbookqa",
+    "alias": "openbookqa",
+    "sample_len": 500,
+    "acc,none": 0.156,
+    "acc_stderr,none": 0.01624363602839109,
+    "acc_norm,none": 0.274,
+    "acc_norm_stderr,none": 0.019966103540279462
+  },
+  "piqa": {
+    "name": "piqa",
+    "alias": "piqa",
+    "sample_len": 500,
+    "acc,none": 0.584,
+    "acc_stderr,none": 0.02206494331392886,
+    "acc_norm,none": 0.59,
+    "acc_norm_stderr,none": 0.02201748257812767
+  },
+  "winogrande": {
+    "name": "winogrande",
+    "alias": "winogrande",
+    "sample_len": 500,
+    "acc,none": 0.53,
+    "acc_stderr,none": 0.022342748192502846
+  },
+  "xwinograd_en": {
+    "name": "xwinograd_en",
+    "alias": "xwinograd_en",
+    "sample_len": 500,
+    "acc,none": 0.524,
+    "acc_stderr,none": 0.0223572738810164
+  }
+}

@@ -1,0 +1,179 @@
+[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
+Fetching 8 files:   0%|          | 0/8 [00:00<?, ?it/s]Fetching 8 files: 100%|██████████| 8/8 [00:00<00:00, 19565.27it/s]
+/usr/local/lib/python3.11/dist-packages/requests/__init__.py:113: RequestsDependencyWarning: urllib3 (2.2.3) or chardet (6.0.0.post1)/charset_normalizer (3.3.2) doesn't match a supported version!
+  warnings.warn(
+[Task: bigbench_cs_algorithms_multiple_choice] metric acc is defined, but aggregation is not. using default aggregation=mean
+[Task: bigbench_cs_algorithms_multiple_choice] metric acc is defined, but higher_is_better is not. using default higher_is_better=True
+Using the latest cached version of the dataset since hails/bigbench couldn't be found on the Hugging Face Hub
+Found the latest cached dataset configuration 'cs_algorithms_zero_shot' at /root/.cache/huggingface/datasets/hails___bigbench/cs_algorithms_zero_shot/0.0.0/2915f06cecbbad3d7e28c096ad682ab277aee984 (last modified on Tue Jul 14 02:57:08 2026).
+[Task: bigbench_dyck_languages_multiple_choice] metric acc is defined, but aggregation is not. using default aggregation=mean
+[Task: bigbench_dyck_languages_multiple_choice] metric acc is defined, but higher_is_better is not. using default higher_is_better=True
+Using the latest cached version of the dataset since hails/bigbench couldn't be found on the Hugging Face Hub
+Found the latest cached dataset configuration 'dyck_languages_zero_shot' at /root/.cache/huggingface/datasets/hails___bigbench/dyck_languages_zero_shot/0.0.0/2915f06cecbbad3d7e28c096ad682ab277aee984 (last modified on Tue Jul 14 02:57:13 2026).
+[Task: bigbench_language_identification_multiple_choice] metric acc is defined, but aggregation is not. using default aggregation=mean
+[Task: bigbench_language_identification_multiple_choice] metric acc is defined, but higher_is_better is not. using default higher_is_better=True
+Using the latest cached version of the dataset since hails/bigbench couldn't be found on the Hugging Face Hub
+Found the latest cached dataset configuration 'language_identification_zero_shot' at /root/.cache/huggingface/datasets/hails___bigbench/language_identification_zero_shot/0.0.0/2915f06cecbbad3d7e28c096ad682ab277aee984 (last modified on Tue Jul 14 02:57:19 2026).
+[Task: boolq] metric acc is defined, but aggregation is not. using default aggregation=mean
+[Task: boolq] metric acc is defined, but higher_is_better is not. using default higher_is_better=True
+Using the latest cached version of the dataset since aps/super_glue couldn't be found on the Hugging Face Hub
+Found the latest cached dataset configuration 'boolq' at /root/.cache/huggingface/datasets/aps___super_glue/boolq/0.0.0/3de24cf8022e94f4ee4b9d55a6f539891524d646 (last modified on Tue Jul 14 02:57:24 2026).
+Using the latest cached version of the dataset since tau/commonsense_qa couldn't be found on the Hugging Face Hub
+Found the latest cached dataset configuration 'default' at /root/.cache/huggingface/datasets/tau___commonsense_qa/default/0.0.0/94630fe30dad47192a8546eb75f094926d47e155 (last modified on Tue Jul 14 02:57:29 2026).
+[Task: copa] metric acc is defined, but aggregation is not. using default aggregation=mean
+[Task: copa] metric acc is defined, but higher_is_better is not. using default higher_is_better=True
+Using the latest cached version of the dataset since aps/super_glue couldn't be found on the Hugging Face Hub
+Found the latest cached dataset configuration 'copa' at /root/.cache/huggingface/datasets/aps___super_glue/copa/0.0.0/3de24cf8022e94f4ee4b9d55a6f539891524d646 (last modified on Tue Jul 14 02:57:33 2026).
+Using the latest cached version of the dataset since Rowan/hellaswag couldn't be found on the Hugging Face Hub
+Found the latest cached dataset configuration 'default' at /root/.cache/huggingface/datasets/Rowan___hellaswag/default/0.0.0/218ec52e09a7e7462a5400043bb9a69a41d06b76 (last modified on Tue Jul 14 00:19:05 2026).
+Using the latest cached version of the dataset since EleutherAI/lambada_openai couldn't be found on the Hugging Face Hub
+Found the latest cached dataset configuration 'default' at /root/.cache/huggingface/datasets/EleutherAI___lambada_openai/default/0.0.0/900124bf3b8235c6daf21033af9948b3f07346c4 (last modified on Tue Jul 14 02:57:37 2026).
+Using the latest cached version of the dataset since allenai/openbookqa couldn't be found on the Hugging Face Hub
+Found the latest cached dataset configuration 'main' at /root/.cache/huggingface/datasets/allenai___openbookqa/main/0.0.0/388097ea7776314e93a529163e0fea805b8a6454 (last modified on Tue Jul 14 02:57:42 2026).
+Using the latest cached version of the dataset since baber/piqa couldn't be found on the Hugging Face Hub
+Found the latest cached dataset configuration 'default' at /root/.cache/huggingface/datasets/baber___piqa/default/0.0.0/142f6d7367fd9877f0fb3b5734ea6a545f54cdd1 (last modified on Tue Jul 14 02:57:47 2026).
+Using the latest cached version of the dataset since allenai/winogrande couldn't be found on the Hugging Face Hub
+Found the latest cached dataset configuration 'winogrande_xl' at /root/.cache/huggingface/datasets/allenai___winogrande/winogrande_xl/0.0.0/01e74176c63542e6b0bcb004dcdea22d94fb67b5 (last modified on Tue Jul 14 02:57:52 2026).
+Using the latest cached version of the dataset since Muennighoff/xwinograd couldn't be found on the Hugging Face Hub
+Found the latest cached dataset configuration 'en' at /root/.cache/huggingface/datasets/Muennighoff___xwinograd/en/0.0.0/90b619ef5278605cd4f572e3e8506ab16afd44f2 (last modified on Tue Jul 14 02:57:55 2026).
+loaded /workspace/runs/small_a1d1_2x/ckpt_000035.pt: step=35 algo=None
+  0%|          | 0/230 [00:00<?, ?it/s] 66%|██████▌   | 152/230 [00:00<00:00, 1509.68it/s]100%|██████████| 230/230 [00:00<00:00, 1515.46it/s]
+  0%|          | 0/500 [00:00<?, ?it/s] 22%|██▏       | 111/500 [00:00<00:00, 1105.34it/s] 45%|████▍     | 223/500 [00:00<00:00, 1112.92it/s] 67%|██████▋   | 336/500 [00:00<00:00, 1118.11it/s] 90%|████████▉ | 448/500 [00:00<00:00, 1113.71it/s]100%|██████████| 500/500 [00:00<00:00, 1113.04it/s]
+  0%|          | 0/500 [00:00<?, ?it/s] 22%|██▏       | 112/500 [00:00<00:00, 1115.49it/s] 45%|████▌     | 225/500 [00:00<00:00, 1104.80it/s] 68%|██████▊   | 338/500 [00:00<00:00, 1113.80it/s] 90%|█████████ | 450/500 [00:00<00:00, 394.98it/s] 100%|██████████| 500/500 [00:00<00:00, 546.61it/s]
+  0%|          | 0/500 [00:00<?, ?it/s] 29%|██▉       | 144/500 [00:00<00:00, 1432.74it/s] 58%|█████▊    | 288/500 [00:00<00:00, 1435.07it/s] 88%|████████▊ | 438/500 [00:00<00:00, 1464.12it/s]100%|██████████| 500/500 [00:00<00:00, 1462.92it/s]
+  0%|          | 0/500 [00:00<?, ?it/s] 21%|██▏       | 107/500 [00:00<00:00, 1061.87it/s] 43%|████▎     | 217/500 [00:00<00:00, 1082.57it/s] 65%|██████▌   | 327/500 [00:00<00:00, 1088.87it/s] 87%|████████▋ | 437/500 [00:00<00:00, 1089.68it/s]100%|██████████| 500/500 [00:00<00:00, 1087.49it/s]
+  0%|          | 0/500 [00:00<?, ?it/s] 29%|██▊       | 143/500 [00:00<00:00, 1428.29it/s] 57%|█████▋    | 286/500 [00:00<00:00, 1426.67it/s] 86%|████████▌ | 429/500 [00:00<00:00, 1427.13it/s]100%|██████████| 500/500 [00:00<00:00, 1426.25it/s]
+  0%|          | 0/500 [00:00<?, ?it/s] 88%|████████▊ | 442/500 [00:00<00:00, 4419.48it/s]100%|██████████| 500/500 [00:00<00:00, 4416.80it/s]
+  0%|          | 0/500 [00:00<?, ?it/s] 22%|██▏       | 110/500 [00:00<00:00, 1090.42it/s] 44%|████▍     | 220/500 [00:00<00:00, 1093.51it/s] 66%|██████▌   | 330/500 [00:00<00:00, 1091.88it/s] 88%|████████▊ | 440/500 [00:00<00:00, 1089.85it/s]100%|██████████| 500/500 [00:00<00:00, 1091.55it/s]
+  0%|          | 0/100 [00:00<?, ?it/s]100%|██████████| 100/100 [00:00<00:00, 139160.72it/s]
+  0%|          | 0/500 [00:00<?, ?it/s] 63%|██████▎   | 317/500 [00:00<00:00, 3169.85it/s]100%|██████████| 500/500 [00:00<00:00, 3185.47it/s]
+  0%|          | 0/500 [00:00<?, ?it/s] 16%|█▌        | 79/500 [00:00<00:00, 787.95it/s] 32%|███▏      | 159/500 [00:00<00:00, 793.37it/s] 48%|████▊     | 239/500 [00:00<00:00, 793.88it/s] 64%|██████▍   | 319/500 [00:00<00:00, 794.17it/s] 80%|███████▉  | 399/500 [00:00<00:00, 794.63it/s] 96%|█████████▌| 479/500 [00:00<00:00, 794.60it/s]100%|██████████| 500/500 [00:00<00:00, 793.80it/s]
+  0%|          | 0/500 [00:00<?, ?it/s] 26%|██▌       | 131/500 [00:00<00:00, 1303.89it/s] 53%|█████▎    | 263/500 [00:00<00:00, 1311.11it/s] 79%|███████▉  | 396/500 [00:00<00:00, 1315.64it/s]100%|██████████| 500/500 [00:00<00:00, 1314.89it/s]
+  0%|          | 0/500 [00:00<?, ?it/s] 32%|███▏      | 159/500 [00:00<00:00, 1583.85it/s] 64%|██████▍   | 320/500 [00:00<00:00, 1594.00it/s] 96%|█████████▋| 482/500 [00:00<00:00, 1602.35it/s]100%|██████████| 500/500 [00:00<00:00, 1597.31it/s]
+  0%|          | 0/500 [00:00<?, ?it/s]100%|██████████| 500/500 [00:00<00:00, 114248.86it/s]
+  0%|          | 0/500 [00:00<?, ?it/s]100%|██████████| 500/500 [00:00<00:00, 110411.29it/s]
+bootstrapping for stddev: perplexity
+  0%|          | 0/100 [00:00<?, ?it/s]100%|██████████| 100/100 [00:00<00:00, 1052.83it/s]
+fatal: not a git repository (or any of the parent directories): .git
+{
+  "agieval_lsat_ar": {
+    "name": "agieval_lsat_ar",
+    "alias": "agieval_lsat_ar",
+    "sample_len": 230,
+    "acc,none": 0.2391304347826087,
+    "acc_stderr,none": 0.02818738529393394,
+    "acc_norm,none": 0.2217391304347826,
+    "acc_norm_stderr,none": 0.027451496604058916
+  },
+  "arc_challenge": {
+    "name": "arc_challenge",
+    "alias": "arc_challenge",
+    "sample_len": 500,
+    "acc,none": 0.156,
+    "acc_stderr,none": 0.01624363602839109,
+    "acc_norm,none": 0.24,
+    "acc_norm_stderr,none": 0.019118866653759732
+  },
+  "arc_easy": {
+    "name": "arc_easy",
+    "alias": "arc_easy",
+    "sample_len": 500,
+    "acc,none": 0.258,
+    "acc_stderr,none": 0.01958671178521584,
+    "acc_norm,none": 0.28,
+    "acc_norm_stderr,none": 0.020099950647503233
+  },
+  "bigbench_cs_algorithms_multiple_choice": {
+    "name": "bigbench_cs_algorithms_multiple_choice",
+    "alias": "bigbench_cs_algorithms_multiple_choice",
+    "sample_len": 500,
+    "acc,none": 0.234,
+    "acc_stderr,none": 0.018952741564893724
+  },
+  "bigbench_dyck_languages_multiple_choice": {
+    "name": "bigbench_dyck_languages_multiple_choice",
+    "alias": "bigbench_dyck_languages_multiple_choice",
+    "sample_len": 500,
+    "acc,none": 0.116,
+    "acc_stderr,none": 0.0143352362378857
+  },
+  "bigbench_language_identification_multiple_choice": {
+    "name": "bigbench_language_identification_multiple_choice",
+    "alias": "bigbench_language_identification_multiple_choice",
+    "sample_len": 500,
+    "acc,none": 0.1,
+    "acc_stderr,none": 0.013429844431075368
+  },
+  "boolq": {
+    "name": "boolq",
+    "alias": "boolq",
+    "sample_len": 500,
+    "acc,none": 0.372,
+    "acc_stderr,none": 0.0216371979857224
+  },
+  "commonsense_qa": {
+    "name": "commonsense_qa",
+    "alias": "commonsense_qa",
+    "sample_len": 500,
+    "acc,none": 0.188,
+    "acc_stderr,none": 0.017490678880346253
+  },
+  "copa": {
+    "name": "copa",
+    "alias": "copa",
+    "sample_len": 100,
+    "acc,none": 0.58,
+    "acc_stderr,none": 0.049604496374885836
+  },
+  "hellaswag": {
+    "name": "hellaswag",
+    "alias": "hellaswag",
+    "sample_len": 500,
+    "acc,none": 0.282,
+    "acc_stderr,none": 0.02014357284729079,
+    "acc_norm,none": 0.258,
+    "acc_norm_stderr,none": 0.01958671178521584
+  },
+  "lambada_openai": {
+    "name": "lambada_openai",
+    "alias": "lambada_openai",
+    "sample_len": 500,
+    "perplexity,none": 366515.7973508854,
+    "perplexity_stderr,none": 83797.72664223408,
+    "acc,none": 0.0,
+    "acc_stderr,none": 0.0
+  },
+  "openbookqa": {
+    "name": "openbookqa",
+    "alias": "openbookqa",
+    "sample_len": 500,
+    "acc,none": 0.124,
+    "acc_stderr,none": 0.014754096608517538,
+    "acc_norm,none": 0.254,
+    "acc_norm_stderr,none": 0.019486596801643375
+  },
+  "piqa": {
+    "name": "piqa",
+    "alias": "piqa",
+    "sample_len": 500,
+    "acc,none": 0.496,
+    "acc_stderr,none": 0.022382357781962132,
+    "acc_norm,none": 0.492,
+    "acc_norm_stderr,none": 0.02238020883492804
+  },
+  "winogrande": {
+    "name": "winogrande",
+    "alias": "winogrande",
+    "sample_len": 500,
+    "acc,none": 0.516,
+    "acc_stderr,none": 0.0223716109825804
+  },
+  "xwinograd_en": {
+    "name": "xwinograd_en",
+    "alias": "xwinograd_en",
+    "sample_len": 500,
+    "acc,none": 0.526,
+    "acc_stderr,none": 0.022352791650914167
+  }
+}
+[rank0]:[W714 03:58:31.347102504 ProcessGroupNCCL.cpp:1553] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())

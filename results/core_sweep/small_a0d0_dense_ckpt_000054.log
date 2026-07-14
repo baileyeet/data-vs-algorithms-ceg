@@ -1,0 +1,160 @@
+/usr/local/lib/python3.11/dist-packages/requests/__init__.py:113: RequestsDependencyWarning: urllib3 (2.2.3) or chardet (6.0.0.post1)/charset_normalizer (3.3.2) doesn't match a supported version!
+  warnings.warn(
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Generating train split:   0%|          | 0/1119 [00:00<?, ? examples/s]Generating train split: 100%|██████████| 1119/1119 [00:00<00:00, 136555.90 examples/s]
+Generating test split:   0%|          | 0/1172 [00:00<?, ? examples/s]Generating test split: 100%|██████████| 1172/1172 [00:00<00:00, 250968.72 examples/s]
+Generating validation split:   0%|          | 0/299 [00:00<?, ? examples/s]Generating validation split: 100%|██████████| 299/299 [00:00<00:00, 96833.98 examples/s]
+[Task: bigbench_cs_algorithms_multiple_choice] metric acc is defined, but aggregation is not. using default aggregation=mean
+[Task: bigbench_cs_algorithms_multiple_choice] metric acc is defined, but higher_is_better is not. using default higher_is_better=True
+[Task: bigbench_dyck_languages_multiple_choice] metric acc is defined, but aggregation is not. using default aggregation=mean
+[Task: bigbench_dyck_languages_multiple_choice] metric acc is defined, but higher_is_better is not. using default higher_is_better=True
+Filter:   0%|          | 0/1000 [00:00<?, ? examples/s]Filter: 100%|██████████| 1000/1000 [00:00<00:00, 11547.24 examples/s]
+[Task: bigbench_language_identification_multiple_choice] metric acc is defined, but aggregation is not. using default aggregation=mean
+[Task: bigbench_language_identification_multiple_choice] metric acc is defined, but higher_is_better is not. using default higher_is_better=True
+Filter:   0%|          | 0/10000 [00:00<?, ? examples/s]Filter:  70%|███████   | 7000/10000 [00:00<00:00, 60899.86 examples/s]Filter: 100%|██████████| 10000/10000 [00:00<00:00, 66752.35 examples/s]
+[Task: boolq] metric acc is defined, but aggregation is not. using default aggregation=mean
+[Task: boolq] metric acc is defined, but higher_is_better is not. using default higher_is_better=True
+[Task: copa] metric acc is defined, but aggregation is not. using default aggregation=mean
+[Task: copa] metric acc is defined, but higher_is_better is not. using default higher_is_better=True
+  0%|          | 0/230 [00:00<?, ?it/s] 66%|██████▌   | 151/230 [00:00<00:00, 1506.08it/s]100%|██████████| 230/230 [00:00<00:00, 1506.63it/s]
+  0%|          | 0/500 [00:00<?, ?it/s] 22%|██▏       | 109/500 [00:00<00:00, 1085.33it/s] 44%|████▍     | 220/500 [00:00<00:00, 1095.50it/s] 66%|██████▌   | 330/500 [00:00<00:00, 1094.14it/s] 88%|████████▊ | 440/500 [00:00<00:00, 1089.31it/s]100%|██████████| 500/500 [00:00<00:00, 1088.89it/s]
+  0%|          | 0/500 [00:00<?, ?it/s] 22%|██▏       | 110/500 [00:00<00:00, 1093.82it/s] 44%|████▍     | 220/500 [00:00<00:00, 1090.45it/s] 66%|██████▌   | 331/500 [00:00<00:00, 1097.54it/s] 88%|████████▊ | 442/500 [00:00<00:00, 1101.36it/s]100%|██████████| 500/500 [00:00<00:00, 1097.09it/s]
+  0%|          | 0/500 [00:00<?, ?it/s] 29%|██▊       | 143/500 [00:00<00:00, 1420.71it/s] 57%|█████▋    | 286/500 [00:00<00:00, 1424.91it/s] 86%|████████▋ | 432/500 [00:00<00:00, 1436.17it/s]100%|██████████| 500/500 [00:00<00:00, 1436.91it/s]
+  0%|          | 0/500 [00:00<?, ?it/s] 22%|██▏       | 108/500 [00:00<00:00, 1071.92it/s] 43%|████▎     | 216/500 [00:00<00:00, 1075.47it/s] 65%|██████▍   | 324/500 [00:00<00:00, 1066.16it/s] 86%|████████▋ | 432/500 [00:00<00:00, 1069.66it/s]100%|██████████| 500/500 [00:00<00:00, 595.11it/s] 
+  0%|          | 0/500 [00:00<?, ?it/s] 28%|██▊       | 139/500 [00:00<00:00, 1388.86it/s] 56%|█████▌    | 278/500 [00:00<00:00, 1378.94it/s] 84%|████████▎ | 418/500 [00:00<00:00, 1388.41it/s]100%|██████████| 500/500 [00:00<00:00, 1389.26it/s]
+  0%|          | 0/500 [00:00<?, ?it/s] 87%|████████▋ | 437/500 [00:00<00:00, 4363.93it/s]100%|██████████| 500/500 [00:00<00:00, 4361.22it/s]
+  0%|          | 0/500 [00:00<?, ?it/s] 22%|██▏       | 109/500 [00:00<00:00, 1084.03it/s] 44%|████▎     | 218/500 [00:00<00:00, 1084.28it/s] 65%|██████▌   | 327/500 [00:00<00:00, 1086.18it/s] 87%|████████▋ | 436/500 [00:00<00:00, 1081.58it/s]100%|██████████| 500/500 [00:00<00:00, 1082.87it/s]
+  0%|          | 0/100 [00:00<?, ?it/s]100%|██████████| 100/100 [00:00<00:00, 136311.47it/s]
+  0%|          | 0/500 [00:00<?, ?it/s] 62%|██████▏   | 312/500 [00:00<00:00, 3119.56it/s]100%|██████████| 500/500 [00:00<00:00, 3129.66it/s]
+  0%|          | 0/500 [00:00<?, ?it/s] 16%|█▌        | 78/500 [00:00<00:00, 778.96it/s] 31%|███▏      | 157/500 [00:00<00:00, 782.84it/s] 47%|████▋     | 237/500 [00:00<00:00, 786.72it/s] 63%|██████▎   | 316/500 [00:00<00:00, 775.35it/s] 79%|███████▉  | 395/500 [00:00<00:00, 780.10it/s] 95%|█████████▌| 475/500 [00:00<00:00, 785.45it/s]100%|██████████| 500/500 [00:00<00:00, 783.54it/s]
+  0%|          | 0/500 [00:00<?, ?it/s] 26%|██▌       | 130/500 [00:00<00:00, 1299.79it/s] 52%|█████▏    | 262/500 [00:00<00:00, 1306.11it/s] 79%|███████▉  | 394/500 [00:00<00:00, 1309.75it/s]100%|██████████| 500/500 [00:00<00:00, 1309.02it/s]
+  0%|          | 0/500 [00:00<?, ?it/s] 32%|███▏      | 158/500 [00:00<00:00, 1577.58it/s] 64%|██████▍   | 320/500 [00:00<00:00, 1596.94it/s] 96%|█████████▋| 482/500 [00:00<00:00, 1603.80it/s]100%|██████████| 500/500 [00:00<00:00, 1598.29it/s]
+  0%|          | 0/500 [00:00<?, ?it/s]100%|██████████| 500/500 [00:00<00:00, 109752.56it/s]
+  0%|          | 0/500 [00:00<?, ?it/s]100%|██████████| 500/500 [00:00<00:00, 113078.40it/s]
+bootstrapping for stddev: perplexity
+  0%|          | 0/100 [00:00<?, ?it/s] 91%|█████████ | 91/100 [00:00<00:00, 879.68it/s]100%|██████████| 100/100 [00:00<00:00, 963.26it/s]
+fatal: detected dubious ownership in repository at '/root/ceg'
+To add an exception for this directory, call:
+
+	git config --global --add safe.directory /root/ceg
+{
+  "agieval_lsat_ar": {
+    "name": "agieval_lsat_ar",
+    "alias": "agieval_lsat_ar",
+    "sample_len": 230,
+    "acc,none": 0.2,
+    "acc_stderr,none": 0.026432744018203547,
+    "acc_norm,none": 0.21304347826086956,
+    "acc_norm_stderr,none": 0.0270577543899362
+  },
+  "arc_challenge": {
+    "name": "arc_challenge",
+    "alias": "arc_challenge",
+    "sample_len": 500,
+    "acc,none": 0.204,
+    "acc_stderr,none": 0.018039369104138645,
+    "acc_norm,none": 0.24,
+    "acc_norm_stderr,none": 0.019118866653759743
+  },
+  "arc_easy": {
+    "name": "arc_easy",
+    "alias": "arc_easy",
+    "sample_len": 500,
+    "acc,none": 0.226,
+    "acc_stderr,none": 0.018722956449139915,
+    "acc_norm,none": 0.25,
+    "acc_norm_stderr,none": 0.019384310743640384
+  },
+  "bigbench_cs_algorithms_multiple_choice": {
+    "name": "bigbench_cs_algorithms_multiple_choice",
+    "alias": "bigbench_cs_algorithms_multiple_choice",
+    "sample_len": 500,
+    "acc,none": 0.234,
+    "acc_stderr,none": 0.01895274156489373
+  },
+  "bigbench_dyck_languages_multiple_choice": {
+    "name": "bigbench_dyck_languages_multiple_choice",
+    "alias": "bigbench_dyck_languages_multiple_choice",
+    "sample_len": 500,
+    "acc,none": 0.106,
+    "acc_stderr,none": 0.013780704467887747
+  },
+  "bigbench_language_identification_multiple_choice": {
+    "name": "bigbench_language_identification_multiple_choice",
+    "alias": "bigbench_language_identification_multiple_choice",
+    "sample_len": 500,
+    "acc,none": 0.1,
+    "acc_stderr,none": 0.013429844431075364
+  },
+  "boolq": {
+    "name": "boolq",
+    "alias": "boolq",
+    "sample_len": 500,
+    "acc,none": 0.37,
+    "acc_stderr,none": 0.021613289165165788
+  },
+  "commonsense_qa": {
+    "name": "commonsense_qa",
+    "alias": "commonsense_qa",
+    "sample_len": 500,
+    "acc,none": 0.182,
+    "acc_stderr,none": 0.01727277329773045
+  },
+  "copa": {
+    "name": "copa",
+    "alias": "copa",
+    "sample_len": 100,
+    "acc,none": 0.54,
+    "acc_stderr,none": 0.05009082659620333
+  },
+  "hellaswag": {
+    "name": "hellaswag",
+    "alias": "hellaswag",
+    "sample_len": 500,
+    "acc,none": 0.278,
+    "acc_stderr,none": 0.02005583388807091,
+    "acc_norm,none": 0.258,
+    "acc_norm_stderr,none": 0.01958671178521584
+  },
+  "lambada_openai": {
+    "name": "lambada_openai",
+    "alias": "lambada_openai",
+    "sample_len": 500,
+    "perplexity,none": 1030459.4054673534,
+    "perplexity_stderr,none": 290495.2192419646,
+    "acc,none": 0.0,
+    "acc_stderr,none": 0.0
+  },
+  "openbookqa": {
+    "name": "openbookqa",
+    "alias": "openbookqa",
+    "sample_len": 500,
+    "acc,none": 0.124,
+    "acc_stderr,none": 0.01475409660851752,
+    "acc_norm,none": 0.282,
+    "acc_norm_stderr,none": 0.020143572847290788
+  },
+  "piqa": {
+    "name": "piqa",
+    "alias": "piqa",
+    "sample_len": 500,
+    "acc,none": 0.526,
+    "acc_stderr,none": 0.022352791650914163,
+    "acc_norm,none": 0.52,
+    "acc_norm_stderr,none": 0.02236516042423134
+  },
+  "winogrande": {
+    "name": "winogrande",
+    "alias": "winogrande",
+    "sample_len": 500,
+    "acc,none": 0.494,
+    "acc_stderr,none": 0.022381462412439324
+  },
+  "xwinograd_en": {
+    "name": "xwinograd_en",
+    "alias": "xwinograd_en",
+    "sample_len": 500,
+    "acc,none": 0.52,
+    "acc_stderr,none": 0.02236516042423134
+  }
+}
