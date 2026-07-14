@@ -11,6 +11,27 @@ Costs actually incurred — two buckets, per user: **prep/validation** vs
 |------|--------|---------|------|--------|-------|
 | 2026-07-12/13 | prep/validation | Session 0+1 merged (8xH100 @ $23.92/hr) | $50-90 | ~$115 (final at terminate) | 4/4 smokes + CORE validity + 27B-token prep; overage: 3 kernel-dep smoke retries + initial single-stream tokenization |
 
+## COMPACTION-PROOF STATE (user-mandated, 2026-07-15 — do not drop)
+
+Four facts that must survive any context compaction. If a future session is
+unsure of any of these, re-read this section before acting:
+
+1. **Loader fidelity is NOT yet trusted.** The yarn_state+torch.compile fix
+   has passed the fidelity check on exactly ONE checkpoint: small A1D1 v2
+   final, delta 0.0024 (tolerance 0.005). It must pass on early/mid/late
+   checkpoints of BOTH tracks (small track saves factor1/factor2; medium
+   track saves cos/sin) before any post-hoc A1 eval is citable. OPEN.
+2. **Medium A1 v2 reruns in progress** (chained pair on the pod, persistent
+   monitor active). As of 2026-07-15: leg 1 (a1d1_v2) at step ~1036, ~169M
+   of 4,353,949,696 tokens, neutral BPB 1.298, 120G free. Update this line
+   when they finish.
+3. **Cost ledger flag, unresolved:** Tier 2 projected ~$235 vs the $200–230
+   envelope — flagged to user, NOT resolved. Rerun cascade actual ~$60 vs
+   ~$35 estimate. Both go in the two-bucket table below at closeout.
+4. **Nothing about Tier 2 is final** until the medium v2 reruns finish AND
+   the fidelity check passes on multiple checkpoints per item 1. Do not
+   report Tier-2 Shapley or any A1 number as final before then.
+
 **Cost-efficiency rule (user, 2026-07-13): CPU-bound work (tokenization,
 decontam scans, merging, re-chunking) is NOT run on GPU pods by default at
 Tier 2+. Flag it to the user first — cheap CPU instance vs. accept-the-cost is
