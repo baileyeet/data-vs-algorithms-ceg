@@ -67,6 +67,25 @@ pod for validation smokes is fine.
       results/small/ and pushed.
 - [ ] Actual vs. estimated cost recorded above; user informed before Tier 2.
 
+## Tier 3 pre-flight gates (ALL hard requirements before launch)
+
+- [ ] User grows network volume to 500GB in console (belt) AND the architectural
+      fixes below are in place (braces) — user directive: both, not either/or.
+- [ ] In-training CORE-subset hooks in both trainers (removes checkpoint-retention
+      need for post-hoc sweeps; permanent fix for the reload-fidelity bug class —
+      rotary/YaRN buffers are persistent=False and mutate on schedule).
+- [ ] Rolling checkpoint prune during runs (keep last 3 + finals; metrics.csv holds
+      the full curve) — peak footprint ~20GB/run.
+- [ ] A0 checkpoints saved bf16 (6.2GB -> 3.1GB), fp32 exception for the final
+      (reload-audit fidelity).
+- [ ] FIRST real 1.5B checkpoint: measure actual size vs projections (A0 6.2GB fp32
+      / A1 ~4.5GB extrapolated); report delta to user immediately; re-derive disk
+      budget if >20% off.
+- [ ] Report disclosure: CORE provenance may differ across tiers (post-hoc
+      yarn-replay loader for T1/T2 vs in-training hooks for T3) — state both
+      instruments + validation criteria in methodology notes.
+- [ ] XL recipe wired into wrapper from upstream's documented 1.5B scaling result.
+
 ## Sessions 2+ — training tiers (8xH100; confirm each with user first)
 
 Tier 1 = 124M all 4 arms; Tier 2 = 355M; Tier 3 = 1.5B (wire XL recipe first);
