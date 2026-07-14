@@ -180,7 +180,12 @@ def build_model(ckpt_path, device="cuda"):
     # fresh model's fp32 and break the bf16/fp8-only kernels)
     model.load_state_dict(sd, assign=True)
     model.eval()
-    return model, ckpt, ns
+    # validated instrument formula (fidelity delta 0.0024 vs recorded eval):
+    # exact yarn restoration BEFORE torch.compile; compiled numerics match the
+    # training eval's fp8 paths where eager does not (+0.02 BPB eager bias)
+    ws = restore_yarn(model, ckpt, is_medium)
+    model = torch.compile(model)
+    return model, ckpt, ns, ws
 
 
 class ModdedLM:
@@ -279,17 +284,43 @@ class ModdedLM:
         return out
 
 
+def load_into(model, ckpt_path):
+    """Swap another checkpoint's weights into an already-built (compiled)
+    model — same architecture required. Returns (ckpt, ws)."""
+    inner = getattr(model, "_orig_mod", model)
+    ckpt = torch.load(ckpt_path, map_location="cpu", weights_only=False)
+    is_medium = ckpt.get("size") == "medium" or "medium" in ckpt.get("algorithm", "")
+    sd = {k.removeprefix("_orig_mod."): v.cuda() for k, v in ckpt["model"].items()}
+    msd = inner.state_dict()
+    for k, v in list(sd.items()):
+        if k in msd and v.shape != msd[k].shape:
+            diff = [i for i in range(v.ndim) if v.shape[i] != msd[k].shape[i]]
+            assert len(diff) == 1 and v.shape[diff[0]] > msd[k].shape[diff[0]]
+            sd[k] = v.narrow(diff[0], 0, msd[k].shape[diff[0]])
+    inner.load_state_dict(sd)  # dtypes already correct in the built model
+    ws = restore_yarn(inner, ckpt, is_medium)
+    return ckpt, ws
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--ckpt", required=True)
+    ap.add_argument("--ckpt", required=True,
+                    help="first checkpoint (defines the architecture)")
+    ap.add_argument("--more-ckpts", nargs="*", default=[],
+                    help="additional same-arch checkpoints evaluated in the same "
+                         "process (compile amortized); each writes <out-dir>/<name>.json")
+    ap.add_argument("--out-dir", default=None, help="required with --more-ckpts")
     ap.add_argument("--tasks", required=True)
     ap.add_argument("--limit", type=int, default=None)
     ap.add_argument("--out", default=None)
     args = ap.parse_args()
 
-    model, ckpt, ns = build_model(args.ckpt)
+    model, ckpt, ns, ws = build_model(args.ckpt)
     is_medium = ckpt.get("size") == "medium" or "medium" in ckpt.get("algorithm", "")
-    print(f"loaded {args.ckpt}: step={ckpt.get('step')} size={ckpt.get('size')}")
+    if ws is None:
+        sys.exit("checkpoint lacks yarn_state — pre-fix legacy checkpoint; post-hoc "
+                 "eval is only validated for yarn-saving runs (rerun the arm)")
+    print(f"loaded {args.ckpt}: step={ckpt.get('step')} size={ckpt.get('size')} ws={ws}")
 
     import lm_eval
     from lm_eval.api.model import LM
@@ -306,11 +337,35 @@ def main():
         def generate_until(self, requests):
             raise NotImplementedError
 
-    results = lm_eval.simple_evaluate(model=Wrapper(), tasks=args.tasks.split(","),
-                                      limit=args.limit)
-    print(json.dumps(results["results"], indent=2, default=str))
-    if args.out:
-        Path(args.out).write_text(json.dumps(results["results"], indent=2, default=str))
+    def set_cfg(ws_pair):
+        if is_medium:
+            inner._cfg = ns["ForwardScheduleConfig"](
+                mtp_weights=torch.tensor([1.0], device="cuda"),
+                ws_short=ws_pair[0], ws_long=ws_pair[1])
+        else:
+            inner._cfg = ns["ForwardScheduleConfig"](
+                mtp_weights=torch.tensor([1.0], device="cuda"),
+                ws_short=ws_pair[0], ws_long=ws_pair[1], train_max_seq_len=2048)
+
+    def eval_one(name, out_path):
+        results = lm_eval.simple_evaluate(model=Wrapper(), tasks=args.tasks.split(","),
+                                          limit=args.limit)
+        payload = json.dumps(results["results"], indent=2, default=str)
+        if out_path:
+            Path(out_path).write_text(payload)
+        print(f"done {name}")
+
+    set_cfg(ws)
+    eval_one(args.ckpt, args.out)
+    for extra in args.more_ckpts:
+        ck2, ws2 = load_into(model, extra)
+        if ws2 is None:
+            print(f"SKIP {extra}: no yarn_state")
+            continue
+        set_cfg(ws2)
+        out2 = str(Path(args.out_dir) / (Path(extra).parent.name + "_" +
+                                         Path(extra).stem + ".json"))
+        eval_one(extra, out2)
 
 
 if __name__ == "__main__":

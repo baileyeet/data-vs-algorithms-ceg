@@ -23,16 +23,11 @@ def main():
     recorded = float(sys.argv[2])
     is_medium = "--medium" in sys.argv
 
-    model, ckpt, ns = build_model(ckpt_path)
-    from eval.lm_eval_adapter_modded import restore_yarn
-
-    ws = restore_yarn(model, ckpt, is_medium)
-    if ws is not None:
-        ws_short, ws_long = ws
-        print("yarn: exact (saved state)")
-    else:
-        ws_short, ws_long = _replay_yarn(model, ckpt_path, ckpt, is_medium)
-        print("yarn: replay (approximate — legacy checkpoint)")
+    model, ckpt, ns, ws = build_model(ckpt_path)
+    if ws is None:
+        sys.exit("legacy checkpoint without yarn_state — not a valid fidelity target")
+    ws_short, ws_long = ws
+    print("yarn: exact (saved state), model compiled")
     lm = ModdedLM(model, ns, is_medium=is_medium)
     if is_medium:
         lm._cfg = ns["ForwardScheduleConfig"](
