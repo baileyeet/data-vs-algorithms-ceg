@@ -71,6 +71,30 @@ def load_modded_classes(trainer_file, pre_init_dist=False):
     return ns
 
 
+def restore_yarn(model, ckpt, is_medium):
+    """Exact yarn restoration from checkpoints that carry yarn_state (runs
+    after the reload-fidelity fix). Returns (ws_short, ws_long) or None if
+    the checkpoint predates yarn saving (caller falls back to _replay_yarn,
+    which is approximate — label results accordingly)."""
+    ys = ckpt.get("yarn_state")
+    if not ys:
+        return None
+    for name, state in ys.items():
+        y = getattr(model, name, None)
+        if y is None:
+            continue
+        y.angular_freq.copy_(state["angular_freq"].to(y.angular_freq.device))
+        y.factor1.copy_(state["factor1"].to(y.factor1.device))
+        y.factor2.copy_(state["factor2"].to(y.factor2.device))
+        if "attn_scale" in state and hasattr(y, "attn_scale"):
+            y.attn_scale = state["attn_scale"]
+    ws = ckpt.get("ws_state") or {}
+    block = 1 if is_medium else 128
+    if ws.get("ws_short") is not None:
+        return ws["ws_short"] * block, ws["ws_long"] * block
+    return None
+
+
 def _replay_yarn(model, ckpt_path, ckpt, is_medium):
     """Replay the training-time YaRN mutations up to this checkpoint's step.
 

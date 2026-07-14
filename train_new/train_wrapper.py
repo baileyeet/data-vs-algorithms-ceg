@@ -508,9 +508,25 @@ def run_checkpoint(step: int, model, training_manager, timed_seconds: float,
                           "num_heads": attn.num_heads, "head_dim": attn.head_dim,
                           "model_dim": model.embed.embedding_dim,
                           "max_seq_len": model.yarn.max_seq_len}
+        # yarn/rotary buffers are persistent=False (not in state_dict) and are
+        # mutated on the window schedule during training; save them explicitly
+        # so post-hoc loading is exact (the reload-fidelity fix)
+        raw = getattr(model, "_orig_mod", model)
+        yarn_state = {}
+        for name in ("yarn", "yarn_paired_head"):
+            y = getattr(raw, name, None)
+            if y is not None:
+                yarn_state[name] = {
+                    "angular_freq": y.angular_freq.detach().cpu(),
+                    "factor1": y.factor1.detach().cpu(),
+                    "factor2": y.factor2.detach().cpu(),
+                    **({"attn_scale": y.attn_scale} if hasattr(y, "attn_scale") else {}),
+                }
         torch.save(
             {"model": model.state_dict(),  # note: compiled module ("_orig_mod." prefixes)
-             "model_args": model_args,
+             "model_args": model_args, "yarn_state": yarn_state,
+             "ws_state": {"ws_short": getattr(training_manager, "ws_short", None),
+                          "ws_long": getattr(training_manager, "ws_long", None)},
              "size": CONFIG.size, "arm": CONFIG.arm, "step": step, "tokens": tokens_done,
              "timed_seconds": timed_seconds, "world_size": world_size},
             out_dir / f"ckpt_{step:06d}.pt")
