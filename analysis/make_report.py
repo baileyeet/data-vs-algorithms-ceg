@@ -106,6 +106,19 @@ def main():
               "one cell; literature places safe repetition at <=4 epochs.",
               "- Threshold crossings are interpolated in log-compute between "
               "checkpoints (log-spaced, denser early), never snapped.",
+              "- Reference-threshold definition: mean neutral BPB over all "
+              "checkpoints in the final 10% of A0D0's training (per size). "
+              "The single-final-checkpoint variant is reported alongside as "
+              "robustness. Why a range exists at 124M: the threshold sits on "
+              "the threshold arm's end-of-training plateau, where its curve "
+              "is flattest; with the original purely log-spaced checkpoint "
+              "schedule the plateau was sampled sparsely, so vertical noise "
+              "of order the same-seed rerun floor (~0.01 BPB) translated "
+              "into ~20% swings in that arm's compute-to-threshold and hence "
+              "~±8% (data) / ~±16% (total) in the multipliers. Fixed going "
+              "forward by adding linearly-spaced checkpoints over the final "
+              "10% of every arm's schedule; the reported range brackets the "
+              "definitional freedom on the pre-fix 124M data.",
               "- DCLM CORE scores are secondary and validity-gated (tasks near "
               "chance at small scale are excluded).",
               ""]

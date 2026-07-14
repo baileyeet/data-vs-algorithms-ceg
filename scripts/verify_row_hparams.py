@@ -16,6 +16,24 @@ from pathlib import Path
 # shared within a row since the row fixes the tokenizer — must be identical)
 ALLOWED_DIFF = {"arm", "data_dir", "data_glob", "out_dir", "wandb", "n_epochs"}
 WARN_DIFF = {"device", "gpu_name", "torch_version", "world_size"}
+# measurement-instrumentation fields: checkpoint cadence / eval batching /
+# timing bookkeeping ONLY. These control WHERE the training curve is sampled
+# and how evals are batched — they cannot alter the optimization trajectory
+# (evals run between steps, touch no model/optimizer/loader state, and sit
+# outside the timed clock). Reported as NOTE, never a pass-wave for anything
+# training-relevant: val_batch_size and model_max_seq_len are deliberately
+# EXCLUDED (they set the A1 rotary-table size), as are block_size,
+# total_batch_tokens, lr/warmup/wd fields (trajectory-relevant by definition).
+MEASUREMENT_DIFF = {
+    "n_checkpoints",          # how many curve samples
+    "first_ckpt_frac",        # where the first sample lands
+    "ckpt_steps",             # the derived sample schedule
+    "save_checkpoints",       # whether weights are persisted at samples
+    "eval_device_batch_size", # BPB eval batching (train_old)
+    "eval_seq_len",           # BPB eval windowing (train_new wrapper)
+    "eval_windows_per_chunk", # BPB eval packing (train_new wrapper)
+    "warmup_timed_steps",     # timing bookkeeping: steps excluded from clock
+}
 
 
 def main():
@@ -29,6 +47,8 @@ def main():
             continue
         if k in WARN_DIFF:
             warns.append(f"  WARN {k}: {va!r} vs {vb!r} (hardware/env — should match for CEG timing)")
+        elif k in MEASUREMENT_DIFF:
+            warns.append(f"  NOTE {k}: differs (measurement-only field; does not affect trajectory)")
         elif k not in ALLOWED_DIFF:
             bad.append(f"  FAIL {k}: {va!r} vs {vb!r}")
     if a.get("token_budget") != b.get("token_budget"):

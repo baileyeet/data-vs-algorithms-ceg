@@ -74,7 +74,7 @@ def build_model(ckpt_path, device="cuda"):
                     if k.removeprefix("_orig_mod.").endswith("yarn.factor1")), None)
         margs["max_seq_len"] = (ckpt["model"][key].shape[0] // 2 if key else 262144)
     model = ns["GPT"](**margs).cuda()
-    sd = {k.removeprefix("_orig_mod."): v for k, v in ckpt["model"].items()}
+    sd = {k.removeprefix("_orig_mod."): v.cuda() for k, v in ckpt["model"].items()}
     # distributed training pads the weight banks to multiples of world_size
     # (e.g. qk_bank 60->64 rows at world 8); single-process reload expects the
     # unpadded size — padding rows are appended, so truncate from the end.
@@ -85,7 +85,10 @@ def build_model(ckpt_path, device="cuda"):
             assert v.shape[1:] == msd[k].shape[1:] and v.shape[0] > msd[k].shape[0], \
                 f"unexpected mismatch for {k}: {v.shape} vs {msd[k].shape}"
             sd[k] = v[: msd[k].shape[0]]
-    model.load_state_dict(sd)
+    # assign=True: parameters adopt the checkpoint's dtypes (the trainer casts
+    # banks/linears to bf16 post-construction; plain load would upcast to the
+    # fresh model's fp32 and break the bf16/fp8-only kernels)
+    model.load_state_dict(sd, assign=True)
     model.eval()
     return model, ckpt, ns
 
@@ -137,7 +140,7 @@ class ModdedLM:
         toks = toks_cpu.cuda()
         targets = torch.roll(toks, -1).to(torch.int64)  # per-segment shift handled below
         cu_t = torch.tensor(cu, dtype=torch.int32, device="cuda")
-        with torch.no_grad(), torch.autocast("cuda", dtype=torch.bfloat16):
+        with torch.no_grad():
             losses = self.model(toks, targets, cu_t, bigram, self._cfg_lazy())
         # losses[i] = loss predicting flat[i+1] from prefix within its segment;
         # positions at segment ends predict across boundaries — never read them
