@@ -35,7 +35,9 @@ def load_modded_classes(trainer_file):
     os.environ.setdefault("RANK", "0")
     os.environ.setdefault("WORLD_SIZE", "1")
     os.environ.setdefault("MASTER_ADDR", "127.0.0.1")
-    os.environ.setdefault("MASTER_PORT", "29599")
+    # PID-unique port: parallel single-process loaders must not share the
+    # rendezvous port (7 of 8 crash on bind otherwise)
+    os.environ.setdefault("MASTER_PORT", str(29500 + os.getpid() % 2000))
     # triton_kernels lives in the upstream clone next to the trainer
     upstream = str(Path(trainer_file).parent / "modded-nanogpt")
     if upstream not in sys.path:
