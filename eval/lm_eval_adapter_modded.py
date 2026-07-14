@@ -84,6 +84,11 @@ def build_model(ckpt_path, device="cuda"):
     msd = model.state_dict()
     for k, v in list(sd.items()):
         if k in msd and v.shape != msd[k].shape:
+            if v.ndim == 2 and v.shape == msd[k].shape[::-1]:
+                # medium track stores lm_head transposed after its late
+                # untie/merge stage; validated downstream by score sanity
+                sd[k] = v.t().contiguous()
+                continue
             # world-size sharding pads exactly one dimension; slice it back
             diff = [i for i in range(v.ndim) if v.shape[i] != msd[k].shape[i]]
             assert len(diff) == 1 and v.shape[diff[0]] > msd[k].shape[diff[0]], \
