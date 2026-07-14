@@ -65,9 +65,10 @@ def load_modded_classes(trainer_file):
 def build_model(ckpt_path, device="cuda"):
     ckpt = torch.load(ckpt_path, map_location="cpu", weights_only=False)
     margs = ckpt["model_args"]
-    algo = ckpt.get("algorithm", "new_modded_nanogpt")
+    # checkpoints carry "size", not "algorithm" — route the class source by it
+    is_medium = ckpt.get("size") == "medium" or "medium" in ckpt.get("algorithm", "")
     trainer = (ROOT / "train_new" /
-               ("train_gpt_medium_ceg.py" if "medium" in algo else "train_gpt_ceg.py"))
+               ("train_gpt_medium_ceg.py" if is_medium else "train_gpt_ceg.py"))
     ns = load_modded_classes(trainer)
     # older checkpoints omit max_seq_len from model_args; infer from the saved
     # rotary table (yarn.factor1 has 2*max_seq_len rows) or default to 262144
@@ -84,11 +85,6 @@ def build_model(ckpt_path, device="cuda"):
     msd = model.state_dict()
     for k, v in list(sd.items()):
         if k in msd and v.shape != msd[k].shape:
-            if v.ndim == 2 and v.shape == msd[k].shape[::-1]:
-                # medium track stores lm_head transposed after its late
-                # untie/merge stage; validated downstream by score sanity
-                sd[k] = v.t().contiguous()
-                continue
             # world-size sharding pads exactly one dimension; slice it back
             diff = [i for i in range(v.ndim) if v.shape[i] != msd[k].shape[i]]
             assert len(diff) == 1 and v.shape[diff[0]] > msd[k].shape[diff[0]], \
@@ -111,24 +107,32 @@ class ModdedLM:
     cu_seqlens, mirroring the wrapper's BPB shim.
     """
 
-    def __init__(self, model, ns, batch_tokens=16384):
+    def __init__(self, model, ns, batch_tokens=16384, is_medium=False):
         import tiktoken
 
         self.model = model
         self.ns = ns
         self.enc = tiktoken.get_encoding("gpt2")
         self.batch_tokens = batch_tokens
+        self.is_medium = is_medium
         self._cfg = None
 
     def _cfg_lazy(self):
         if self._cfg is None:
-            # end-of-training forward config: pure next-token MTP weights
-            # ([1.0], final stage), extension-stage windows with the final
-            # YaRN extension applied (short 6 blocks, long ws_post_yarn_ext=20
-            # blocks, block=128) — matches the final in-training eval state
-            self._cfg = self.ns["ForwardScheduleConfig"](
-                mtp_weights=torch.tensor([1.0], device="cuda"),
-                ws_short=6 * 128, ws_long=20 * 128, train_max_seq_len=2048)
+            # end-of-training forward config, matching each track's final
+            # in-training eval state (pure next-token MTP weights)
+            if self.is_medium:
+                # medium: ws in block units passed raw; final ws_short =
+                # ws_final//2 = 11, ws_long = ws_validate_post_yarn_ext = 27
+                self._cfg = self.ns["ForwardScheduleConfig"](
+                    mtp_weights=torch.tensor([1.0], device="cuda"),
+                    ws_short=11, ws_long=27)
+            else:
+                # small: extension-stage windows with final YaRN ext
+                # (short 6 blocks, long 20 blocks, block=128)
+                self._cfg = self.ns["ForwardScheduleConfig"](
+                    mtp_weights=torch.tensor([1.0], device="cuda"),
+                    ws_short=6 * 128, ws_long=20 * 128, train_max_seq_len=2048)
         return self._cfg
 
     def _packed_losses(self, seqs):
@@ -145,12 +149,16 @@ class ModdedLM:
             flat.extend([50256] * pad)
             cu.append(len(flat))  # padding tail is its own ignored segment
         toks_cpu = torch.tensor(flat, dtype=torch.int32)
-        bigram = self.ns["get_bigram_hash"](toks_cpu).cuda(non_blocking=True)
         toks = toks_cpu.cuda()
         targets = torch.roll(toks, -1).to(torch.int64)  # per-segment shift handled below
         cu_t = torch.tensor(cu, dtype=torch.int32, device="cuda")
         with torch.no_grad():
-            losses = self.model(toks, targets, cu_t, bigram, self._cfg_lazy())
+            if self.is_medium:
+                # medium forward takes no bigram inputs
+                losses = self.model(toks, targets, cu_t, self._cfg_lazy())
+            else:
+                bigram = self.ns["get_bigram_hash"](toks_cpu).cuda(non_blocking=True)
+                losses = self.model(toks, targets, cu_t, bigram, self._cfg_lazy())
         # losses[i] = loss predicting flat[i+1] from prefix within its segment;
         # positions at segment ends predict across boundaries — never read them
         out = []
@@ -195,12 +203,13 @@ def main():
     args = ap.parse_args()
 
     model, ckpt, ns = build_model(args.ckpt)
-    print(f"loaded {args.ckpt}: step={ckpt.get('step')} algo={ckpt.get('algorithm')}")
+    is_medium = ckpt.get("size") == "medium" or "medium" in ckpt.get("algorithm", "")
+    print(f"loaded {args.ckpt}: step={ckpt.get('step')} size={ckpt.get('size')}")
 
     import lm_eval
     from lm_eval.api.model import LM
 
-    inner = ModdedLM(model, ns)
+    inner = ModdedLM(model, ns, is_medium=is_medium)
 
     class Wrapper(LM):
         def loglikelihood(self, requests):
