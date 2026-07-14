@@ -84,9 +84,11 @@ def build_model(ckpt_path, device="cuda"):
     msd = model.state_dict()
     for k, v in list(sd.items()):
         if k in msd and v.shape != msd[k].shape:
-            assert v.shape[1:] == msd[k].shape[1:] and v.shape[0] > msd[k].shape[0], \
+            # world-size sharding pads exactly one dimension; slice it back
+            diff = [i for i in range(v.ndim) if v.shape[i] != msd[k].shape[i]]
+            assert len(diff) == 1 and v.shape[diff[0]] > msd[k].shape[diff[0]], \
                 f"unexpected mismatch for {k}: {v.shape} vs {msd[k].shape}"
-            sd[k] = v[: msd[k].shape[0]]
+            sd[k] = v.narrow(diff[0], 0, msd[k].shape[diff[0]])
     # assign=True: parameters adopt the checkpoint's dtypes (the trainer casts
     # banks/linears to bf16 post-construction; plain load would upcast to the
     # fresh model's fp32 and break the bf16/fp8-only kernels)
