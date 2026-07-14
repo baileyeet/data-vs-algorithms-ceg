@@ -26,7 +26,7 @@ sys.path.insert(0, str(ROOT))
 CUT_MARKER = "args = Hyperparameters()"
 
 
-def load_modded_classes(trainer_file):
+def load_modded_classes(trainer_file, pre_init_dist=False):
     """Exec the class-definition prefix of the CEG trainer script."""
     import os
 
@@ -42,11 +42,20 @@ def load_modded_classes(trainer_file):
     upstream = str(Path(trainer_file).parent / "modded-nanogpt")
     if upstream not in sys.path:
         sys.path.insert(0, upstream)
+    import torch.distributed as dist
+
+    if pre_init_dist and not dist.is_initialized():
+        # medium track's classes assume an initialized default group; the
+        # small track's prefix initializes it itself (would collide)
+        dist.init_process_group("nccl", rank=0, world_size=1)
     src = Path(trainer_file).read_text()
     idx = src.find(CUT_MARKER)
     assert idx > 0, f"cut marker {CUT_MARKER!r} not found in {trainer_file}"
     prefix = src[:idx]
-    ns = {"__name__": "modded_classes", "__file__": str(trainer_file)}
+    # globals the class bodies read but which are defined after our cut point
+    # (single-process eval values)
+    ns = {"__name__": "modded_classes", "__file__": str(trainer_file),
+          "device": "cuda", "grad_accum_steps": 1, "world_size": 1}
     # the prefix imports `ceg` (the wrapper registers itself under that name
     # when launched normally); provide a minimal stand-in
     import types
@@ -62,6 +71,58 @@ def load_modded_classes(trainer_file):
     return ns
 
 
+def _replay_yarn(model, ckpt_path, ckpt, is_medium):
+    """Replay the training-time YaRN mutations up to this checkpoint's step.
+
+    The rotary factor buffers are persistent=False (never saved) and training
+    permanently mutates angular_freq at each long-window growth via
+    Yarn.apply(old, new). A fresh model has the un-mutated state; without the
+    replay, reloaded models attend with mis-calibrated rotary (measured: +0.18
+    BPB small, +0.84 medium vs the training-recorded evals).
+
+    Returns (ws_short, ws_long) for the checkpoint's forward config.
+    """
+    import json
+
+    step = ckpt["step"]
+    cfg_p = Path(ckpt_path).parent / "run_config.json"
+    total = max(json.loads(cfg_p.read_text())["ckpt_steps"]) if cfg_p.exists() else step
+    is_final = step >= total
+    if is_medium:
+        # scheduled steps: total minus extension at the upstream 40/4740 ratio
+        sched = total - max(1, round(total * 40 / 4740))
+        ws_sched = (3, 7, 11, 13, 15, 17, 19, 21, 23, 23, 23, 23)
+        transitions = []
+        prev = ws_sched[0]
+        for k in range(1, len(ws_sched)):
+            if ws_sched[k] != prev:
+                transitions.append((-(-k * sched // len(ws_sched)), prev, ws_sched[k]))
+                prev = ws_sched[k]
+        cur = ws_sched[0]
+        for boundary, old, new in transitions:
+            if step >= boundary and new <= 13:  # training only yarns while <=13
+                model.yarn.apply(old, new)
+            if step >= boundary:
+                cur = new
+        if is_final:
+            return 11, 27  # ws_final//2, ws_validate_post_yarn_ext
+        return min(11, cur // 2), cur
+    else:
+        sched = total - max(1, round(total * 10 / 1390))
+        stages = [(1, 3), (3, 7), (5, 11), (6, 13)]  # (short, long) per stage
+        bounds = [round(sched / 3), round(2 * sched / 3), sched]
+        cur_s, cur_l = stages[0]
+        for i, b in enumerate(bounds):
+            if step >= b:
+                old_l, (new_s, new_l) = cur_l, stages[i + 1]
+                model.yarn.apply(old_l * 128, new_l * 128)
+                model.yarn_paired_head.apply(old_l * 128, new_l * 128)
+                cur_s, cur_l = new_s, new_l
+        if is_final:
+            return 6 * 128, 20 * 128  # ext-stage short, post-yarn-ext long
+        return cur_s * 128, cur_l * 128
+
+
 def build_model(ckpt_path, device="cuda"):
     ckpt = torch.load(ckpt_path, map_location="cpu", weights_only=False)
     margs = ckpt["model_args"]
@@ -69,7 +130,7 @@ def build_model(ckpt_path, device="cuda"):
     is_medium = ckpt.get("size") == "medium" or "medium" in ckpt.get("algorithm", "")
     trainer = (ROOT / "train_new" /
                ("train_gpt_medium_ceg.py" if is_medium else "train_gpt_ceg.py"))
-    ns = load_modded_classes(trainer)
+    ns = load_modded_classes(trainer, pre_init_dist=is_medium)
     # older checkpoints omit max_seq_len from model_args; infer from the saved
     # rotary table (yarn.factor1 has 2*max_seq_len rows) or default to 262144
     if "max_seq_len" not in margs:
