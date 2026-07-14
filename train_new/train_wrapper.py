@@ -515,13 +515,17 @@ def run_checkpoint(step: int, model, training_manager, timed_seconds: float,
         yarn_state = {}
         for name in ("yarn", "yarn_paired_head"):
             y = getattr(raw, name, None)
-            if y is not None:
-                yarn_state[name] = {
-                    "angular_freq": y.angular_freq.detach().cpu(),
-                    "factor1": y.factor1.detach().cpu(),
-                    "factor2": y.factor2.detach().cpu(),
-                    **({"attn_scale": y.attn_scale} if hasattr(y, "attn_scale") else {}),
-                }
+            if y is None:
+                continue
+            st = {"angular_freq": y.angular_freq.detach().cpu()}
+            # small track buffers: factor1/factor2; medium track: cos/sin
+            for attr in ("factor1", "factor2", "cos", "sin"):
+                t = getattr(y, attr, None)
+                if t is not None:
+                    st[attr] = t.detach().cpu()
+            if hasattr(y, "attn_scale"):
+                st["attn_scale"] = y.attn_scale
+            yarn_state[name] = st
         torch.save(
             {"model": model.state_dict(),  # note: compiled module ("_orig_mod." prefixes)
              "model_args": model_args, "yarn_state": yarn_state,

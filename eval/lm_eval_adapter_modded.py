@@ -83,9 +83,9 @@ def restore_yarn(model, ckpt, is_medium):
         y = getattr(model, name, None)
         if y is None:
             continue
-        y.angular_freq.copy_(state["angular_freq"].to(y.angular_freq.device))
-        y.factor1.copy_(state["factor1"].to(y.factor1.device))
-        y.factor2.copy_(state["factor2"].to(y.factor2.device))
+        for attr in ("angular_freq", "factor1", "factor2", "cos", "sin"):
+            if attr in state and getattr(y, attr, None) is not None:
+                getattr(y, attr).copy_(state[attr].to(getattr(y, attr).device))
         if "attn_scale" in state and hasattr(y, "attn_scale"):
             y.attn_scale = state["attn_scale"]
     ws = ckpt.get("ws_state") or {}
