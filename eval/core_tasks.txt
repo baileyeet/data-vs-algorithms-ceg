@@ -19,7 +19,10 @@ lambada_openai   # *
 openbookqa
 piqa             # *
 winogrande       # * (schema-style)
-wsc273           # * (schema-style; lm-eval's true Winograd WSC273, matches DCLM's "winograd")
+xwinograd_en     # * (schema-style; stands in for DCLM's "winograd" — lm-eval's
+                 #   wsc273 uses a legacy dataset script that datasets>=5 refuses
+                 #   to load, so the closest loadable Winograd variant is used;
+                 #   deviation documented in the report)
 #
 # EXCLUDED from our CORE subset (with reasons, so the writeup can note the
 # deviation from DCLM's exact 22-task CORE):
