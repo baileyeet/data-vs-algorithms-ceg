@@ -28,6 +28,18 @@ CUT_MARKER = "args = Hyperparameters()"
 
 def load_modded_classes(trainer_file):
     """Exec the class-definition prefix of the CEG trainer script."""
+    import os
+
+    # the script prefix reads torchrun env at import; single-process defaults
+    os.environ.setdefault("LOCAL_RANK", "0")
+    os.environ.setdefault("RANK", "0")
+    os.environ.setdefault("WORLD_SIZE", "1")
+    os.environ.setdefault("MASTER_ADDR", "127.0.0.1")
+    os.environ.setdefault("MASTER_PORT", "29599")
+    # triton_kernels lives in the upstream clone next to the trainer
+    upstream = str(Path(trainer_file).parent / "modded-nanogpt")
+    if upstream not in sys.path:
+        sys.path.insert(0, upstream)
     src = Path(trainer_file).read_text()
     idx = src.find(CUT_MARKER)
     assert idx > 0, f"cut marker {CUT_MARKER!r} not found in {trainer_file}"
@@ -42,6 +54,9 @@ def load_modded_classes(trainer_file):
     ceg_stub.DataExhausted = type("DataExhausted", (Exception,), {})
     sys.modules.setdefault("ceg", ceg_stub)
     exec(compile(prefix, str(trainer_file), "exec"), ns)
+    # the model classes read the module-global `args` (Hyperparameters);
+    # instantiate it with defaults — eval only touches structural fields
+    ns["args"] = ns["Hyperparameters"]()
     return ns
 
 
@@ -52,8 +67,24 @@ def build_model(ckpt_path, device="cuda"):
     trainer = (ROOT / "train_new" /
                ("train_gpt_medium_ceg.py" if "medium" in algo else "train_gpt_ceg.py"))
     ns = load_modded_classes(trainer)
+    # older checkpoints omit max_seq_len from model_args; infer from the saved
+    # rotary table (yarn.factor1 has 2*max_seq_len rows) or default to 262144
+    if "max_seq_len" not in margs:
+        key = next((k for k in ckpt["model"]
+                    if k.removeprefix("_orig_mod.").endswith("yarn.factor1")), None)
+        margs["max_seq_len"] = (ckpt["model"][key].shape[0] // 2 if key else 262144)
     model = ns["GPT"](**margs).cuda()
     sd = {k.removeprefix("_orig_mod."): v for k, v in ckpt["model"].items()}
+    # distributed training pads the weight banks to multiples of world_size
+    # (e.g. qk_bank 60->64 rows at world 8); single-process reload expects the
+    # unpadded size — padding rows are appended, so truncate from the end.
+    # Sanity of this assumption is checked by the caller (score vs chance).
+    msd = model.state_dict()
+    for k, v in list(sd.items()):
+        if k in msd and v.shape != msd[k].shape:
+            assert v.shape[1:] == msd[k].shape[1:] and v.shape[0] > msd[k].shape[0], \
+                f"unexpected mismatch for {k}: {v.shape} vs {msd[k].shape}"
+            sd[k] = v[: msd[k].shape[0]]
     model.load_state_dict(sd)
     model.eval()
     return model, ckpt, ns
@@ -75,30 +106,71 @@ class ModdedLM:
         self.ns = ns
         self.enc = tiktoken.get_encoding("gpt2")
         self.batch_tokens = batch_tokens
+        self._cfg = None
 
-    def _seq_losses(self, ids):
-        """per-position losses for one padded-to-128 sequence"""
-        pad = (-len(ids)) % 128
-        toks = torch.tensor(ids + [50256] * pad, dtype=torch.int32, device="cuda")
-        inputs, targets = toks[:-1], toks[1:].to(torch.int64)
-        cu = torch.tensor([0, len(inputs)], dtype=torch.int32, device="cuda")
-        with torch.no_grad():
-            losses = self.model(inputs, targets, cu,
-                                self.ns["get_bigram_hash"](inputs),
-                                self.ns["eval_forward_args"]()
-                                if "eval_forward_args" in self.ns else None)
-        return losses[: len(ids) - 1]
+    def _cfg_lazy(self):
+        if self._cfg is None:
+            # end-of-training forward config: pure next-token MTP weights
+            # ([1.0], final stage), extension-stage windows with the final
+            # YaRN extension applied (short 6 blocks, long ws_post_yarn_ext=20
+            # blocks, block=128) — matches the final in-training eval state
+            self._cfg = self.ns["ForwardScheduleConfig"](
+                mtp_weights=torch.tensor([1.0], device="cuda"),
+                ws_short=6 * 128, ws_long=20 * 128, train_max_seq_len=2048)
+        return self._cfg
+
+    def _packed_losses(self, seqs):
+        """One forward over many sequences packed with varlen cu_seqlens
+        (mirrors the training-eval shim's shape — the fused CE kernel needs
+        large flat batches, not tiny per-request calls). Returns per-position
+        losses for each sequence."""
+        flat, cu = [], [0]
+        for ids in seqs:
+            flat.extend(ids)
+            cu.append(len(flat))
+        pad = (-len(flat)) % 128
+        if pad:
+            flat.extend([50256] * pad)
+            cu.append(len(flat))  # padding tail is its own ignored segment
+        toks_cpu = torch.tensor(flat, dtype=torch.int32)
+        bigram = self.ns["get_bigram_hash"](toks_cpu).cuda(non_blocking=True)
+        toks = toks_cpu.cuda()
+        targets = torch.roll(toks, -1).to(torch.int64)  # per-segment shift handled below
+        cu_t = torch.tensor(cu, dtype=torch.int32, device="cuda")
+        with torch.no_grad(), torch.autocast("cuda", dtype=torch.bfloat16):
+            losses = self.model(toks, targets, cu_t, bigram, self._cfg_lazy())
+        # losses[i] = loss predicting flat[i+1] from prefix within its segment;
+        # positions at segment ends predict across boundaries — never read them
+        out = []
+        for s, e in zip(cu, cu[1:]):
+            out.append(losses[s : e - 1])
+            if len(out) == len(seqs):
+                break
+        return out
 
     def loglikelihood(self, requests):
-        out = []
+        encoded = []
         for inst in requests:
             context, continuation = inst.args
             ctx = self.enc.encode_ordinary(context) if context else [50256]
             cont = self.enc.encode_ordinary(continuation)
+            encoded.append((ctx, cont))
+        out = []
+        batch, meta = [], []
+        def flush():
+            if not batch:
+                return
+            for losses, (ctx, cont) in zip(self._packed_losses(batch), meta):
+                cl = losses[len(ctx) - 1 : len(ctx) + len(cont) - 1]
+                out.append((-cl.float().sum().item(), False))
+            batch.clear(); meta.clear()
+        for ctx, cont in encoded:
             ids = ctx + cont
-            losses = self._seq_losses(ids)
-            cont_losses = losses[len(ctx) - 1 : len(ids) - 1]
-            out.append((-cont_losses.float().sum().item(), False))
+            if sum(len(b) for b in batch) + len(ids) > self.batch_tokens:
+                flush()
+            batch.append(ids)
+            meta.append((ctx, cont))
+        flush()
         return out
 
 
