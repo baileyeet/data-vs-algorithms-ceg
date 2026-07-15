@@ -14,6 +14,7 @@ Usage (on a GPU pod):
 
 import argparse
 import json
+import math
 import sys
 from pathlib import Path
 
@@ -180,6 +181,21 @@ def build_model(ckpt_path, device="cuda"):
     # fresh model's fp32 and break the bf16/fp8-only kernels)
     model.load_state_dict(sd, assign=True)
     model.eval()
+    # medium ties embed to lm_head.weight until split_step, then unties; the
+    # flag is a plain attribute (never in state_dict), so a fresh model would
+    # run post-split checkpoints with the diverged lm_head as the embedding
+    # (measured: +0.38..0.57 BPB, growing with training). Tied weights make
+    # the flag irrelevant; diverged weights need the schedule to disambiguate
+    # post-split from pre-split (where embed still holds its unused init).
+    if is_medium:
+        if not torch.equal(sd["embed.weight"], sd["lm_head.weight"]):
+            cfg_p = Path(ckpt_path).parent / "run_config.json"
+            if not cfg_p.exists():
+                sys.exit("embed/lm_head diverged but no run_config.json to "
+                         "locate split_step — cannot set split_embed")
+            sched = json.loads(cfg_p.read_text())["num_scheduled_iterations"]
+            split_step = math.ceil(ns["args"].split_embed_frac * sched) | 1
+            model.split_embed = ckpt["step"] >= split_step
     # validated instrument formula (fidelity delta 0.0024 vs recorded eval):
     # exact yarn restoration BEFORE torch.compile; compiled numerics match the
     # training eval's fp8 paths where eager does not (+0.02 BPB eager bias)
