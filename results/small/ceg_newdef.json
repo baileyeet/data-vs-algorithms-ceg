@@ -23,5 +23,6 @@
     "algorithm": 13.685968826212997,
     "total": 30.469916266485537
   },
-  "sanity_product_equals_total": true
+  "sanity_product_equals_total": true,
+  "n_params": 123689472
 }
