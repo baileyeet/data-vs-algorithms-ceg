@@ -1,0 +1,27 @@
+{
+  "size": "medium",
+  "threshold_neutral_bpb": 1.228738,
+  "gpu_hours_to_threshold": {
+    "a0d0": 13.058992843294364,
+    "a0d1": 3.85736889830162,
+    "a1d0": 3.5540048092138434,
+    "a1d1": 0.8602401344279764
+  },
+  "crossing_type": {
+    "a0d0": "interpolated",
+    "a0d1": "interpolated",
+    "a1d0": "interpolated",
+    "a1d1": "interpolated"
+  },
+  "shapley_log": {
+    "data": 1.3190552351305285,
+    "algorithm": 1.4009654707108679,
+    "total": 2.7200207058413963
+  },
+  "multipliers": {
+    "data": 3.7398863943787566,
+    "algorithm": 4.059117034242028,
+    "total": 15.180636569552812
+  },
+  "sanity_product_equals_total": true
+}
