@@ -14,16 +14,17 @@ completion.
   Threshold definition = mean neutral BPB over final-10% checkpoints of A0D0
   (dense-tail schedule; single-final variant reported as robustness).
 - **Tier 2 (355M): all 4 arms trained** (A0D0 1.2300, threshold 1.228738;
-  A0D1 1.1041; A1D1 1.0883; A1D0 1.2027). Medium A1 v2 reruns IN PROGRESS —
-  **nothing is final until they finish.**
+  A0D1 1.1041; A1D1 v2 1.0815; A1D0 v2 1.2070). Medium A1 v2 reruns DONE
+  2026-07-15, both within ±0.01 of v1. Not final until CORE re-sweep +
+  Shapley + Tier-1 correction land.
 - **Cost ledger**: Tier 2 projected **~$235 vs $200–230 envelope — flagged to
   user, not resolved.** Rerun cascade actual ~$60 vs $35 estimate. Two-bucket
   tracking (prep/validation vs per-tier training) in RUNBOOK.md.
 
-## Loader saga (resolved root cause — read before touching A1 evals)
+## Loader saga (RESOLVED 2026-07-15 — read before touching A1 evals)
 
-Post-hoc loading of modded-nanoGPT checkpoints was unfaithful. Two independent
-causes, both diagnosed and fixed:
+Post-hoc loading of modded-nanoGPT checkpoints was unfaithful. FOUR independent
+causes, all diagnosed and fixed:
 1. **Unfaithful yarn reconstruction**: rotary/YaRN buffers are persistent=False
    (never in state_dict) and training mutates them on the window schedule.
    Replay reconstruction (Option B) FAILED exactness: deltas 0.021–0.035,
@@ -31,11 +32,19 @@ causes, both diagnosed and fixed:
    (small track attrs: factor1/factor2; medium track: cos/sin — names differ).
 2. **Eager-vs-compiled numerics gap**: even exact yarn left +0.0186 BPB (fp8
    paths differ eager vs compiled). Fix: loader compiles the model.
-   **Validated formula = saved yarn_state + torch.compile → delta 0.0024 PASS**
-   (tolerance 0.005 vs training-recorded BPB).
-- **OPEN ITEM**: fidelity has passed on ONE checkpoint (small A1D1 v2 final).
-  It must pass across early/mid/late checkpoints of both tracks before the
-  fix is fully trusted.
+3. **Medium split_embed flag** (caught by the early/mid/late batch, which
+   FAILED 0.38–0.57 on all post-split medium ckpts): medium ties embed to
+   lm_head.weight until split_step then unties; the flag is a plain attr,
+   never in state_dict — a fresh model runs post-split ckpts with the
+   diverged lm_head as embedding. Fix: loader derives it (weight equality +
+   split_step from run_config) in BOTH build_model and load_into.
+4. **Fidelity-instrument packing bias** (+0.002–0.006 on all small deltas):
+   hand-rolled 1025-token segments without BOS splits ≠ training eval.
+   Fix: loader_fidelity_check.py uses the wrapper's make_eval_chunks /
+   evaluate_bpb_modded verbatim.
+- **Validated: 8/8 PASS, all deltas 0.0000** (early/mid/late × both tracks ×
+  both runs per track); load_into pre→post-split swap also exact. Formula =
+  saved yarn_state + split_embed restore + torch.compile + training packing.
 - lambada accuracy is INVALID for A1 arms (loader has no logits path →
   is_greedy hardcoded false); excluded from A1 CORE, documented.
 
@@ -49,8 +58,8 @@ explicit correction, not silently. v1/v2 agreement is within the measured
 
 ## Remaining queue (in order)
 
-1. Medium A1 v2 reruns finish (chained, monitored).
-2. Fidelity check incl. a medium checkpoint + early/mid/late coverage.
+1. ~~Medium A1 v2 reruns~~ DONE (a1d1 1.0815, a1d0 1.2070).
+2. ~~Fidelity early/mid/late both tracks~~ DONE (8/8 exact).
 3. Consolidated CORE re-sweep of all v2 A1 runs (use --more-ckpts amortized
    -compile mode in eval/lm_eval_adapter_modded.py; HF_TOKEN + PID-unique
    ports required for parallel).

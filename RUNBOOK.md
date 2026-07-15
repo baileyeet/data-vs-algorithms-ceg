@@ -16,21 +16,28 @@ Costs actually incurred — two buckets, per user: **prep/validation** vs
 Four facts that must survive any context compaction. If a future session is
 unsure of any of these, re-read this section before acting:
 
-1. **Loader fidelity is NOT yet trusted.** The yarn_state+torch.compile fix
-   has passed the fidelity check on exactly ONE checkpoint: small A1D1 v2
-   final, delta 0.0024 (tolerance 0.005). It must pass on early/mid/late
-   checkpoints of BOTH tracks (small track saves factor1/factor2; medium
-   track saves cos/sin) before any post-hoc A1 eval is citable. OPEN.
-2. **Medium A1 v2 reruns in progress** (chained pair on the pod, persistent
-   monitor active). As of 2026-07-15: leg 1 (a1d1_v2) at step ~1036, ~169M
-   of 4,353,949,696 tokens, neutral BPB 1.298, 120G free. Update this line
-   when they finish.
+1. **Loader fidelity RESOLVED (2026-07-15): 8/8 PASS, all deltas 0.0000**,
+   early/mid/late × both tracks × both runs per track. The first multi-point
+   batch had FAILED (medium 0.38–0.57, small marginal 0.005–0.006), exposing
+   two more defects beyond the yarn/compile pair: (a) medium's `split_embed`
+   tying flag is a plain attribute, never in state_dict — post-split
+   checkpoints ran with the diverged lm_head as embedding; loader now derives
+   it (weight equality + split_step from run_config) in build_model AND
+   load_into; (b) the fidelity script's hand-rolled packing (1025-token
+   segments, no BOS splits) carried a systematic +0.002–0.006 bias — it now
+   uses the wrapper's make_eval_chunks/evaluate_bpb_modded verbatim.
+   Validated instrument = saved yarn_state + split_embed restore +
+   torch.compile + training-eval packing.
+2. **Medium A1 v2 reruns DONE (2026-07-15)**: a1d1_v2 final neutral BPB
+   1.0815 (v1 1.0883, Δ0.0068), a1d0_v2 final 1.2070 at 4.672 GPU-h (v1
+   1.2027, Δ0.0043) — both within the ±0.01 same-seed floor. Metrics/configs
+   in results/medium/ (v2 files) and results/superseded/ (v1 a1d0).
 3. **Cost ledger flag, unresolved:** Tier 2 projected ~$235 vs the $200–230
    envelope — flagged to user, NOT resolved. Rerun cascade actual ~$60 vs
    ~$35 estimate. Both go in the two-bucket table below at closeout.
-4. **Nothing about Tier 2 is final** until the medium v2 reruns finish AND
-   the fidelity check passes on multiple checkpoints per item 1. Do not
-   report Tier-2 Shapley or any A1 number as final before then.
+4. Both finality preconditions (items 1–2) are now met. Tier 2 still isn't
+   final until the consolidated v2 CORE re-sweep, Tier-2 Shapley, and the
+   Tier-1 correction land — then results go to the user for Tier-3 go/no-go.
 
 **Cost-efficiency rule (user, 2026-07-13): CPU-bound work (tokenization,
 decontam scans, merging, re-chunking) is NOT run on GPU pods by default at
