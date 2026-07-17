@@ -1160,8 +1160,17 @@ class GPT(nn.Module):
         # set block masks and key shift
         short_bm = ws_short * args.block_size
         long_bm = ws_long * args.block_size
-        bm_sizes = [long_bm, short_bm, short_bm, short_bm, long_bm, short_bm, short_bm, short_bm, 
-            short_bm, short_bm, short_bm, long_bm, short_bm, short_bm, short_bm, long_bm]
+        # CEG XL: the long/short per-layer window layout is a hand-tuned,
+        # track-specific architectural constant (medium[16]: long@[0,4,11,15],
+        # 25% long; small[11]: long@[3,10]+a None layer). There is NO scaling
+        # formula between tracks and NO 1.5B reference (the documented 2024
+        # ScaleUp1B is a different architecture with no long-short windows).
+        # DERIVATION (no reference; validation-tested): preserve the medium
+        # track's 25% long ratio -> 12 long layers among 48, evenly spaced with
+        # both endpoints long. long@[0,4,9,13,17,21,26,30,34,38,43,47].
+        _L, _nlong = self.num_layers, max(1, round(self.num_layers / 4))
+        _long_idx = {round(k * (_L - 1) / (_nlong - 1)) for k in range(_nlong)}
+        bm_sizes = [long_bm if i in _long_idx else short_bm for i in range(_L)]
         assert len(bm_sizes) == self.num_layers
         key_offset = [b==long_bm for b in bm_sizes] # apply partial key offset to long windows
 
