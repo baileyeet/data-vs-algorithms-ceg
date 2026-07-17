@@ -536,10 +536,20 @@ class NorMuon(torch.optim.Optimizer):
         and mlp params when a param group is split across GPUs.
         """
         params_list = list(params)
-        module_group_order = ['attn_gate', 'value_embed_gate', 'attn', 'mlp'] # 16, 10, 16, 32
-        group_sizes = [16, 10, 16, 16, 16]
+        module_group_order = ['attn_gate', 'value_embed_gate', 'attn', 'mlp']
         params_list.sort(key=lambda x: module_group_order.index(x.label))
-        print0(len(params_list), console=True)
+        # CEG XL: derive group_sizes from the actual per-label counts instead of
+        # the medium-hardcoded [16,10,16,16,16]. Reproduces medium exactly
+        # (attn_gate=16, ve_gate=10, attn=16, mlp=32->[16,16]) and scales to any
+        # depth (48 layers -> [48,10,48,48,48]). mlp params (c_fc/c_proj, both
+        # shape (4d,d)) are shape-homogeneous, so the even split is kernel-safe.
+        from collections import Counter
+        lc = Counter(p.label for p in params_list)
+        n_mlp = lc['mlp']
+        mlp_a = n_mlp // 2
+        group_sizes = [lc['attn_gate'], lc['value_embed_gate'], lc['attn'],
+                       mlp_a, n_mlp - mlp_a]
+        print0(f"NorMuon param groups {group_sizes} (n={len(params_list)})", console=True)
         idx = 0
         assert len(params_list) == sum(group_sizes)
         param_groups = []
