@@ -288,13 +288,27 @@ class DistributedDataLoader:
         self.num_processes = num_processes
         self.B = B
         self.T = T
-        self.files = sorted(glob.glob(filename_pattern))
-        assert len(self.files) > 0, f"no files match {filename_pattern}"
-        ntok_total = 0
-        for fname in self.files:
+        all_files = sorted(glob.glob(filename_pattern))
+        assert len(all_files) > 0, f"no files match {filename_pattern}"
+        # CEG: our tokenized corpora can end in a tiny remainder shard (e.g.
+        # dclm train_000072.bin = 1876 tokens); the 2024 loader's per-shard
+        # assert can't consume a shard smaller than one global batch. Skip such
+        # undersized shards (methodologically negligible vs an ~18B corpus)
+        # instead of crashing, matching how the current trackers tolerate them.
+        min_shard = num_processes * B * T + 1
+        self.files, ntok_total, skipped = [], 0, []
+        for fname in all_files:
             shard_ntok = _peek_data_shard(fname)
-            assert shard_ntok >= num_processes * B * T + 1
+            if shard_ntok < min_shard:
+                skipped.append((fname, shard_ntok))
+                continue
+            self.files.append(fname)
             ntok_total += int(shard_ntok)
+        assert self.files, f"no shard >= {min_shard} tokens in {filename_pattern}"
+        if skipped and process_rank == 0:
+            print(f"[DataLoader] skipped {len(skipped)} undersized shard(s) "
+                  f"< {min_shard} tokens: {[(Path(f).name, n) for f, n in skipped]}",
+                  flush=True)
         self.ntok_total = ntok_total
         self.reset()
 
