@@ -589,7 +589,10 @@ def main():
     # 24*2048*8 tokens across 8 ranks = 49152 per rank. Without this check the
     # YaRN rotary assert fires ~7 minutes in, after torch.compile.
     world = int(os.environ.get("WORLD_SIZE", "1"))
-    max_stage_global = {"small": 24 * 2048 * 8, "medium": 524288}[args.size]
+    # xl inherits the medium batch schedule verbatim (train_bs_schedule tops at
+    # 524288; train_bs_extension = 32*2048*8 = 524288), so same max stage.
+    max_stage_global = {"small": 24 * 2048 * 8, "medium": 524288,
+                        "xl": 524288}[args.size]
     max_stage_per_rank = max_stage_global // world
     model_msl = args.model_max_seq_len or args.val_batch_size // world
     assert model_msl >= max_stage_per_rank, (
