@@ -96,6 +96,26 @@ def restore_yarn(model, ckpt, is_medium):
     return None
 
 
+def _medium_lineage(ckpt):
+    """True for the medium AND xl tracks — they share the same GPT class
+    (cos/sin yarn, split_embed tying, no-bigram forward). Only the small
+    (124M speedrun) track differs structurally."""
+    size = ckpt.get("size")
+    algo = ckpt.get("algorithm", "")
+    return size in ("medium", "xl") or "medium" in algo or "xl" in algo
+
+
+def _trainer_file(ckpt):
+    """Class source for the checkpoint. xl and medium are near-identical (dims
+    come from model_args, not the class), but route to the exact file so any
+    future divergence is honoured."""
+    if ckpt.get("size") == "xl" or "xl" in ckpt.get("algorithm", ""):
+        return ROOT / "train_new" / "train_gpt_xl_ceg.py"
+    if _medium_lineage(ckpt):
+        return ROOT / "train_new" / "train_gpt_medium_ceg.py"
+    return ROOT / "train_new" / "train_gpt_ceg.py"
+
+
 def _set_split_embed(model, ckpt, ckpt_path, sd, split_embed_frac):
     """medium ties embed to lm_head.weight until split_step, then unties; the
     flag is a plain attribute (never in state_dict), so a fresh model would

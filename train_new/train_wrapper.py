@@ -541,7 +541,7 @@ def run_checkpoint(step: int, model, training_manager, timed_seconds: float,
 
 def get_args():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--size", required=True, choices=["small", "medium"])
+    ap.add_argument("--size", required=True, choices=["small", "medium", "xl"])
     ap.add_argument("--arm", default="", choices=["", "a1d0", "a1d1"],
                     help="grid cell (recorded in run_config; required for real runs)")
     ap.add_argument("--data-glob", required=True,
@@ -615,7 +615,8 @@ def main():
         cli=vars(args),
         size=args.size, arm=args.arm,
         algorithm={"small": "new_modded_nanogpt",
-                   "medium": "new_modded_nanogpt_medium"}[args.size],
+                   "medium": "new_modded_nanogpt_medium",
+                   "xl": "new_modded_nanogpt_xl"}[args.size],
         token_budget=args.token_budget, n_epochs=args.n_epochs,
         n_checkpoints=args.n_checkpoints, first_ckpt_frac=args.first_ckpt_frac,
         eval_seq_len=args.eval_seq_len, eval_windows_per_chunk=args.eval_windows_per_chunk,
@@ -631,7 +632,8 @@ def main():
         Path(CONFIG.out_dir).mkdir(parents=True, exist_ok=True)
 
     # Expose this module to the patched trainer as "ceg", then run it.
-    trainer = {"small": "train_gpt_ceg.py", "medium": "train_gpt_medium_ceg.py"}[args.size]
+    trainer = {"small": "train_gpt_ceg.py", "medium": "train_gpt_medium_ceg.py",
+               "xl": "train_gpt_xl_ceg.py"}[args.size]
     sys.modules["ceg"] = sys.modules[__name__]
     runpy.run_path(str(Path(__file__).resolve().parent / trainer),
                    run_name=trainer.removesuffix(".py"))
