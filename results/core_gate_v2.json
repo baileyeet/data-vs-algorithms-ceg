@@ -1,0 +1,269 @@
+{
+  "124M": {
+    "gate": {
+      "agieval_lsat_ar": {
+        "chance": 0.2,
+        "a0d0_acc": 0.21739130434782608,
+        "a0d0_stderr": 0.02725685083881996,
+        "usable": false
+      },
+      "arc_challenge": {
+        "chance": 0.25,
+        "a0d0_acc": 0.176,
+        "a0d0_stderr": 0.017047852020622263,
+        "usable": false
+      },
+      "arc_easy": {
+        "chance": 0.25,
+        "a0d0_acc": 0.42,
+        "a0d0_stderr": 0.02209471322976178,
+        "usable": true
+      },
+      "bigbench_cs_algorithms_multiple_choice": {
+        "chance": null,
+        "a0d0_acc": 0.244,
+        "a0d0_stderr": 0.01922673489361464,
+        "usable": false
+      },
+      "bigbench_dyck_languages_multiple_choice": {
+        "chance": null,
+        "a0d0_acc": 0.2,
+        "a0d0_stderr": 0.017906459241433838,
+        "usable": false
+      },
+      "bigbench_language_identification_multiple_choice": {
+        "chance": null,
+        "a0d0_acc": 0.104,
+        "a0d0_stderr": 0.013665338743182693,
+        "usable": false
+      },
+      "boolq": {
+        "chance": 0.5,
+        "a0d0_acc": 0.504,
+        "a0d0_stderr": 0.022382357781962132,
+        "usable": false
+      },
+      "commonsense_qa": {
+        "chance": 0.2,
+        "a0d0_acc": 0.188,
+        "a0d0_stderr": 0.017490678880346253,
+        "usable": false
+      },
+      "copa": {
+        "chance": 0.5,
+        "a0d0_acc": 0.66,
+        "a0d0_stderr": 0.047609522856952385,
+        "usable": true
+      },
+      "hellaswag": {
+        "chance": 0.25,
+        "a0d0_acc": 0.336,
+        "a0d0_stderr": 0.02114479142504886,
+        "usable": true
+      },
+      "lambada_openai": {
+        "chance": null,
+        "a0d0_acc": 0.288,
+        "a0d0_stderr": 0.020271503835075217,
+        "usable": false
+      },
+      "openbookqa": {
+        "chance": 0.25,
+        "a0d0_acc": 0.152,
+        "a0d0_stderr": 0.016071982367911755,
+        "usable": false
+      },
+      "piqa": {
+        "chance": 0.5,
+        "a0d0_acc": 0.622,
+        "a0d0_stderr": 0.02170655082451818,
+        "usable": true
+      },
+      "winogrande": {
+        "chance": 0.5,
+        "a0d0_acc": 0.532,
+        "a0d0_stderr": 0.022337186479044296,
+        "usable": false
+      },
+      "xwinograd_en": {
+        "chance": 0.5,
+        "a0d0_acc": 0.59,
+        "a0d0_stderr": 0.022017482578127672,
+        "usable": true
+      }
+    },
+    "usable_tasks": [
+      "arc_easy",
+      "copa",
+      "hellaswag",
+      "piqa",
+      "xwinograd_en"
+    ],
+    "rows": {
+      "a0d0": {
+        "arc_easy": 0.42,
+        "copa": 0.66,
+        "hellaswag": 0.336,
+        "piqa": 0.622,
+        "xwinograd_en": 0.59
+      },
+      "a0d1": {
+        "arc_easy": 0.476,
+        "copa": 0.62,
+        "hellaswag": 0.342,
+        "piqa": 0.632,
+        "xwinograd_en": 0.568
+      },
+      "a1d0": {
+        "arc_easy": 0.438,
+        "copa": 0.6,
+        "hellaswag": 0.34,
+        "piqa": 0.598,
+        "xwinograd_en": 0.582
+      },
+      "a1d1": {
+        "arc_easy": 0.462,
+        "copa": 0.67,
+        "hellaswag": 0.342,
+        "piqa": 0.648,
+        "xwinograd_en": 0.556
+      }
+    }
+  },
+  "355M": {
+    "gate": {
+      "agieval_lsat_ar": {
+        "chance": 0.2,
+        "a0d0_acc": 0.23043478260869565,
+        "a0d0_stderr": 0.027827807522276156,
+        "usable": false
+      },
+      "arc_challenge": {
+        "chance": 0.25,
+        "a0d0_acc": 0.188,
+        "a0d0_stderr": 0.017490678880346243,
+        "usable": false
+      },
+      "arc_easy": {
+        "chance": 0.25,
+        "a0d0_acc": 0.432,
+        "a0d0_stderr": 0.022175109265613162,
+        "usable": true
+      },
+      "bigbench_cs_algorithms_multiple_choice": {
+        "chance": null,
+        "a0d0_acc": 0.246,
+        "a0d0_stderr": 0.0192798190563525,
+        "usable": false
+      },
+      "bigbench_dyck_languages_multiple_choice": {
+        "chance": null,
+        "a0d0_acc": 0.172,
+        "a0d0_stderr": 0.01689386887634748,
+        "usable": false
+      },
+      "bigbench_language_identification_multiple_choice": {
+        "chance": null,
+        "a0d0_acc": 0.106,
+        "a0d0_stderr": 0.013780704467887704,
+        "usable": false
+      },
+      "boolq": {
+        "chance": 0.5,
+        "a0d0_acc": 0.598,
+        "a0d0_stderr": 0.021948929609938612,
+        "usable": true
+      },
+      "commonsense_qa": {
+        "chance": 0.2,
+        "a0d0_acc": 0.188,
+        "a0d0_stderr": 0.017490678880346253,
+        "usable": false
+      },
+      "copa": {
+        "chance": 0.5,
+        "a0d0_acc": 0.69,
+        "a0d0_stderr": 0.04648231987117316,
+        "usable": true
+      },
+      "hellaswag": {
+        "chance": 0.25,
+        "a0d0_acc": 0.376,
+        "a0d0_stderr": 0.021683827539286122,
+        "usable": true
+      },
+      "lambada_openai": {
+        "chance": null,
+        "a0d0_acc": 0.364,
+        "a0d0_stderr": 0.021539170637317695,
+        "usable": false
+      },
+      "openbookqa": {
+        "chance": 0.25,
+        "a0d0_acc": 0.16,
+        "a0d0_stderr": 0.016411540980502327,
+        "usable": false
+      },
+      "piqa": {
+        "chance": 0.5,
+        "a0d0_acc": 0.644,
+        "a0d0_stderr": 0.021434712356072645,
+        "usable": true
+      },
+      "winogrande": {
+        "chance": 0.5,
+        "a0d0_acc": 0.512,
+        "a0d0_stderr": 0.02237662679792717,
+        "usable": false
+      },
+      "xwinograd_en": {
+        "chance": 0.5,
+        "a0d0_acc": 0.582,
+        "a0d0_stderr": 0.022080014812228134,
+        "usable": true
+      }
+    },
+    "usable_tasks": [
+      "arc_easy",
+      "boolq",
+      "copa",
+      "hellaswag",
+      "piqa",
+      "xwinograd_en"
+    ],
+    "rows": {
+      "a0d0": {
+        "arc_easy": 0.432,
+        "boolq": 0.598,
+        "copa": 0.69,
+        "hellaswag": 0.376,
+        "piqa": 0.644,
+        "xwinograd_en": 0.582
+      },
+      "a0d1": {
+        "arc_easy": 0.5,
+        "boolq": 0.566,
+        "copa": 0.66,
+        "hellaswag": 0.354,
+        "piqa": 0.678,
+        "xwinograd_en": 0.608
+      },
+      "a1d0": {
+        "arc_easy": 0.446,
+        "boolq": 0.628,
+        "copa": 0.68,
+        "hellaswag": 0.362,
+        "piqa": 0.65,
+        "xwinograd_en": 0.588
+      },
+      "a1d1": {
+        "arc_easy": 0.558,
+        "boolq": 0.538,
+        "copa": 0.61,
+        "hellaswag": 0.364,
+        "piqa": 0.658,
+        "xwinograd_en": 0.63
+      }
+    }
+  }
+}
