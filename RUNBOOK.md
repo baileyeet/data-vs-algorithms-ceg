@@ -35,9 +35,15 @@ unsure of any of these, re-read this section before acting:
 3. **Cost ledger flag, unresolved:** Tier 2 projected ~$235 vs the $200–230
    envelope — flagged to user, NOT resolved. Rerun cascade actual ~$60 vs
    ~$35 estimate. Both go in the two-bucket table below at closeout.
-4. Both finality preconditions (items 1–2) are now met. Tier 2 still isn't
-   final until the consolidated v2 CORE re-sweep, Tier-2 Shapley, and the
-   Tier-1 correction land — then results go to the user for Tier-3 go/no-go.
+4. DONE 2026-07-16: v2 CORE re-sweep (160 ckpts), Tier-2 Shapley, Tier-1
+   correction, CORE gate re-derivation, v2 HF uploads all complete. Tier 2 is
+   now final. **At the Tier-3 go/no-go hard stop — awaiting user.** Do NOT
+   launch Tier 3 (paid) without explicit per-tier confirmation AND the
+   pre-flight gates below.
+
+Open cleanup (non-blocking): HF path 124M/A1D1 has a stale ckpt_001390.pt
+(abandoned 1x-native run); its metrics/config are already v2. Flagged to
+user, not deleted (external delete, not self-created).
 
 **Cost-efficiency rule (user, 2026-07-13): CPU-bound work (tokenization,
 decontam scans, merging, re-chunking) is NOT run on GPU pods by default at

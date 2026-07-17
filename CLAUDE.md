@@ -7,7 +7,28 @@ only with explicit user confirmation, per tier. Commits: one line, never
 mention Claude/Anthropic. Long jobs: persistent state-change monitors until
 completion.
 
-## Current state (2026-07-15)
+## Current state (2026-07-16)
+
+**AT THE TIER-3 GO/NO-GO HARD STOP.** Queue items 1–5 done: v2 reruns,
+fidelity 8/8 exact, CORE re-sweep, Tier-1 correction (Shapley re-derived from
+v2), v2 A1 arms uploaded+verified to HF, CORE gate re-derived, Tier-2 Shapley
++ 2-point cross-scale plot done. Headline cross-scale trend below. Awaiting
+user decision on Tier 3 (1.5B) — paid, needs explicit confirm + pre-flight
+gates. Pod restarted on port 14523 (was 18124); container disk reset so repo
+re-synced via `git archive` (clone auth still broken — use archive, not clone).
+
+### Headline (v2-canonical, log-space Shapley)
+| Scale | Data mult | Algo mult | Total | Threshold (neutral BPB) |
+|-------|-----------|-----------|-------|--------------------------|
+| 124M  | 2.23x     | 13.69x    | 30.5x | 1.274421 (new def)       |
+| 355M  | 3.74x     | 4.06x     | 15.2x | 1.228738                 |
+Algorithm advantage COLLAPSES with scale (13.7->4.1x); data GROWS (2.2->3.7x).
+CORE (secondary, validity-gated): 124M 5 usable tasks (boolq drops — A0D0 at
+chance 0.504), 355M 6; lambada excluded for A1 (no logits path). All A1 CORE
+from v2 sweep. Arms cluster near each other on CORE at these scales (noisy,
+limit=500) — BPB is the real signal.
+
+## Prior state (2026-07-15)
 
 - **Tier 1 (124M): closed, but A1 numbers under explicit correction** (see
   loader saga below). Headline pending re-derivation from v2 reruns.
@@ -60,14 +81,16 @@ explicit correction, not silently. v1/v2 agreement is within the measured
 
 1. ~~Medium A1 v2 reruns~~ DONE (a1d1 1.0815, a1d0 1.2070).
 2. ~~Fidelity early/mid/late both tracks~~ DONE (8/8 exact).
-3. Consolidated CORE re-sweep of all v2 A1 runs (use --more-ckpts amortized
-   -compile mode in eval/lm_eval_adapter_modded.py; HF_TOKEN + PID-unique
-   ports required for parallel).
-4. Tier-1 correction + CORE gate re-derivation; uploads of v2 arms.
-5. Tier-2 Shapley + re-derived Tier-1 + 2-point cross-scale plot → user for
-   Tier-3 go/no-go.
+3. ~~Consolidated CORE re-sweep of all v2 A1 runs~~ DONE (160 ckpts,
+   results/core_sweep_v2/).
+4. ~~Tier-1 correction + CORE gate re-derivation; uploads of v2 arms~~ DONE
+   (Shapley re-derived; analysis/core_gate.py -> results/core_gate_v2.json;
+   4 v2 A1 arms uploaded+verified to HF).
+5. ~~Tier-2 Shapley + cross-scale plot~~ DONE (results/medium/ceg_newdef.json,
+   results/cross_scale.png) -> **NOW AT USER GO/NO-GO for Tier 3.**
 6. Tier 3 pre-flight gates in RUNBOOK.md (500GB volume ✅ done; hooks/rolling
-   prune/bf16 saves/first-ckpt size check pending).
+   prune/bf16 saves/first-ckpt size check/XL recipe pending — only if user
+   says GO).
 
 ## Operational gotchas (hard-won)
 
