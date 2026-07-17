@@ -9,6 +9,36 @@ completion.
 
 ## Current state (2026-07-16)
 
+## Tier-3 (1.5B) A1 recipe decision (user-ratified 2026-07-17) — READ FIRST
+
+**A1 @ 1.5B uses the DOCUMENTED 2024 ScaleUp1B recipe (Option A), NOT a
+scaled current-arch (Option B).** Reproducible config lives in the vendored
+log `train_new/modded-nanogpt/records/track_1_short/2024-10-20_ScaleUp1B/
+ad8d7ae5-…txt` (full source embedded): GPTConfig(n_layer=52, n_head=12,
+n_embd=1536), 20344 steps, batch 480 seq × 1024, ~10.0B tokens, lr 0.0036/2
+= 0.0018 (Muon 0.1×), warmup 0, warmdown 5812. It is a PLAIN transformer:
+Linear QKV, base-10000 Rotary, 4× MLP, weight tying, old Muon+AdamW — NO
+YaRN/windows, NO split_embed, NO value embeds, NO U-net skips, NO fp8/MTP.
+So the whole loader-fidelity problem class (yarn_state, split_embed) does
+NOT apply — post-hoc load is a plain state_dict load.
+
+**WHY not Option B (scale current medium arch):** scaling to 48 layers
+requires re-deriving 3 hand-tuned architectural subsystems with no 1.5B
+reference — window layout (derivable), value-embed placement (clean), and
+the U-net skip topology (skip_in/out/backout, 3 skips baked into the scalar
+layout). The skip topology is an UNTESTABLE guess: a wrong one yields a
+plausible-but-non-representative model with NO divergence signature (unlike a
+bad schedule). User: that confound is worse than A's.
+
+**MANDATORY REPORT CAVEAT (user, front-and-center, not a footnote):** the
+1.5B A1 arm is an OLDER modded-nanoGPT generation than the 124M/355M A1 arms
+(current speedrun). Any change in the algorithm multiplier at 1.5B MUST be
+interpreted with this algorithm-version confound stated prominently.
+
+**Status:** the Option-B train_gpt_xl_ceg.py (scaled-medium, 48L) is being
+REPLACED by the 2024-arch adaptation. Wrapper --size xl wiring is reusable;
+loader routing for xl must be redone (2024 arch is NOT medium-lineage).
+
 **AT THE TIER-3 GO/NO-GO HARD STOP.** Queue items 1–5 done: v2 reruns,
 fidelity 8/8 exact, CORE re-sweep, Tier-1 correction (Shapley re-derived from
 v2), v2 A1 arms uploaded+verified to HF, CORE gate re-derived, Tier-2 Shapley
