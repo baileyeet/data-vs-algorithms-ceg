@@ -35,9 +35,29 @@ bad schedule). User: that confound is worse than A's.
 (current speedrun). Any change in the algorithm multiplier at 1.5B MUST be
 interpreted with this algorithm-version confound stated prominently.
 
-**Status:** the Option-B train_gpt_xl_ceg.py (scaled-medium, 48L) is being
-REPLACED by the 2024-arch adaptation. Wrapper --size xl wiring is reusable;
-loader routing for xl must be redone (2024 arch is NOT medium-lineage).
+**Status (2026-07-17, pod TERMINATED for the night):** XL A1 trainer built =
+train_new/train_gpt_xl_ceg.py (2024 arch, CEG-wrapped, reuses common.bpb.
+evaluate_bpb = same instrument as A0). SMOKE PASSED: 1,549,467,648 params
+(=GPT-2-XL), fits at 66GB/80GB, BPB descends, ckpt 5.8GB fp32 (~matches 6.2GB
+projection), clean exit. De-risk VALIDATION (2B budget, a1d1/dclm, save 0) ran
+HEALTHY to step 283/~4069 (~7%, BPB monotonic 3.16->1.68) then interrupted for
+teardown — NOT run to completion. Partial curve in results/xl_validation_partial/.
+Three wiring bugs fixed en route (xl max_stage guard; DataLoader skip-undersized-
+shard for the 1876-tok remainder; + earlier Option-B grouping/window/ve-gate,
+now moot). One smoke ckpt kept on /workspace/runs/xl_smoke/ckpt_000041.pt for a
+later plain-load test.
+
+**RESUME PLAN (next session):** new pod -> re-bootstrap (git archive sync +
+pip deps; container disk resets on terminate, /workspace persists). Then decide:
+(a) finish the de-risk validation to completion (~2h, ~$47) if we want full
+confirmation, OR (b) treat the healthy 7% + clean smoke as sufficient de-risk
+and proceed to FULL Tier-3. Full Tier-3 still needs: A0 1.5B arm wired (standard
+GPT-2-XL in train_old), rolling checkpoint prune (ESSENTIAL at 5.8GB/ckpt),
+bf16 A0 saves, and the loader/CORE path for xl (plain state_dict load + A0
+lm-eval adapter, NOT the modded one). This is a USER go/no-go on paid full-tier
+compute. Loader routing in eval/lm_eval_adapter_modded.py still wrongly treats
+xl as medium-lineage (the _medium_lineage/_trainer_file xl bits) — REMOVE/redirect
+xl to the A0 adapter before any xl CORE sweep.
 
 **AT THE TIER-3 GO/NO-GO HARD STOP.** Queue items 1–5 done: v2 reruns,
 fidelity 8/8 exact, CORE re-sweep, Tier-1 correction (Shapley re-derived from
