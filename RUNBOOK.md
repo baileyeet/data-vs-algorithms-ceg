@@ -112,9 +112,13 @@ pod for validation smokes is fine.
       the full curve) — peak footprint ~20GB/run.
 - [ ] A0 checkpoints saved bf16 (6.2GB -> 3.1GB), fp32 exception for the final
       (reload-audit fidelity).
-- [ ] FIRST real 1.5B checkpoint: measure actual size vs projections (A0 6.2GB fp32
-      / A1 ~4.5GB extrapolated); report delta to user immediately; re-derive disk
-      budget if >20% off.
+- [x] FIRST real 1.5B checkpoint size MEASURED (2026-07-17, XL-A1 2024-arch smoke):
+      5.8GB fp32 for 1,549,467,648 params (~1.55B, = GPT-2-XL). Matches the 6.2GB
+      fp32 projection (within 20%). No OOM on 8xH100. XL recipe (Option A, 2024
+      ScaleUp1B) is WIRED + smoke-passes (BPB descends 3.16->2.82; timing excludes
+      warmup). A1-XL checkpoints have NO yarn_state/split_embed (plain arch) ->
+      post-hoc load is a plain state_dict load; CORE via the A0 lm-eval adapter.
+      NOTE: at ~5.8GB/ckpt, the full-tier run needs rolling prune (gate below).
 - [ ] Report disclosure: CORE provenance may differ across tiers (post-hoc
       yarn-replay loader for T1/T2 vs in-training hooks for T3) — state both
       instruments + validation criteria in methodology notes.
