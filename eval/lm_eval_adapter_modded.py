@@ -96,24 +96,16 @@ def restore_yarn(model, ckpt, is_medium):
     return None
 
 
-def _medium_lineage(ckpt):
-    """True for the medium AND xl tracks — they share the same GPT class
-    (cos/sin yarn, split_embed tying, no-bigram forward). Only the small
-    (124M speedrun) track differs structurally."""
-    size = ckpt.get("size")
-    algo = ckpt.get("algorithm", "")
-    return size in ("medium", "xl") or "medium" in algo or "xl" in algo
-
-
-def _trainer_file(ckpt):
-    """Class source for the checkpoint. xl and medium are near-identical (dims
-    come from model_args, not the class), but route to the exact file so any
-    future divergence is honoured."""
-    if ckpt.get("size") == "xl" or "xl" in ckpt.get("algorithm", ""):
-        return ROOT / "train_new" / "train_gpt_xl_ceg.py"
-    if _medium_lineage(ckpt):
-        return ROOT / "train_new" / "train_gpt_medium_ceg.py"
-    return ROOT / "train_new" / "train_gpt_ceg.py"
+def _reject_if_xl(ckpt):
+    """The Tier-3 xl arm is the 2024 ScaleUp1B recipe — a PLAIN causal
+    transformer (no yarn/split_embed/value-embeds/varlen), so this modded
+    adapter (built for the current small/medium A1 tracks) does not apply.
+    Its CORE eval uses a plain-causal loglikelihood path, not this one."""
+    if ckpt.get("size") == "xl" or "scaleup1b" in ckpt.get("arch", "") \
+            or "xl" in ckpt.get("algorithm", ""):
+        sys.exit("xl (2024 ScaleUp1B) is a plain-causal arch — not loadable by "
+                 "this modded adapter. Use the dedicated plain-causal CORE path "
+                 "(added at the xl CORE-sweep step); do NOT route it here.")
 
 
 def _set_split_embed(model, ckpt, ckpt_path, sd, split_embed_frac):
@@ -190,6 +182,7 @@ def _replay_yarn(model, ckpt_path, ckpt, is_medium):
 
 def build_model(ckpt_path, device="cuda"):
     ckpt = torch.load(ckpt_path, map_location="cpu", weights_only=False)
+    _reject_if_xl(ckpt)
     margs = ckpt["model_args"]
     # checkpoints carry "size", not "algorithm" — route the class source by it
     is_medium = ckpt.get("size") == "medium" or "medium" in ckpt.get("algorithm", "")
@@ -333,6 +326,7 @@ def load_into(model, ckpt_path):
     model — same architecture required. Returns (ckpt, ws)."""
     inner = getattr(model, "_orig_mod", model)
     ckpt = torch.load(ckpt_path, map_location="cpu", weights_only=False)
+    _reject_if_xl(ckpt)
     is_medium = ckpt.get("size") == "medium" or "medium" in ckpt.get("algorithm", "")
     sd = {k.removeprefix("_orig_mod."): v.cuda() for k, v in ckpt["model"].items()}
     msd = inner.state_dict()

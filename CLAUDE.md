@@ -47,11 +47,15 @@ shard for the 1876-tok remainder; + earlier Option-B grouping/window/ve-gate,
 now moot). One smoke ckpt kept on /workspace/runs/xl_smoke/ckpt_000041.pt for a
 later plain-load test.
 
-**RESUME PLAN (next session):** new pod -> re-bootstrap (git archive sync +
-pip deps; container disk resets on terminate, /workspace persists). Then decide:
-(a) finish the de-risk validation to completion (~2h, ~$47) if we want full
-confirmation, OR (b) treat the healthy 7% + clean smoke as sufficient de-risk
-and proceed to FULL Tier-3. Full Tier-3 still needs: A0 1.5B arm wired (standard
+**RESUME PLAN (next session), user-ratified 2026-07-18:** new pod -> re-bootstrap
+(git archive sync + pip deps; container disk resets on terminate, /workspace
+persists). Then: FINISH THE XL DE-RISK VALIDATION TO COMPLETION FIRST (~2h,
+~$47) — do NOT treat the partial 7% as sufficient. Rationale (user): this
+project's problems tend to surface mid-run, not at the start; confirm the full
+BPB curve stays clean before committing to the paid four-arm tier. Only after a
+clean full validation curve -> FULL Tier-3 go/no-go.
+A0 1.5B arm ALREADY WIRED + VERIFIED (configs/model_sizes.json xl = GPT-2-XL
+48L/25H/1600d, lr 2e-4; local param count 1557.7M = 1.558B). No A0 wiring needed. Full Tier-3 still needs: A0 1.5B arm wired (standard
 GPT-2-XL in train_old), rolling checkpoint prune (ESSENTIAL at 5.8GB/ckpt),
 bf16 A0 saves, and the loader/CORE path for xl (plain state_dict load + A0
 lm-eval adapter, NOT the modded one). This is a USER go/no-go on paid full-tier
