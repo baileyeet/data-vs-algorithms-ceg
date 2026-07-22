@@ -9,7 +9,46 @@ completion.
 
 ## Current state (2026-07-16)
 
-## Tier-3 (1.5B) A1 recipe decision (user-ratified 2026-07-17) — READ FIRST
+## TIER 3 FULL RUN IN PROGRESS (launched 2026-07-21) — READ FIRST
+
+**4-arm 1.5B measured run LIVE on 5xH100** (pod 31.24.80.40:15474). Driver
+`/root/xl_tier3.sh` (chained, aborts on any arm failure); per-arm logs
+`/root/xl_<arm>.log`; main log `/root/xl_tier3.log`. ~2.35 days / ~$850-900.
+Order: A0D0 -> A0D1 -> A1D0 -> A1D1. Each arm: rolling prune keep-3, dense-tail
+schedule (n-ckpts 35), final uploaded to HF (1.5B/<ARM>).
+
+**Config (user-ratified):** A0 arms (GPT-2-XL, train_old, size xl): budget
+8.87e9 (full single-pass OWT; DCLM uses 8.87B of 18B), total-batch-tokens
+512000, device-batch 10. A1 arms (2024 ScaleUp, train_gpt_xl_ceg): budget
+9,999,114,240 (documented 20344 steps), device-batch 12; A1D0 --n-epochs 2
+(10B on 8.87B OWT = ~1.13 epochs, minor repetition — user chose documented
+budget over single-pass), A1D1 --n-epochs 1 (DCLM 18B).
+
+**5 GPUs LOCKED** — validation confirmed stability at this batch/GPU count;
+if the pod is relaunched, re-bootstrap and relaunch `/root/xl_tier3.sh`
+(nproc 5), do NOT switch GPU count.
+
+**Pre-launch gates ALL verified on GPU (2026-07-21):** (1) rolling prune
+deletes live, disk bounded [smoked both trainers]; (2) A0 GPT-2-XL builds/fits,
+~7.4 GPU-h/B throughput [= A1]; (3) modded loader REJECTS a real xl ckpt
+[routing fixed]; (4) dense-tail schedule built into checkpoint_schedule; (5)
+verify_row_hparams passes on xl A0 row (run_id added to ALLOWED_DIFF); (8) 6GB
+HF upload works (42s, size-verified). De-risk validation earlier: clean
+monotonic descent to 1.0715 BPB over full 2B schedule, no divergence.
+
+**Monitoring:** per-arm completion reported; divergence watch (neutral BPB
+rising >0.05 above the arm's running min = the Tier-1 signature: flag
+immediately). Post each arm: run verify_row_hparams per row, confirm BPB
+descent.
+
+**Threshold:** A0D0-1.5B final-10%-mean neutral BPB (dense-tail) — define once
+A0D0 completes; A1 arms cross it early (A1D1 hit 1.07 at 2B in validation).
+
+**MANDATORY report caveat (unchanged):** 1.5B A1 = OLDER modded generation
+than 124M/355M (2024 ScaleUp plain transformer). Algorithm-version confound
+front-and-center. Already in report.md + analysis/make_report.py.
+
+## Tier-3 (1.5B) A1 recipe decision (user-ratified 2026-07-17) — background
 
 **A1 @ 1.5B uses the DOCUMENTED 2024 ScaleUp1B recipe (Option A), NOT a
 scaled current-arch (Option B).** Reproducible config lives in the vendored
