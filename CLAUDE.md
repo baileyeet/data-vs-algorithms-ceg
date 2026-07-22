@@ -41,8 +41,10 @@ rising >0.05 above the arm's running min = the Tier-1 signature: flag
 immediately). Post each arm: run verify_row_hparams per row, confirm BPB
 descent.
 
-**Threshold:** A0D0-1.5B final-10%-mean neutral BPB (dense-tail) — define once
-A0D0 completes; A1 arms cross it early (A1D1 hit 1.07 at 2B in validation).
+**Threshold: A0D0-1.5B DONE 2026-07-22 -> 1.187920 BPB** (final-10% mean, 5
+dense-tail pts; A0D0 final 1.1880, 65.6 GPU-h). Cross-scale threshold trend
+1.2744 (124M) -> 1.2287 (355M) -> 1.1879 (1.5B), sensible. A1 arms cross it
+easily (A1D1 validation hit 1.07). A0D0 metrics in results/xl/. A0D1 running.
 
 **MANDATORY report caveat (unchanged):** 1.5B A1 = OLDER modded generation
 than 124M/355M (2024 ScaleUp plain transformer). Algorithm-version confound
