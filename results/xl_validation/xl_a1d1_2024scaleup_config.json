@@ -17,10 +17,10 @@
   "sequence_length": 1024,
   "global_batch_seqs": 480,
   "device_batch_size": 12,
-  "train_accumulation_steps": 5,
-  "world_size": 8,
+  "train_accumulation_steps": 8,
+  "world_size": 5,
   "seed": 1234,
-  "run_id": "e38ce894-0b66-4882-9eb8-6b2118463e36",
+  "run_id": "e6cc0150-1fbf-45d6-94c0-abe9c2d6bee0",
   "torch_version": "2.10.0+cu128",
   "gpu_name": "NVIDIA H100 80GB HBM3",
   "ckpt_steps": [
