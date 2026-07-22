@@ -56,7 +56,7 @@ import sys
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 from common.bpb import evaluate_bpb, load_eval_corpus  # noqa: E402
-from common.checkpoint_schedule import checkpoint_steps  # noqa: E402
+from common.checkpoint_schedule import checkpoint_steps, prune_checkpoints  # noqa: E402
 
 TOKENS_PER_STEP_SEQS = 8 * 60      # global batch in sequences (480), documented
 DEVICE_BATCH_SIZE = 12             # sequences per device, documented
@@ -466,6 +466,11 @@ def run_evals(step, tokens_done, timed_seconds, loss_ema, cur_lr, wall0):
                     "step": step, "tokens": tokens_done,
                     "timed_seconds": timed_seconds, "world_size": ddp_world_size},
                    out_dir / f"ckpt_{step:06d}.pt")
+        # rolling prune: bound disk at ~keep*5.8GB (metrics.csv holds the full
+        # curve). keep_checkpoints from ceg.CONFIG; final is always retained.
+        deleted = prune_checkpoints(out_dir, getattr(CONFIG, "keep_checkpoints", 3))
+        if deleted:
+            print(f"[prune] deleted {len(deleted)} old ckpt(s): {deleted}", flush=True)
 
 
 # ---- train loop

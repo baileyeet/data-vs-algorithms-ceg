@@ -33,7 +33,7 @@ import torch
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from common.bpb import evaluate_bpb, load_eval_corpus
-from common.checkpoint_schedule import checkpoint_steps
+from common.checkpoint_schedule import checkpoint_steps, prune_checkpoints
 from common.data_loader import EpochShuffledLoader
 from common.model_gpt2 import GPT, GPTConfig
 
@@ -76,6 +76,10 @@ def get_args():
     ap.add_argument("--seed", type=int, default=1234)
     ap.add_argument("--wandb", default="", help="wandb project name; empty = CSV only")
     ap.add_argument("--save-checkpoints", type=int, default=1)
+    ap.add_argument("--keep-checkpoints", type=int, default=3,
+                    help="rolling prune: keep this many most-recent ckpts during "
+                         "a run (final always retained; 0 = keep all). Bounds disk "
+                         "for large models — metrics.csv holds the full curve.")
     return ap.parse_args()
 
 
@@ -205,6 +209,9 @@ def main():
                         "size": args.size, "step": step, "tokens": tokens_done,
                         "timed_seconds": timed_seconds, "world_size": world},
                        out_dir / f"ckpt_{step:06d}.pt")
+            deleted = prune_checkpoints(out_dir, args.keep_checkpoints)
+            if deleted:
+                print(f"[prune] deleted {len(deleted)} old ckpt(s): {deleted}")
 
     # --- train loop ---
     model.train()

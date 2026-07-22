@@ -570,6 +570,10 @@ def get_args():
     ap.add_argument("--seed", type=int, default=1234,
                     help="per-epoch reshuffle seed (epoch 0 keeps upstream order)")
     ap.add_argument("--save-checkpoints", type=int, default=1)
+    ap.add_argument("--keep-checkpoints", type=int, default=3,
+                    help="rolling prune: keep this many most-recent ckpts during "
+                         "a run (final always retained; 0 = keep all). Bounds disk "
+                         "for large models — metrics.csv holds the full curve.")
     return ap.parse_args()
 
 
@@ -625,6 +629,7 @@ def main():
         eval_seq_len=args.eval_seq_len, eval_windows_per_chunk=args.eval_windows_per_chunk,
         val_batch_size=args.val_batch_size, model_max_seq_len=args.model_max_seq_len,
         seed=args.seed, save_checkpoints=args.save_checkpoints,
+        keep_checkpoints=args.keep_checkpoints,
         out_dir=os.path.abspath(args.out_dir),
         neutral_eval_dir=os.path.abspath(args.neutral_eval_dir),
         train_files=data_glob,

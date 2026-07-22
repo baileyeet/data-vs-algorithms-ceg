@@ -7,6 +7,29 @@ compute-to-threshold for arms that cross the reference BPB very early (A1D1).
 """
 
 import math
+import re
+from pathlib import Path
+
+
+def prune_checkpoints(out_dir, keep: int) -> list[str]:
+    """Keep only the `keep` highest-step ckpt_*.pt in out_dir; delete older.
+    Returns the names deleted. keep<=0 disables pruning (keep everything).
+    The run's final checkpoint is always the highest step, so it is retained.
+    metrics.csv holds the full BPB-vs-compute curve independently of which
+    .pt files survive, so pruning never loses the CEG measurement."""
+    if keep is None or keep <= 0:
+        return []
+    out_dir = Path(out_dir)
+    cks = sorted(out_dir.glob("ckpt_*.pt"),
+                 key=lambda p: int(re.findall(r"\d+", p.name)[-1]))
+    deleted = []
+    for p in cks[:-keep]:
+        try:
+            p.unlink()
+            deleted.append(p.name)
+        except OSError:
+            pass
+    return deleted
 
 
 def checkpoint_tokens(total_tokens: int, n_checkpoints: int = 25,
