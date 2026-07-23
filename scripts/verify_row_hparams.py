@@ -14,7 +14,8 @@ from pathlib import Path
 # (n_epochs: A1D0's 2-epoch OWT repetition per requirement #9; everything else
 # — including token_budget, schedule, and the neutral eval corpus, which is
 # shared within a row since the row fixes the tokenizer — must be identical)
-ALLOWED_DIFF = {"arm", "data_dir", "data_glob", "out_dir", "wandb", "n_epochs"}
+ALLOWED_DIFF = {"arm", "data_dir", "data_glob", "out_dir", "wandb", "n_epochs",
+                "run_id"}  # run_id: per-run uuid (xl-2024 config), always differs
 WARN_DIFF = {"device", "gpu_name", "torch_version", "world_size"}
 # measurement-instrumentation fields: checkpoint cadence / eval batching /
 # timing bookkeeping ONLY. These control WHERE the training curve is sampled
