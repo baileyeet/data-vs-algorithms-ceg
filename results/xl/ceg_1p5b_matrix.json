@@ -1,0 +1,43 @@
+{
+  "tier": "1.5B",
+  "arch_A1": "2024_scaleup",
+  "threshold_neutral_bpb": 1.18792,
+  "threshold_fn": "analysis/threshold.py::final_tail_threshold (tokens>=0.9*total)",
+  "arms": {
+    "A0D0": {
+      "final_bpb": 1.188,
+      "total_gpu_h": 65.57,
+      "crossing_gpu_h": 52.758,
+      "crossing": "interpolated"
+    },
+    "A0D1": {
+      "final_bpb": 1.0404,
+      "total_gpu_h": 65.64,
+      "crossing_gpu_h": 15.401,
+      "crossing": "interpolated"
+    },
+    "A1D0": {
+      "final_bpb": 1.2086,
+      "min_bpb": 1.2082,
+      "total_gpu_h": 74.76,
+      "crossing_gpu_h": null,
+      "crossing": "NEVER_CROSSED",
+      "gap_to_threshold_pct": 1.71
+    },
+    "A1D1": {
+      "final_bpb": 0.9775,
+      "total_gpu_h": 74.63,
+      "crossing_gpu_h": 6.591,
+      "crossing": "interpolated"
+    }
+  },
+  "shapley_pieces": {
+    "data_A0row_x": 3.43,
+    "algo_D1col_x": 2.34,
+    "data_A1row": "CENSORED (A1D0 never crossed; >74.8 gpu_h)",
+    "algo_D0col": "CENSORED (<=1x; ScaleUp worse than GPT-2-XL on OWT)"
+  },
+  "note": "Full symmetric Shapley not computable: A1D0 censored. ScaleUp arch; NOT directly comparable to current-arch 124M/355M \u2014 clean ScaleUp curve needs the pending ScaleUp 124M/355M runs.",
+  "total_gpu_h": 280.6,
+  "row_verifier": "A0 row OK, A1 row OK"
+}
