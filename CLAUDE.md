@@ -43,6 +43,13 @@ descent.
 
 **Threshold: A0D0-1.5B = 1.187920 BPB** (final-10% mean; A0D0 final 1.1880,
 65.6 GPU-h). Threshold trend 1.2744 (124M) -> 1.2287 (355M) -> 1.1879 (1.5B).
+**CANONICAL threshold fn = analysis/threshold.py::final_tail_threshold** (mean
+neutral_bpb over tokens>=0.9*total; token-fraction anchored, ONE deterministic
+rule, no per-arm logic). VERIFIED 2026-07-24 bit-identical across all 3 tiers
+vs reported (124M 1.274421 n=6, 355M 1.228738 n=6, 1.5B 1.187920 n=5) — no
+shift. Tail count wobbles +-1 by boundary rounding but same rule. Final
+analysis + report MUST source thresholds from this fn (not ad-hoc); arm
+crossings from interpolated curve-vs-threshold (min-based), never tail means.
 
 **1.5B ARM RESULTS (as they finish):** A0D0 1.1880 (=threshold). A0D1 1.0403
 (crosses ~15.8 GPU-h; data helps a lot). A1D0 1.2086 — **DID NOT CROSS**
