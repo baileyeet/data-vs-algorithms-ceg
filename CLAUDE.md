@@ -59,6 +59,17 @@ a crossing). A1D1 running (DCLM, likely crosses). Clean training throughout,
 no divergence — the weak A1 result is the algorithm-version confound (2024
 ScaleUp is an OLD modded gen), not a bug.
 
+**SCALEUP CURVE RUNNING (launched 2026-07-24, 5xH100):** driver
+/root/scaleup_curve.sh (chained, abort-on-fail); per-arm logs /root/su_<size>_<arm>.log;
+main /root/scaleup_curve.log. 4 A1 arms: xl124m {a1d0 owt, a1d1 dclm} budget
+797,486,000; xl355m {a1d0 owt, a1d1 dclm} budget 2,281,549,000 (constant 6.454
+tok/param). n-epochs 1 (single-pass). Reuses existing A0/GPT-2 baselines +
+thresholds (124M 1.274421, 355M 1.228738) — only A1 arms run. HF -> DISTINCT
+124M-scaleup/ , 355M-scaleup/ labels. Smokes passed (124M 123.57M params, 355M
+353.50M). NOTE: first launch aborted on EADDRINUSE (port 29500) from a
+still-running smoke — contention, not a bug; relaunched clean on idle GPUs.
+LESSON: wait for explicit clean-exit before launching next GPU job.
+
 **FOLLOW-UP STUDY (user-ratified 2026-07-24, DO AFTER 1.5B matrix finishes):**
 Option C — run the 2024-ScaleUp arch (train_gpt_xl_ceg's GPT, size-configured)
 ALSO at 124M and 355M, giving a CLEAN 3-point ScaleUp curve (same algorithm
