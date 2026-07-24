@@ -41,10 +41,29 @@ rising >0.05 above the arm's running min = the Tier-1 signature: flag
 immediately). Post each arm: run verify_row_hparams per row, confirm BPB
 descent.
 
-**Threshold: A0D0-1.5B DONE 2026-07-22 -> 1.187920 BPB** (final-10% mean, 5
-dense-tail pts; A0D0 final 1.1880, 65.6 GPU-h). Cross-scale threshold trend
-1.2744 (124M) -> 1.2287 (355M) -> 1.1879 (1.5B), sensible. A1 arms cross it
-easily (A1D1 validation hit 1.07). A0D0 metrics in results/xl/. A0D1 running.
+**Threshold: A0D0-1.5B = 1.187920 BPB** (final-10% mean; A0D0 final 1.1880,
+65.6 GPU-h). Threshold trend 1.2744 (124M) -> 1.2287 (355M) -> 1.1879 (1.5B).
+
+**1.5B ARM RESULTS (as they finish):** A0D0 1.1880 (=threshold). A0D1 1.0403
+(crosses ~15.8 GPU-h; data helps a lot). A1D0 1.2086 — **DID NOT CROSS**
+(ScaleUp-on-OWT < GPT-2-XL-on-OWT at 1.5B; algorithm CEG on old data <=1x;
+crossing CENSORED -> handle in Shapley as no-crossing bound, do NOT fabricate
+a crossing). A1D1 running (DCLM, likely crosses). Clean training throughout,
+no divergence — the weak A1 result is the algorithm-version confound (2024
+ScaleUp is an OLD modded gen), not a bug.
+
+**FOLLOW-UP STUDY (user-ratified 2026-07-24, DO AFTER 1.5B matrix finishes):**
+Option C — run the 2024-ScaleUp arch (train_gpt_xl_ceg's GPT, size-configured)
+ALSO at 124M and 355M, giving a CLEAN 3-point ScaleUp curve (same algorithm
+held fixed across all scales; the 1.5B point already in hand). Keeps the
+existing current-arch 124M/355M results SEPARATE — report must show TWO curves,
+never blended: (i) current-arch 2pt (124M/355M, SOTA speedrun, can't extend to
+1.5B), (ii) ScaleUp-arch 3pt (124M/355M/1.5B, clean cross-scale). Rejected
+Option B (scale current arch UP to 1.5B) — needs untestable invented skip
+topology. Token budget for ScaleUp at small sizes: constant tokens/param
+anchored on documented 1.5B ScaleUp (10B/1.556B = 6.43 tok/param) -> 124M
+~0.80B, 355M ~2.28B (both single-pass on OWT 8.87B, no repetition). SMOKE each
+before full run. Small ScaleUp runs are cheap (~$40-70 total).
 
 **MANDATORY report caveat (unchanged):** 1.5B A1 = OLDER modded generation
 than 124M/355M (2024 ScaleUp plain transformer). Algorithm-version confound
