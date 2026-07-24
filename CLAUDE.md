@@ -64,6 +64,20 @@ topology. Token budget for ScaleUp at small sizes: constant tokens/param
 anchored on documented 1.5B ScaleUp (10B/1.556B = 6.43 tok/param) -> 124M
 ~0.80B, 355M ~2.28B (both single-pass on OWT 8.87B, no repetition). SMOKE each
 before full run. Small ScaleUp runs are cheap (~$40-70 total).
+CURRENT-ARCH 1.5B (Option B) DEFINITIVELY SKIPPED (user 2026-07-24) — leave the
+current-arch curve's 1.5B gap as an honestly-disclosed limitation in the report.
+INFRA CONFIRMED for ScaleUp small runs (2026-07-24): (a) TOKENIZER identical —
+GPT-2 BPE (vocab 50304, eot 50256); reuse owt_nanogpt (D0) / dclm_nanogpt (D1)
+shards as-is, NO re-tokenization (the 1.5B ScaleUp already ran on them). (b)
+Dense-tail schedule, verify_row_hparams (arch-agnostic, run_id allowed), per-arm
+HF upload, divergence-watch, rolling prune — ALL apply unchanged (same trainer/
+wrapper path). HF paths use DISTINCT labels (e.g. 124M-scaleup/A1D0) so the two
+curves stay separate on HF too. BUILD TASK before launch: train_gpt_xl_ceg.py
+hardcodes 1.5B dims (n_layer=52,n_head=12,n_embd=1536) — parameterize by size:
+124M=(12,6,768), 355M=(24,8,1024) [head_dim 128 throughout, plain GPT-2 dims];
+verify param counts via probe, then smoke. A1D0-1.5B reporting: reached 1.2082,
+1.71% short of threshold 1.1879 — report as "no crossing -> no algo CEG on OWT
+at 1.5B", bounded; keep "gap to threshold %" framing ready for A1D1.
 
 **MANDATORY report caveat (unchanged):** 1.5B A1 = OLDER modded generation
 than 124M/355M (2024 ScaleUp plain transformer). Algorithm-version confound
