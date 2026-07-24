@@ -340,6 +340,18 @@ class DistributedDataLoader:
 
 CONFIG = ceg.CONFIG
 
+# ScaleUp arch dims by CEG size. The 1.5B (xl) row is the documented 2024
+# ScaleUp1B config, kept bit-identical. The smaller rows are the SAME recipe
+# (batch/LR/schedule/tokens-per-step unchanged) at GPT-2 small/medium dims
+# (head_dim 128 throughout), so the ScaleUp algorithm is held fixed across the
+# curve; only model size and (via --token-budget) total tokens vary.
+SCALEUP_DIMS = {
+    "xl":     (52, 12, 1536),   # ~1.5B (documented ScaleUp1B)
+    "xl355m": (24, 8, 1024),    # GPT-2 medium dims
+    "xl124m": (12, 6, 768),     # GPT-2 small dims
+}
+N_LAYER, N_HEAD, N_EMBD = SCALEUP_DIMS[CONFIG.size]
+
 assert torch.cuda.is_available()
 dist.init_process_group(backend='nccl')
 ddp_rank = int(os.environ['RANK'])
@@ -370,7 +382,7 @@ if master_process:
 
 # ---- model: documented 1.5B dims. Keep an uncompiled handle for eval so
 #      common.bpb.evaluate_bpb (@torch.no_grad) never hits the compile path.
-model_raw = GPT(GPTConfig(vocab_size=NUM_VOCAB, n_layer=52, n_head=12, n_embd=1536)).cuda()
+model_raw = GPT(GPTConfig(vocab_size=NUM_VOCAB, n_layer=N_LAYER, n_head=N_HEAD, n_embd=N_EMBD)).cuda()
 n_params = sum(p.numel() for p in model_raw.parameters())
 if master_process:
     print(f"n_params: {n_params:,}", flush=True)
@@ -420,7 +432,7 @@ if master_process:
     (out_dir / "run_config.json").write_text(json.dumps({
         "size": "xl", "arch": "scaleup1b_2024", "arm": CONFIG.arm,
         "algorithm": "new_modded_nanogpt_xl_2024scaleup",
-        "n_params": n_params, "n_layer": 52, "n_head": 12, "n_embd": 1536,
+        "n_params": n_params, "n_layer": N_LAYER, "n_head": N_HEAD, "n_embd": N_EMBD,
         "vocab_size": NUM_VOCAB, "num_iterations": num_iterations,
         "warmdown_iters": warmdown_iters, "warmup_iters": warmup_iters,
         "learning_rate": LEARNING_RATE, "token_budget": CONFIG.token_budget,
@@ -460,8 +472,8 @@ def run_evals(step, tokens_done, timed_seconds, loss_ema, cur_lr, wall0):
           f"| ownval_bpb {ob['bpb']:.4f} | loss {loss_ema:.4f}", flush=True)
     if CONFIG.save_checkpoints:
         torch.save({"model": model_raw.state_dict(),
-                    "model_args": {"vocab_size": NUM_VOCAB, "n_layer": 52,
-                                   "n_head": 12, "n_embd": 1536},
+                    "model_args": {"vocab_size": NUM_VOCAB, "n_layer": N_LAYER,
+                                   "n_head": N_HEAD, "n_embd": N_EMBD},
                     "size": "xl", "arch": "scaleup1b_2024", "arm": CONFIG.arm,
                     "step": step, "tokens": tokens_done,
                     "timed_seconds": timed_seconds, "world_size": ddp_world_size},
