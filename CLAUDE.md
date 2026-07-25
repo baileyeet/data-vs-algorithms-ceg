@@ -9,7 +9,25 @@ completion.
 
 ## Current state (2026-07-16)
 
-## TIER 3 FULL RUN IN PROGRESS (launched 2026-07-21) — READ FIRST
+## STUDY COMPLETE (2026-07-25) — final result in report.md
+
+TWO cross-scale curves, kept separate (report.md, analysis/make_report.py):
+- **Curve 1 current-arch (124M, 355M):** algo advantage 13.7x -> 4.1x (steep
+  decay). 1.5B GAP disclosed (no reproducible recipe; Option-B invented-arch
+  rejected).
+- **Curve 2 ScaleUp-arch (124M, 1.5B):** algo-on-DCLM 2.90x -> 2.34x (mild
+  decay); data-dependent (censored <=1x on OWT both scales); data mult ~3.3x
+  stable. 355M GAP disclosed (no documented recipe). ALL arms 5-GPU
+  (A0-124M re-run on 5-GPU — 8-vs-5 mix had distorted 124M to 2.35x; gpu-hours
+  NOT count-invariant, ~22% batch/accum cost).
+Unified finding: both advantages shrink with scale; aggressively small-scale-
+tuned current speedrun decays fast from a high base, older fundamental ScaleUp
+decays gently. All on HF (1.5B/*, 124M-scaleup/*) + git. GPUs idle.
+Hard-won lessons this phase: coupled-recipe (dims+batch+LR+schedule) doesn't
+scale by dims alone; verify hardware consistency don't assume; never launch a
+GPU job before the prior one's clean exit (port/contention).
+
+## TIER 3 FULL RUN (launched 2026-07-21)
 
 **4-arm 1.5B measured run LIVE on 5xH100** (pod 31.24.80.40:15474). Driver
 `/root/xl_tier3.sh` (chained, aborts on any arm failure); per-arm logs
