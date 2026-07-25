@@ -59,7 +59,20 @@ a crossing). A1D1 running (DCLM, likely crosses). Clean training throughout,
 no divergence — the weak A1 result is the algorithm-version confound (2024
 ScaleUp is an OLD modded gen), not a bug.
 
-**SCALEUP CURVE RUNNING (launched 2026-07-24, 5xH100):** driver
+**SCALEUP CURVE = 2-POINT (124M + 1.5B), 355M UNFILLABLE (2026-07-24):** the
+"scale dims only" approach FAILED — the ScaleUp recipe is a COUPLED bundle
+(dims+batch+LR+schedule). Holding the 1.5B config fixed mis-tuned small sizes:
+124M @ 8.87B stalled at 1.367 (used lr 0.0018 = HALF the right value; NOT a
+batch fallback — confirmed 480-seq batch ran). FIX: per-size DOCUMENTED configs
+in SCALEUP_CONFIG (train_gpt_xl_ceg.py): xl=2024-10-20 ScaleUp1B; xl124m=
+2024-10-18 speedrun (lr 0.0036, batch 512->510 for 5-GPU, 5100 steps, ~2.66B
+tok, warmdown 1450). 355M ABSENT — no documented era-appropriate recipe; refuse
+to hand-derive LR (user-ratified: same unvalidated guess as the rejected skip
+topology). Report: ScaleUp curve is 124M + 1.5B; 355M gap DISCLOSED. Two failed
+small attempts (~$30-40) before getting the recipe right. Mis-tuned 124M ckpt
+DELETED from HF. Running 124M now (2 A1 arms, driver /root/scaleup124.sh).
+
+**(prior) SCALEUP CURVE RUNNING (launched 2026-07-24, 5xH100):** driver
 /root/scaleup_curve.sh (chained, abort-on-fail); per-arm logs /root/su_<size>_<arm>.log;
 main /root/scaleup_curve.log. 4 A1 arms: xl124m {a1d0 owt, a1d1 dclm} + xl355m {a1d0 owt, a1d1 dclm}, budget
 8,870,000,000 (single-pass; = A0 baseline). n-epochs 1.
