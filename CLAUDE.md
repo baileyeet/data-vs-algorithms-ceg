@@ -61,9 +61,15 @@ ScaleUp is an OLD modded gen), not a bug.
 
 **SCALEUP CURVE RUNNING (launched 2026-07-24, 5xH100):** driver
 /root/scaleup_curve.sh (chained, abort-on-fail); per-arm logs /root/su_<size>_<arm>.log;
-main /root/scaleup_curve.log. 4 A1 arms: xl124m {a1d0 owt, a1d1 dclm} budget
-797,486,000; xl355m {a1d0 owt, a1d1 dclm} budget 2,281,549,000 (constant 6.454
-tok/param). n-epochs 1 (single-pass). Reuses existing A0/GPT-2 baselines +
+main /root/scaleup_curve.log. 4 A1 arms: xl124m {a1d0 owt, a1d1 dclm} + xl355m {a1d0 owt, a1d1 dclm}, budget
+8,870,000,000 (single-pass; = A0 baseline). n-epochs 1.
+**BUDGET CORRECTED 2026-07-24 (user-approved):** constant-tokens/param
+(0.80B/2.28B) UNDERTRAINED the small arms — xl124m/a1d0 finished its 0.8B
+schedule at 1.407 (still descending), never reaching the 1.274 threshold (=
+GPT-2 converged @8.87B; NO 124M model reaches it in 0.8B). Evidence it was
+undertraining not weakness: ScaleUp @0.8B (1.407) BEAT GPT-2 @0.8B (1.458) —
+real advantage HIDDEN by the short budget. Fix: match A0 baseline 8.87B so the
+arm has runway to cross. 1.5B arms UNAFFECTED (10B -> plateaued). Rerun ~$120. Reuses existing A0/GPT-2 baselines +
 thresholds (124M 1.274421, 355M 1.228738) — only A1 arms run. HF -> DISTINCT
 124M-scaleup/ , 355M-scaleup/ labels. Smokes passed (124M 123.57M params, 355M
 353.50M). NOTE: first launch aborted on EADDRINUSE (port 29500) from a
