@@ -58,13 +58,10 @@ if str(REPO_ROOT) not in sys.path:
 from common.bpb import evaluate_bpb, load_eval_corpus  # noqa: E402
 from common.checkpoint_schedule import checkpoint_steps, prune_checkpoints  # noqa: E402
 
-TOKENS_PER_STEP_SEQS = 8 * 60      # global batch in sequences (480), documented
-DEVICE_BATCH_SIZE = 12             # sequences per device, documented
-SEQUENCE_LENGTH = 1024             # documented
-TOKENS_PER_STEP = TOKENS_PER_STEP_SEQS * SEQUENCE_LENGTH   # 491,520
-LEARNING_RATE = 0.0036 / 2         # documented (0.0018)
-WARMDOWN_RATIO = 5812 / 20344      # documented trapezoidal warmdown fraction
+SEQUENCE_LENGTH = 1024             # documented (all sizes)
 NUM_VOCAB = 50304                  # 50257 padded to next multiple of 128
+# batch / LR / schedule are per-size (SCALEUP_CONFIG, set after CONFIG below) —
+# the ScaleUp recipe is a COUPLED bundle, not just dims.
 
 # =============================================================================
 # Muon optimizer  (lifted verbatim from the 2024 ScaleUp1B log)
@@ -345,12 +342,29 @@ CONFIG = ceg.CONFIG
 # (batch/LR/schedule/tokens-per-step unchanged) at GPT-2 small/medium dims
 # (head_dim 128 throughout), so the ScaleUp algorithm is held fixed across the
 # curve; only model size and (via --token-budget) total tokens vary.
-SCALEUP_DIMS = {
-    "xl":     (52, 12, 1536),   # ~1.5B (documented ScaleUp1B)
-    "xl355m": (24, 8, 1024),    # GPT-2 medium dims
-    "xl124m": (12, 6, 768),     # GPT-2 small dims
+# Per-size ScaleUp recipe bundles. The recipe is COUPLED (dims + batch + LR +
+# schedule), so each size uses its OWN DOCUMENTED speedrun config, not the 1.5B
+# config with smaller dims (that mis-tunes badly: 124M needs LR 0.0036, not the
+# 1.5B's 0.0018, and a much smaller batch/budget).
+#   xl     = 2024-10-20 ScaleUp1B (1.5B): 480 seqs, lr 0.0018, warmdown 5812/20344
+#   xl124m = 2024-10-18 speedrun (124M): 512 seqs (->510 for 5-GPU divisibility),
+#            device 64 (->51 on 5 GPUs), lr 0.0036, 5100 steps, warmdown 1450
+# 355M is intentionally ABSENT — no documented era-appropriate recipe exists, and
+# we refuse to hand-derive an LR (same unvalidated guess rejected for the 1.5B
+# skip topology). --size xl355m therefore raises KeyError by design.
+SCALEUP_CONFIG = {
+    "xl":     dict(dims=(52, 12, 1536), global_seqs=480, device_batch=12,
+                   lr=0.0018, warmdown_ratio=5812 / 20344),
+    "xl124m": dict(dims=(12, 6, 768),   global_seqs=510, device_batch=51,
+                   lr=0.0036, warmdown_ratio=1450 / 5100),
 }
-N_LAYER, N_HEAD, N_EMBD = SCALEUP_DIMS[CONFIG.size]
+_sc = SCALEUP_CONFIG[CONFIG.size]
+N_LAYER, N_HEAD, N_EMBD = _sc["dims"]
+TOKENS_PER_STEP_SEQS = _sc["global_seqs"]
+DEVICE_BATCH_SIZE = _sc["device_batch"]
+LEARNING_RATE = _sc["lr"]
+WARMDOWN_RATIO = _sc["warmdown_ratio"]
+TOKENS_PER_STEP = TOKENS_PER_STEP_SEQS * SEQUENCE_LENGTH
 
 assert torch.cuda.is_available()
 dist.init_process_group(backend='nccl')
