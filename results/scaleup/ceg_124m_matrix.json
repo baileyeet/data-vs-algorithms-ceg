@@ -1,0 +1,29 @@
+{
+  "tier": "124M",
+  "arch_A1": "2024_scaleup_10-18",
+  "threshold": 1.274421,
+  "note": "A0(GPT-2) arms reused from Tier 1 (8xH100); ScaleUp A1 arms on 5xH100 \u2014 algo multiplier mixes GPU counts (gpu_hours ~count-invariant; minor caveat). Data multiplier is A0-only (clean).",
+  "arms": {
+    "A0D0": {
+      "final": 1.2707,
+      "cross_gpu_h": 4.873
+    },
+    "A0D1": {
+      "final": 1.1654,
+      "cross_gpu_h": 1.395
+    },
+    "A1D0": {
+      "final": 1.3439,
+      "cross": "NO (censored; GPT-2 beats ScaleUp on OWT at equal budget)"
+    },
+    "A1D1": {
+      "final": 1.1773,
+      "cross_gpu_h": 0.594
+    }
+  },
+  "shapley": {
+    "data_A0row_x": 3.49,
+    "algo_DCLM_x": 2.35,
+    "algo_OWT": "censored <=1x"
+  }
+}
