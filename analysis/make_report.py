@@ -87,20 +87,28 @@ def _scaleup_section(root):
            f"| 1.5B | {s15.get('data_A0row_x')}x | {algo_dclm(s15)}x | "
            f"{s15.get('algo_D0col', 'censored')} |",
            "",
-           "**In sharp contrast to Curve 1, the ScaleUp algorithm's advantage is "
-           "essentially SCALE-INVARIANT** (~2.35x on new data at both 124M and "
-           "1.5B), and it is **data-dependent**: a real advantage on DCLM (new "
-           "data), but NONE on OWT (old data) at either scale — the ScaleUp arm "
-           "never crosses the threshold on OWT because GPT-2 matches/beats it "
-           "there at equal budget (a genuine result, confirmed by equal-budget "
-           "comparison, not undertraining).",
+           "The ScaleUp algorithm's advantage on new data **declines mildly with "
+           "scale (2.90x -> 2.34x, 124M -> 1.5B)** — a gentle decay, versus the "
+           "current arch's steep 13.1x -> 4.1x. And it is **data-dependent**: a "
+           "real advantage on DCLM (new data), but NONE on OWT (old data) at "
+           "either scale — the ScaleUp arm never crosses the threshold on OWT "
+           "because GPT-2 matches/beats it there at equal budget (a genuine "
+           "result, confirmed by equal-budget comparison, not undertraining). "
+           "The data multiplier, by contrast, is roughly stable across scale "
+           "(~3.3x).",
            "",
-           "Reading of the two curves together: the current speedrun's huge "
-           "small-scale edge (13x) largely comes from small-scale-tuned tricks "
-           "that do not persist, while the older ScaleUp's modest edge (Muon + "
-           "rotary) is more fundamental and holds across an order of magnitude "
-           "in scale. **355M is a disclosed gap** for this lineage (no "
-           "documented era-appropriate recipe; no hand-derived LR).", ""]
+           "NOTE (hardware): the ScaleUp A1 arms and their GPT-2 A0 baseline were "
+           "all measured on 5xH100 (the A0-124M baseline was re-run on 5 GPUs for "
+           "this — an 8-vs-5 mix had distorted the 124M algo multiplier to 2.35x; "
+           "the consistent value is 2.90x). GPU-hours is NOT cleanly count-"
+           "invariant here (the forced batch/accum change cost ~22%).",
+           "",
+           "Reading of the two curves together: **both algorithms' advantages "
+           "shrink with scale, but the more aggressively small-scale-tuned "
+           "current speedrun decays far faster (from a much higher base) than the "
+           "older, more fundamental ScaleUp (Muon + rotary).** **355M is a "
+           "disclosed gap** for the ScaleUp lineage (no documented era-appropriate "
+           "recipe; no hand-derived LR).", ""]
     return out
 
 
