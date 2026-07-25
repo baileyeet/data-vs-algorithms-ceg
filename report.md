@@ -2,7 +2,11 @@
 
 2x2 grid (old/new data x old/new algorithm) trained at multiple GPT-2 sizes; compute measured in timed GPU-hours to a fixed neutral-corpus BPB threshold; savings Shapley-decomposed in log-compute space.
 
-**Scope / status.** Tiers 1 (124M) and 2 (355M) are final and v2-canonical (all A1 numbers re-derived from yarn_state reruns after the loader-fidelity fixes). Tier 3 (1.5B) is in progress; its A1 arm carries a specific confound flagged below.
+**This study reports TWO separate cross-scale curves, never blended, because the 'new algorithm' is not a single fixed thing across all scales:**
+- **Current-arch curve (124M, 355M):** A1 = the CURRENT modded-nanoGPT speedrun (SOTA, small-scale-tuned). No reproducible 1.5B recipe exists for it, so this curve STOPS at 355M — the 1.5B point is a disclosed gap (scaling it up needs an unvalidated invented architecture; rejected).
+- **ScaleUp-arch curve (124M, 1.5B):** A1 = the 2024 ScaleUp lineage (older, plain transformer), run from its DOCUMENTED per-size recipe at each point. 355M has no documented era-appropriate recipe -> disclosed gap (no hand-derived LR).
+
+The current-arch A1 numbers are v2-canonical (re-derived from yarn_state reruns after the loader-fidelity fixes).
 
 ## 124M (small)
 
@@ -40,9 +44,9 @@ Reference threshold: **1.2287 BPB** (neutral corpus; = fully-trained A0D0 at thi
 
 ![threshold sensitivity](medium/sensitivity.png)
 
-## Cross-scale result
+## Curve 1 — current-arch (124M, 355M)
 
-Shapley multipliers as a function of model size — the direct test of whether the data/algorithm split is scale-invariant:
+The SOTA modded-nanoGPT speedrun as A1. Direct test of whether the data/algorithm split is scale-invariant for this algorithm:
 
 ![cross-scale](cross_scale.png)
 
@@ -50,6 +54,21 @@ Shapley multipliers as a function of model size — the direct test of whether t
 |--|--|--|--|
 | small | 2.23 | 13.69 | 30.47 |
 | medium | 3.74 | 4.06 | 15.18 |
+
+**The algorithm advantage decays sharply with scale (13.1x -> 4.1x from 124M to 355M).** The 1.5B point is a disclosed GAP — no reproducible 1.5B recipe for this arch, and scaling it up requires inventing hand-tuned subsystems (U-net skip topology) with no reference and no way to validate them.
+
+## Curve 2 — ScaleUp-arch (124M, 1.5B)
+
+A1 = the 2024 ScaleUp lineage, run from its DOCUMENTED per-size recipe (each size a coupled bundle: dims + batch + LR + schedule — NOT the 1.5B recipe with rescaled dims, which mis-tunes). A0 = the same GPT-2 baseline. Multipliers are gpu-hours ratios to the per-size threshold.
+
+| Scale | data x | algorithm (DCLM) | algorithm (OWT) |
+|--|--|--|--|
+| 124M | 3.49x | 2.35x | censored <=1x |
+| 1.5B | 3.43x | 2.34x | CENSORED (<=1x; ScaleUp worse than GPT-2-XL on OWT) |
+
+**In sharp contrast to Curve 1, the ScaleUp algorithm's advantage is essentially SCALE-INVARIANT** (~2.35x on new data at both 124M and 1.5B), and it is **data-dependent**: a real advantage on DCLM (new data), but NONE on OWT (old data) at either scale — the ScaleUp arm never crosses the threshold on OWT because GPT-2 matches/beats it there at equal budget (a genuine result, confirmed by equal-budget comparison, not undertraining).
+
+Reading of the two curves together: the current speedrun's huge small-scale edge (13x) largely comes from small-scale-tuned tricks that do not persist, while the older ScaleUp's modest edge (Muon + rotary) is more fundamental and holds across an order of magnitude in scale. **355M is a disclosed gap** for this lineage (no documented era-appropriate recipe; no hand-derived LR).
 
 ## CORE-subset (secondary, validity-gated)
 
@@ -59,12 +78,6 @@ DCLM CORE is a secondary check; BPB is primary. A task is used only where the A0
 - **355M**: 6 usable tasks (arc_easy, boolq, copa, hellaswag, piqa, xwinograd_en).
 
 Note: `boolq` drops at 124M (A0D0 sits at chance, 0.504) but clears at 355M — a scale effect, not an error. Arms cluster closely on CORE at these scales (limit=500, near-noisy), so no quantitative CORE-based CEG is claimed; it is a sanity gate.
-
-## Tier 3 (1.5B): the algorithm-version confound (READ FIRST)
-
-**The 1.5B A1 arm uses a DIFFERENT, older algorithm generation than the 124M/355M A1 arms — this must front the interpretation of any 1.5B result, not sit in a footnote.** The current modded-nanoGPT speedrun (used at 124M/355M) has no first-party, reproducible 1.5B recipe: scaling its architecture to ~48 layers would require inventing several hand-tuned subsystems (notably a U-net skip topology) with no reference and no divergence signature if wrong. The only reproducible first-party 1.5B result is the 2024 'ScaleUp1B' — a PLAIN transformer (standard attention, base rotary, ReLU^2 MLP, weight tying, old Muon+AdamW; none of the current YaRN/split-embed/value-embed/skip machinery). We use that (Option A: fully reproducible) for the 1.5B A1 arm.
-
-Consequence: the algorithm axis is NOT held fixed across scale at 1.5B. Any change in the algorithm multiplier from 355M to 1.5B is confounded with this architecture-generation change and must be read as a lower-bound-flavoured estimate of the current algorithm's scaling, not a clean same-algorithm measurement. (The A0 arm is the standard GPT-2-XL scale-up, so the data axis is unaffected.)
 
 ## Methodology notes & confounds
 
