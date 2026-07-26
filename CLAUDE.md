@@ -9,6 +9,37 @@ completion.
 
 ## Current state (2026-07-16)
 
+## NEXT TASK (in progress): CORE scoring for the new arms (user-requested 2026-07-25)
+
+Add CORE-subset scores for arms never CORE'd (CORE gate was 124M/355M
+current-arch only). Pod up (31.24.80.40:15474, 5xH100, /root/ceg synced; deps
+torch+numpy+hf_hub — **lm-eval NOT installed, pip install lm-eval first**).
+
+ARMS + ADAPTERS:
+- **GPT-2 arms** (use existing eval/lm_eval_adapter.py = A0 adapter, loads
+  common/model_gpt2.py): 1.5B A0D0 (/workspace/runs/xl_a0d0), A0D1 (xl_a0d1);
+  ScaleUp-124M A0D0 (su124_a0d0_5gpu), A0D1 (su124_a0d1_5gpu). NOTE: verify the
+  A0 adapter loads GPT-2-XL dims from the checkpoint (should be size-agnostic).
+- **ScaleUp/plain arch** (A1 arms — NEED A NEW plain-causal CORE adapter; the
+  modded adapter REJECTS them via _reject_if_xl): 1.5B A1D0 (xl_a1d0), A1D1
+  (xl_a1d1); ScaleUp-124M A1D0 (su124_a1d0), A1D1 (su124_a1d1). The ScaleUp GPT
+  (train_gpt_xl_ceg.py) forward returns FULL logits when targets given
+  (logits=lm_head(x)); targets=None gives only last position. For loglikelihood:
+  forward full seq, gather per-continuation-position logits, sum logprobs.
+  Mirror eval/lm_eval_adapter.py's loglikelihood but load the ScaleUp GPT class
+  (via a load like load_modded_classes but for train_gpt_xl_ceg.py, or a direct
+  build from model_args + state_dict). Checkpoints have arch="scaleup1b_2024",
+  model_args {vocab_size,n_layer,n_head,n_embd}, plain state_dict (no yarn).
+- **lambada MAY BE VALID for the ScaleUp A1 arms** (unlike modded A1 — the plain
+  arch HAS a real logits path). Re-check is_greedy; don't blindly exclude.
+- Finals also on HF (1.5B/*, 124M-scaleup/*) if volume ckpts pruned.
+- Task set: eval/core_tasks.txt (15 tasks). Gate: 2sigma>chance vs A0D0.
+  HF_TOKEN may be needed (kernel/dataset fetches).
+- After scoring: extend analysis/core_gate.py + report.md CORE section to
+  include 1.5B + ScaleUp; note CORE is SECONDARY (BPB primary).
+START POINT: recon was interrupted — first check ckpts on volume + read
+eval/lm_eval_adapter.py loglikelihood structure, then write the ScaleUp adapter.
+
 ## STUDY COMPLETE (2026-07-25) — final result in report.md
 
 TWO cross-scale curves, kept separate (report.md, analysis/make_report.py):
