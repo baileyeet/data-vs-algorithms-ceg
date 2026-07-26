@@ -74,12 +74,14 @@ Reading of the two curves together: **both algorithms' advantages shrink with sc
 
 ## CORE-subset (secondary, validity-gated)
 
-DCLM CORE is a secondary check; BPB is primary. A task is used only where the A0D0 reference clears chance by >=2 sigma at its final checkpoint. lambada is excluded for A1 arms (the modded loader has no logits path). All A1 CORE is from the v2 sweep.
+DCLM CORE is a secondary check; BPB is primary. A task is used only where the A0D0 reference clears chance by >=2 sigma at its final checkpoint. `lambada_openai` is open-vocabulary (no fixed chance) so it never enters the quantitative gate at any scale; separately, the current-arch (modded) A1 loader has no logits path so its lambada is invalid by construction, whereas the ScaleUp-arch A1 arms (1.5B, ScaleUp-124M) use a plain-causal adapter with a real logits path and a valid lambada accuracy (reported as a diagnostic only). All A1 CORE is from the v2 sweep.
 
 - **124M**: 5 usable tasks (arc_easy, copa, hellaswag, piqa, xwinograd_en).
 - **355M**: 6 usable tasks (arc_easy, boolq, copa, hellaswag, piqa, xwinograd_en).
+- **1.5B**: 6 usable tasks (arc_easy, boolq, copa, hellaswag, piqa, xwinograd_en).
+- **ScaleUp-124M**: 5 usable tasks (arc_easy, copa, hellaswag, piqa, xwinograd_en).
 
-Note: `boolq` drops at 124M (A0D0 sits at chance, 0.504) but clears at 355M — a scale effect, not an error. Arms cluster closely on CORE at these scales (limit=500, near-noisy), so no quantitative CORE-based CEG is claimed; it is a sanity gate.
+Note: `boolq` drops at 124M / ScaleUp-124M (A0D0 sits at chance, 0.504) but clears from 355M up — a scale effect, not an error. Arms cluster closely on the gated tasks (limit=500, near-noisy), with slightly more separation at 1.5B but still within the noise floor, so no quantitative CORE-based CEG is claimed at any scale; it is a sanity gate. The ScaleUp-arch A1 lambada diagnostic rises cleanly with scale (acc 0.32 at 124M -> 0.52/0.55 at 1.5B; perplexity 55 -> 8), confirming the plain-causal adapter's logits path is sound.
 
 ## Methodology notes & confounds
 

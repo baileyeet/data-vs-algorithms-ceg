@@ -39,6 +39,12 @@ CHANCE = {
     "bigbench_language_identification_multiple_choice": None,
 }
 A1_INVALID = {"lambada_openai"}  # no logits path in the modded loader
+# lambada is INVALID for A1 only on the CURRENT-ARCH (modded) scales, whose
+# loader has no logits path (is_greedy hardcoded false). The ScaleUp-arch A1
+# arms (1.5B, ScaleUp-124M) are a PLAIN causal transformer with a real logits
+# path (eval/lm_eval_adapter_scaleup.py computes greedy), so lambada is VALID
+# there and is treated like any other gated task.
+MODDED_A1_SCALES = {"124M", "355M"}
 
 SCALES = {
     "124M": {
@@ -52,6 +58,24 @@ SCALES = {
         "a0d1": RESULTS / "core_sweep_t2/medium_a0d1_ckpt_016925.json",
         "a1d0": RESULTS / "core_sweep_v2/medium_a1d0_v2_ckpt_009480.json",
         "a1d1": RESULTS / "core_sweep_v2/medium_a1d1_v2_ckpt_009480.json",
+    },
+    # 1.5B (Tier-3): A0 = GPT-2-XL (A0 adapter), A1 = 2024-ScaleUp plain arch
+    # (plain-causal adapter). Both cross-scale curves' 1.5B point.
+    "1.5B": {
+        "a0d0": RESULTS / "core_sweep_v2/xl_a0d0_ckpt_017325.json",
+        "a0d1": RESULTS / "core_sweep_v2/xl_a0d1_ckpt_017325.json",
+        "a1d0": RESULTS / "core_sweep_v2/xl_a1d0_ckpt_020343.json",
+        "a1d1": RESULTS / "core_sweep_v2/xl_a1d1_ckpt_020343.json",
+    },
+    # ScaleUp-arch 124M point: A1 = ScaleUp-arch 124M (plain-causal adapter);
+    # A0 = the SAME GPT-2-small baseline as the 124M scale (CORE quality is a
+    # property of scale/data/arch, independent of GPU count), so its A0 CORE is
+    # reused rather than re-scored on the 5-GPU rerun.
+    "ScaleUp-124M": {
+        "a0d0": RESULTS / "core_sweep/small_a0d0_dense_ckpt_016925.json",
+        "a0d1": RESULTS / "core_sweep/small_a0d1_ckpt_016925.json",
+        "a1d0": RESULTS / "core_sweep_v2/su124_a1d0_ckpt_005100.json",
+        "a1d1": RESULTS / "core_sweep_v2/su124_a1d1_ckpt_005100.json",
     },
 }
 
@@ -82,8 +106,8 @@ def main():
             rows[a] = {}
             for t in usable_tasks:
                 acc, se = acc_se(data[a], t)
-                if a.startswith("a1") and t in A1_INVALID:
-                    rows[a][t] = None  # invalid for A1
+                if a.startswith("a1") and t in A1_INVALID and scale in MODDED_A1_SCALES:
+                    rows[a][t] = None  # invalid for modded-arch A1 (no logits path)
                 else:
                     rows[a][t] = acc
         report[scale] = {"gate": gate, "usable_tasks": usable_tasks, "rows": rows}
