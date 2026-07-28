@@ -311,5 +311,9 @@ explicit correction, not silently. v1/v2 agreement is within the measured
 - Pod SSH: direct TCP only for automation (ssh.runpod.io proxy is
   interactive-only). RunPod API key never worked (401) — pod lifecycle is
   manual via user's console.
-- HF repo: baileymachihirota/data-vs-algorithms-ceg (private). Eval corpus
-  frozen: /workspace/datasets/wiki_eval, sha256 cbdd72ac…, never regenerate.
+- HF repo: **MIRIBerkeley/data-vs-algorithms-ceg** (private; MOVED 2026-07-28
+  from baileymachihirota/… which now redirects). 54 files / 37.7 GB: full 2x2
+  matrix finals (1.5B, 355M, 124M current-arch, 124M-scaleup — 4 arms each) +
+  eval_corpus. scripts/hf_upload.py still hardcodes the old namespace — update
+  its target if uploading new arms. Eval corpus frozen:
+  /workspace/datasets/wiki_eval, sha256 cbdd72ac…, never regenerate.
