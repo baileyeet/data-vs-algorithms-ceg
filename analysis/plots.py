@@ -138,13 +138,90 @@ CURVE_LABELS = {"current-arch": "current-arch (2024 speedrun)",
                 "scaleup": "ScaleUp-arch (2024)"}
 
 
-def all_configs(curves: dict, out_path):
-    """One figure comparing BOTH cross-scale curves across every configuration.
+# the 16 arms = 4 scale-points x 4 arms. Each panel is one scale-point; canonical
+# per-arm metrics.csv (v2 for A1) + its neutral-BPB threshold.
+SCALE_PANELS = [
+    ("current-arch 124M", 1.274421, "small",
+     {"a0d0": "small_a0d0_dense_metrics.csv", "a0d1": "small_a0d1_metrics.csv",
+      "a1d0": "small_a1d0_2x_v2_metrics.csv", "a1d1": "small_a1d1_2x_v2_metrics.csv"}),
+    ("current-arch 355M", 1.228738, "medium",
+     {"a0d0": "medium_a0d0_metrics.csv", "a0d1": "medium_a0d1_metrics.csv",
+      "a1d0": "medium_a1d0_v2_metrics.csv", "a1d1": "medium_a1d1_v2_metrics.csv"}),
+    ("ScaleUp 124M", 1.280044, "scaleup",
+     {"a0d0": "su124_a0d0_5gpu_metrics.csv", "a0d1": "su124_a0d1_5gpu_metrics.csv",
+      "a1d0": "su124_a1d0_metrics.csv", "a1d1": "su124_a1d1_metrics.csv"}),
+    ("ScaleUp 1.5B", 1.18792, "xl",
+     {"a0d0": "xl_a0d0_metrics.csv", "a0d1": "xl_a0d1_metrics.csv",
+      "a1d0": "xl_a1d0_metrics.csv", "a1d1": "xl_a1d1_metrics.csv"}),
+]
 
-    curves[name] = {scales:[M params], algo:[x], data:[x], algo_note, gap_note}.
-    Two panels (algorithm | data multiplier) share the model-size axis; each
-    line is one lineage. Gaps (a scale with no validated recipe) are simply
-    absent points; censoring/gaps are called out in the footnote, not faked.
+
+def _read_curve(csv_path):
+    rows = list(csv.DictReader(open(csv_path)))
+    return [(float(r["gpu_hours"]), float(r["neutral_bpb"])) for r in rows
+            if float(r["gpu_hours"]) > 0]
+
+
+def all_configs_curves(root: Path, out_path):
+    """All 16 configurations on one image: a 2x2 small-multiples of BPB-vs-
+    GPU-hours, one panel per scale-point, all 4 arms per panel + the reference
+    threshold. Zoomed to the threshold-crossing region. Arm color follows the
+    entity (same hue in every panel). Non-crossing arms simply never reach the
+    dashed line — not hidden, not faked."""
+    fig, axes = plt.subplots(2, 2, figsize=(11.4, 8.2), dpi=150)
+    for ax, (label, thr, sub, arms) in zip(axes.ravel(), SCALE_PANELS):
+        lo = thr
+        for arm in ["a0d0", "a0d1", "a1d0", "a1d1"]:
+            p = root / sub / arms[arm]
+            if not p.exists():
+                continue
+            pts = _read_curve(p)
+            if not pts:
+                continue
+            hs, bs = zip(*pts)
+            lo = min(lo, min(bs))
+            ax.plot(hs, bs, color=ARM_COLORS[arm], linewidth=1.8, marker="o",
+                    markersize=3, label=ARM_LABELS[arm])
+            ax.annotate(arm.upper(), xy=(hs[-1], bs[-1]), xytext=(5, 0),
+                        textcoords="offset points", fontsize=7.5, color=INK,
+                        va="center")
+        ax.axhline(thr, color=INK2, linewidth=1, linestyle=(0, (4, 3)))
+        ax.annotate(f"ref BPB {thr:.3f}", xy=(0.01, thr),
+                    xycoords=("axes fraction", "data"), xytext=(0, 3),
+                    textcoords="offset points", fontsize=7.5, color=INK2)
+        ax.set_xscale("log")
+        ax.set_ylim(lo - 0.03, thr + 0.32)  # zoom to the crossing region
+        ax.set_xlabel("GPU-hours (timed, log)")
+        ax.set_ylabel("Neutral BPB")
+        ax.set_title(label, fontsize=10.5, loc="left")
+        _style(ax)
+    handles, labels = axes[0, 0].get_legend_handles_labels()
+    fig.legend(handles, labels, frameon=False, fontsize=8.5, labelcolor=INK2,
+               loc="upper center", ncol=4, bbox_to_anchor=(0.5, 0.945))
+    fig.suptitle("All 16 configurations — BPB vs GPU-hours to the reference "
+                 "threshold", fontsize=12.5, x=0.012, ha="left", color=INK,
+                 y=0.99)
+    fig.text(0.012, 0.005,
+             "Each panel is one scale-point; its 4 arms are A0/A1 (old/new "
+             "algorithm) × D0/D1 (old/new data). An arm 'crosses' where its "
+             "curve meets the dashed reference BPB — that GPU-hour value is the "
+             "raw material for the multipliers. The ScaleUp A1D0 (new-algo / "
+             "old-data) never crosses at either scale (ScaleUp < GPT-2 on "
+             "OpenWebText). GPU-hours are comparable within a panel (current-arch "
+             "8-GPU, ScaleUp 5-GPU).", fontsize=7.2, color=INK2, va="bottom",
+             wrap=True)
+    fig.tight_layout(rect=(0, 0.055, 1, 0.90))
+    fig.savefig(out_path, facecolor=SURFACE)
+    plt.close(fig)
+
+
+def multipliers_vs_scale(curves: dict, out_path):
+    """Summary figure: BOTH cross-scale curves' CEG multipliers across scale.
+
+    curves[name] = {scales:[M params], algo:[x], data:[x]}. Two panels
+    (algorithm | data multiplier) share the model-size axis; each line is one
+    lineage. This AGGREGATES the 16 arms into the Shapley multipliers — see
+    all_configs_curves for the per-arm detail. Gaps are simply absent points.
     """
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11.2, 4.8), dpi=150,
                                    sharex=True)
@@ -209,7 +286,7 @@ if __name__ == "__main__":
 
     ap = argparse.ArgumentParser(description="render one figure type")
     ap.add_argument("kind", choices=["curves", "cross_scale", "sensitivity",
-                                     "all_configs"])
+                                     "all_configs", "multipliers"])
     ap.add_argument("--size-label", default="")
     ap.add_argument("--out", required=True)
     ap.add_argument("--threshold", type=float)
@@ -223,7 +300,9 @@ if __name__ == "__main__":
     elif a.kind == "cross_scale":
         cross_scale([json.loads(Path(p).read_text()) for p in a.results], a.out)
     elif a.kind == "all_configs":
-        all_configs(_assemble_all_configs(Path("results")), a.out)
+        all_configs_curves(Path("results"), a.out)
+    elif a.kind == "multipliers":
+        multipliers_vs_scale(_assemble_all_configs(Path("results")), a.out)
     else:
         threshold_sensitivity(a.csv, a.size_label, a.out)
     print(f"wrote {a.out}")

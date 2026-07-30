@@ -5,7 +5,8 @@ Expects a results directory laid out as (produced per RUNBOOK step 5-6):
   results/<size>/sensitivity.csv     threshold_sensitivity.py output
   results/<size>/curves.png          plots.py curves
   results/<size>/sensitivity.png     plots.py sensitivity
-  results/cross_scale.png            plots.py cross_scale (all sizes)
+  results/all_configs.png            plots.py all_configs (all 16 arms)
+  results/multipliers_vs_scale.png   plots.py multipliers (both-curve summary)
 
 Usage: python analysis/make_report.py --results-dir results --out report.md
 """
@@ -150,18 +151,26 @@ def main():
             lines += sec
             results.append((size, r))
     if (root / "all_configs.png").exists():
-        lines += ["## Both curves at a glance", "",
-                  "All configurations on one figure — the compute-equivalent-gain "
-                  "multipliers derived from every arm, for both lineages across "
-                  "scale. The two curves are kept strictly separate (different A1 "
-                  "generations); each is missing the one scale where it has no "
-                  "validated recipe. Detail follows in the two curve sections.", "",
-                  "![all configurations](all_configs.png)", ""]
+        lines += ["## All configurations", "",
+                  "Every arm on one figure: neutral BPB vs GPU-hours for all 16 "
+                  "setups (4 scale-points × A0/A1 old/new algorithm × D0/D1 "
+                  "old/new data), each panel zoomed to where its arms cross the "
+                  "reference BPB. The crossing GPU-hours are the raw material for "
+                  "the multipliers below. The ScaleUp A1D0 (new-algo/old-data) "
+                  "visibly never crosses at either ScaleUp scale (the censored "
+                  "cells).", "",
+                  "![all 16 configurations](all_configs.png)", ""]
+    if (root / "multipliers_vs_scale.png").exists():
+        lines += ["## Both curves at a glance (multiplier summary)", "",
+                  "The 16 arms distilled to the compute-equivalent-gain "
+                  "multipliers (data / algorithm Shapley split) for both lineages "
+                  "across scale. The two curves are kept strictly separate "
+                  "(different A1 generations); each is missing the one scale where "
+                  "it has no validated recipe.", "",
+                  "![multipliers vs scale](multipliers_vs_scale.png)", ""]
     lines += ["## Curve 1 — current-arch (124M, 355M)", "",
               "The SOTA modded-nanoGPT speedrun as A1. Direct test of whether the "
               "data/algorithm split is scale-invariant for this algorithm:", ""]
-    if (root / "cross_scale.png").exists():
-        lines += ["![current-arch Shapley split (124M, 355M)](cross_scale.png)", ""]
     if len(results) >= 2:
         lines += ["| Size | data x | algorithm x | total x |", "|--|--|--|--|"]
         for size, r in results:

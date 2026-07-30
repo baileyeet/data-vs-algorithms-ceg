@@ -44,17 +44,21 @@ Reference threshold: **1.2287 BPB** (neutral corpus; = fully-trained A0D0 at thi
 
 ![threshold sensitivity](medium/sensitivity.png)
 
-## Both curves at a glance
+## All configurations
 
-All configurations on one figure — the compute-equivalent-gain multipliers derived from every arm, for both lineages across scale. The two curves are kept strictly separate (different A1 generations); each is missing the one scale where it has no validated recipe. Detail follows in the two curve sections.
+Every arm on one figure: neutral BPB vs GPU-hours for all 16 setups (4 scale-points × A0/A1 old/new algorithm × D0/D1 old/new data), each panel zoomed to where its arms cross the reference BPB. The crossing GPU-hours are the raw material for the multipliers below. The ScaleUp A1D0 (new-algo/old-data) visibly never crosses at either ScaleUp scale (the censored cells).
 
-![all configurations](all_configs.png)
+![all 16 configurations](all_configs.png)
+
+## Both curves at a glance (multiplier summary)
+
+The 16 arms distilled to the compute-equivalent-gain multipliers (data / algorithm Shapley split) for both lineages across scale. The two curves are kept strictly separate (different A1 generations); each is missing the one scale where it has no validated recipe.
+
+![multipliers vs scale](multipliers_vs_scale.png)
 
 ## Curve 1 — current-arch (124M, 355M)
 
 The SOTA modded-nanoGPT speedrun as A1. Direct test of whether the data/algorithm split is scale-invariant for this algorithm:
-
-![current-arch Shapley split (124M, 355M)](cross_scale.png)
 
 | Size | data x | algorithm x | total x |
 |--|--|--|--|
