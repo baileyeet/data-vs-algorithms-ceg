@@ -134,8 +134,15 @@ def threshold_sensitivity(csv_path, size_label: str, out_path):
 # lineage (an entity), never the rank. current-arch = blue, ScaleUp = orange
 # (high CVD separation; from the validated categorical palette).
 CURVE_COLORS = {"current-arch": "#2a78d6", "scaleup": "#eb6834"}
-CURVE_LABELS = {"current-arch": "current-arch (2024 speedrun)",
-                "scaleup": "ScaleUp-arch (2024)"}
+# the two curves are DIFFERENT estimators (see multipliers_vs_scale): current-
+# arch = symmetric 2-ordering Shapley (all 4 cells cross); ScaleUp = a single
+# computable margin (its A1D0/ScaleUp-on-OWT cell never crosses, so the
+# symmetric average is undefined). Distinguish them by style, not just color.
+CURVE_LABELS = {
+    "current-arch": "current-arch — Shapley (avg of both orderings)",
+    "scaleup": "ScaleUp — single margin (complement cell censored)"}
+CURVE_STYLE = {"current-arch": dict(linestyle="-", marker="o", fill=True),
+               "scaleup": dict(linestyle=(0, (5, 3)), marker="s", fill=False)}
 
 
 # the 16 arms = 4 scale-points x 4 arms. Each panel is one scale-point; canonical
@@ -182,15 +189,26 @@ def all_configs_curves(root: Path, out_path):
             lo = min(lo, min(bs))
             ax.plot(hs, bs, color=ARM_COLORS[arm], linewidth=1.8, marker="o",
                     markersize=3, label=ARM_LABELS[arm])
-            ax.annotate(arm.upper(), xy=(hs[-1], bs[-1]), xytext=(5, 0),
-                        textcoords="offset points", fontsize=7.5, color=INK,
+            # an arm 'crosses' iff its BPB curve reaches the threshold; the
+            # ScaleUp A1D0 (ScaleUp on OWT) never does — flag it explicitly so a
+            # zoomed panel can't be misread as a crop.
+            crossed = min(bs) <= thr
+            lbl = arm.upper() if crossed else f"{arm.upper()} — never crosses"
+            ax.annotate(lbl, xy=(hs[-1], bs[-1]), xytext=(5, 0),
+                        textcoords="offset points", fontsize=7.5,
+                        color=(INK if crossed else ARM_COLORS[arm]),
+                        fontweight=("normal" if crossed else "bold"),
                         va="center")
-        ax.axhline(thr, color=INK2, linewidth=1, linestyle=(0, (4, 3)))
+        ax.axhline(thr, color=INK2, linewidth=1.1, linestyle=(0, (4, 3)))
         ax.annotate(f"ref BPB {thr:.3f}", xy=(0.01, thr),
                     xycoords=("axes fraction", "data"), xytext=(0, 3),
                     textcoords="offset points", fontsize=7.5, color=INK2)
         ax.set_xscale("log")
-        ax.set_ylim(lo - 0.03, thr + 0.32)  # zoom to the crossing region
+        # headroom above the threshold so a non-crossing arm's plateau AND its
+        # approach are visible (it sits above the dashed line), not just the
+        # crossing zone.
+        ax.set_ylim(lo - 0.03, thr + 0.40)
+        ax.set_xlim(right=ax.get_xlim()[1] * 3.2)  # room for end labels
         ax.set_xlabel("GPU-hours (timed, log)")
         ax.set_ylabel("Neutral BPB")
         ax.set_title(label, fontsize=10.5, loc="left")
@@ -229,11 +247,15 @@ def multipliers_vs_scale(curves: dict, out_path):
                          (ax2, "data", "Data multiplier")):
         for name, c in curves.items():
             col = CURVE_COLORS[name]
+            st = CURVE_STYLE[name]
             xs, ys = c["scales"], c[key]
-            ax.plot(xs, ys, color=col, marker="o", markersize=7, linewidth=2,
+            ax.plot(xs, ys, color=col, marker=st["marker"], markersize=7,
+                    linewidth=2, linestyle=st["linestyle"],
+                    markerfacecolor=(col if st["fill"] else SURFACE),
+                    markeredgecolor=col, markeredgewidth=1.6,
                     label=CURVE_LABELS[name] if ax is ax1 else None)
             for x, y in zip(xs, ys):
-                ax.annotate(f"{y:.1f}×", xy=(x, y), xytext=(0, 8),
+                ax.annotate(f"{y:.1f}×", xy=(x, y), xytext=(0, 9),
                             textcoords="offset points", fontsize=8.5,
                             color=INK, ha="center")
         ax.set_xscale("log"); ax.set_yscale("log")
@@ -244,19 +266,22 @@ def multipliers_vs_scale(curves: dict, out_path):
         _style(ax)
         ax.set_ylim(0.9, max(20, ax.get_ylim()[1]))
     ax1.set_ylabel("Compute-reduction multiplier (log scale)")
-    ax1.legend(frameon=False, fontsize=8.5, labelcolor=INK2, loc="upper right")
-    fig.suptitle("Compute-equivalent gain across all configurations",
+    ax1.legend(frameon=False, fontsize=8, labelcolor=INK2, loc="upper right")
+    fig.suptitle("Compute-equivalent-gain multipliers vs model scale",
                  fontsize=12.5, x=0.012, ha="left", color=INK)
-    note = ("Each curve stops where it has no validated recipe: current-arch "
-            "has no 1.5B point, ScaleUp has no 355M point (both disclosed "
-            "gaps).  ScaleUp algorithm multiplier is on DCLM (new) data; on "
-            "OpenWebText it is censored ≤1× at both scales (ScaleUp < GPT-2 on "
-            "old data).  Multipliers are within-hardware GPU-hour ratios "
-            "(current-arch 8-GPU, ScaleUp 5-GPU); the count overhead cancels in "
-            "each ratio.")
-    fig.text(0.012, 0.02, note, fontsize=7.4, color=INK2, va="bottom",
-             wrap=True)
-    fig.tight_layout(rect=(0, 0.16, 1, 0.94))
+    note = ("The two lines are DIFFERENT estimators — do not read them as "
+            "directly comparable magnitudes.  Current-arch (solid, filled) = the "
+            "symmetric 2-ordering Shapley value (all four cells cross, so both "
+            "data orderings and both algorithm orderings are defined and "
+            "averaged).  ScaleUp (dashed, open) = a single computable margin: its "
+            "A1D0 (ScaleUp on OpenWebText) never crosses, so the complementary "
+            "marginal is censored and no symmetric Shapley exists — data = the A0 "
+            "(GPT-2) row ratio, algorithm = the D1 (DCLM) column ratio.  Each "
+            "curve also stops where it has no validated recipe (current-arch: no "
+            "1.5B; ScaleUp: no 355M).  Ratios are within-hardware GPU-hours "
+            "(current-arch 8-GPU, ScaleUp 5-GPU); the count overhead cancels.")
+    fig.text(0.012, 0.02, note, fontsize=7.0, color=INK2, va="bottom", wrap=True)
+    fig.tight_layout(rect=(0, 0.20, 1, 0.94))
     fig.savefig(out_path, facecolor=SURFACE)
     plt.close(fig)
 
@@ -281,12 +306,79 @@ def _assemble_all_configs(root: Path):
     }
 
 
+# the 6 CORE tasks usable at some size; fixed distinct hues (lines are also
+# direct-labeled, so color is never the sole identifier).
+TASK_COLORS = {
+    "arc_easy": "#2a78d6", "boolq": "#eb6834", "copa": "#1baf7a",
+    "hellaswag": "#8e44ad", "piqa": "#eda100", "xwinograd_en": "#c0392b",
+}
+
+
+def core_vs_scale(root: Path, out_path):
+    """CORE task accuracy vs model size, one line per gate-usable task.
+
+    Plots the A0D0 (old-algo/old-data) baseline accuracy at each size — the gate
+    reference. Filled marker = the task passed the 2σ>chance validity gate at
+    that size; hollow = below the gate (near chance). Visualizes findings like
+    'boolq comes alive at 355M+' that were previously only in the text table.
+    Accuracy is a different unit from BPB, so this stays its own figure.
+    """
+    from matplotlib.lines import Line2D
+    g = json.loads((root / "core_gate_v2.json").read_text())
+    sizes = [("124M", 124), ("355M", 355), ("1.5B", 1536)]
+    xs = [x for _, x in sizes]
+    tasks = sorted(set(t for s, _ in sizes for t in g[s]["usable_tasks"]))
+    fig, ax = plt.subplots(figsize=(8.0, 5.2), dpi=150)
+    for ch in (0.25, 0.50):
+        ax.axhline(ch, color=GRID, linewidth=1, linestyle=(0, (1, 3)), zorder=1)
+        ax.annotate(f"chance {ch:.2f}", xy=(xs[0], ch), xytext=(0, 2),
+                    textcoords="offset points", fontsize=7.5, color=INK2,
+                    va="bottom")
+    for t in tasks:
+        col = TASK_COLORS.get(t, INK2)
+        ys = [g[s]["gate"].get(t, {}).get("a0d0_acc") for s, _ in sizes]
+        use = [bool(g[s]["gate"].get(t, {}).get("usable")) for s, _ in sizes]
+        ax.plot(xs, ys, color=col, linewidth=1.8, zorder=3)
+        for x, y, u in zip(xs, ys, use):
+            ax.plot(x, y, marker="o", markersize=7, color=col, zorder=4,
+                    markerfacecolor=(col if u else SURFACE),
+                    markeredgecolor=col, markeredgewidth=1.6)
+        ax.annotate(t, xy=(xs[-1], ys[-1]), xytext=(7, 0),
+                    textcoords="offset points", fontsize=8.5, color=col,
+                    va="center")
+    ax.set_xscale("log")
+    ax.set_xticks(xs); ax.set_xticklabels([s for s, _ in sizes])
+    ax.set_xlim(108, 3200)
+    ax.set_xlabel("Model size (log scale)")
+    ax.set_ylabel("CORE task accuracy — A0D0 baseline")
+    ax.set_title("CORE task accuracy vs model size", fontsize=11, loc="left")
+    _style(ax)
+    legend = [Line2D([], [], color=INK2, marker="o", linestyle="none",
+                     markersize=7, label="passed validity gate"),
+              Line2D([], [], color=INK2, marker="o", linestyle="none",
+                     markersize=7, markerfacecolor=SURFACE,
+                     markeredgecolor=INK2, label="below gate (near chance)")]
+    ax.legend(handles=legend, frameon=False, fontsize=8, labelcolor=INK2,
+              loc="upper left")
+    fig.text(0.012, 0.01,
+             "A0D0 (old-algo / old-data) accuracy per task, limit=500 (the gate "
+             "reference). Only gate-passing (filled) tasks enter the quantitative "
+             "CORE table; e.g. boolq sits at chance at 124M (hollow) then clears "
+             "from 355M up. Chance differs by task (0.25 four-way; 0.50 binary). "
+             "Secondary metric — BPB is primary.", fontsize=7.0, color=INK2,
+             va="bottom", wrap=True)
+    fig.tight_layout(rect=(0, 0.07, 1, 1))
+    fig.savefig(out_path, facecolor=SURFACE)
+    plt.close(fig)
+
+
 if __name__ == "__main__":
     import argparse
 
     ap = argparse.ArgumentParser(description="render one figure type")
     ap.add_argument("kind", choices=["curves", "cross_scale", "sensitivity",
-                                     "all_configs", "multipliers"])
+                                     "all_configs", "multipliers",
+                                     "core_vs_scale"])
     ap.add_argument("--size-label", default="")
     ap.add_argument("--out", required=True)
     ap.add_argument("--threshold", type=float)
@@ -303,6 +395,8 @@ if __name__ == "__main__":
         all_configs_curves(Path("results"), a.out)
     elif a.kind == "multipliers":
         multipliers_vs_scale(_assemble_all_configs(Path("results")), a.out)
+    elif a.kind == "core_vs_scale":
+        core_vs_scale(Path("results"), a.out)
     else:
         threshold_sensitivity(a.csv, a.size_label, a.out)
     print(f"wrote {a.out}")

@@ -206,6 +206,9 @@ def main():
                 usable = g[scale]["usable_tasks"]
                 lines.append(f"- **{scale}**: {len(usable)} usable tasks "
                              f"({', '.join(usable)}).")
+        if (root / "core_vs_scale.png").exists():
+            lines += ["",
+                      "![CORE task accuracy vs model size](core_vs_scale.png)"]
         lines += ["",
                   "Note: `boolq` drops at 124M / ScaleUp-124M (A0D0 sits at chance, "
                   "0.504) but clears from 355M up — a scale effect, not an error. "

@@ -91,6 +91,8 @@ DCLM CORE is a secondary check; BPB is primary. A task is used only where the A0
 - **1.5B**: 6 usable tasks (arc_easy, boolq, copa, hellaswag, piqa, xwinograd_en).
 - **ScaleUp-124M**: 5 usable tasks (arc_easy, copa, hellaswag, piqa, xwinograd_en).
 
+![CORE task accuracy vs model size](core_vs_scale.png)
+
 Note: `boolq` drops at 124M / ScaleUp-124M (A0D0 sits at chance, 0.504) but clears from 355M up — a scale effect, not an error. Arms cluster closely on the gated tasks (limit=500, near-noisy), with slightly more separation at 1.5B but still within the noise floor, so no quantitative CORE-based CEG is claimed at any scale; it is a sanity gate. The ScaleUp-arch A1 lambada diagnostic rises cleanly with scale (acc 0.32 at 124M -> 0.52/0.55 at 1.5B; perplexity 55 -> 8), confirming the plain-causal adapter's logits path is sound.
 
 ## Methodology notes & confounds
