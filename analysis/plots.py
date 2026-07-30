@@ -421,9 +421,6 @@ def core_arms_by_task(root: Path, out_path):
         ch = _CORE_CHANCE.get(task)
         if ch is not None:
             ax.axhline(ch, color=GRID, linewidth=1, linestyle=(0, (1, 3)), zorder=1)
-            ax.annotate(f"chance {ch:.2f}", xy=(2.5, ch), xytext=(-2, 2),
-                        textcoords="offset points", ha="right", fontsize=6.5,
-                        color=INK2)
         for si, sc in enumerate(scales):
             for arm in arms:
                 d = data[(sc, arm)].get(task, {})
@@ -439,21 +436,23 @@ def core_arms_by_task(root: Path, out_path):
         ax.set_title(task, fontsize=10, loc="left")
         _style(ax)
         if i % ncol == 0:
-            ax.set_ylabel("accuracy", fontsize=9)
+            ax.set_ylabel("Accuracy", fontsize=9)
     for j in range(len(tasks), len(axf)):
         axf[j].set_visible(False)
     lg = [Line2D([], [], color=ARM_COLORS[a], marker="o", linestyle="none",
                  markersize=6, label=ARM_LABELS[a]) for a in arms]
     fig.legend(handles=lg, frameon=False, fontsize=8, labelcolor=INK2,
                loc="upper center", ncol=4, bbox_to_anchor=(0.5, 0.955))
-    fig.suptitle("CORE accuracy across all four arms — qualitative companion "
-                 "to BPB", fontsize=12.5, x=0.012, ha="left", color=INK, y=0.99)
+    fig.suptitle("CORE accuracy across all four arms", fontsize=12.5, x=0.012,
+                 ha="left", color=INK, y=0.99)
     fig.text(0.012, 0.006,
              "Each panel is one gate-usable task; points are the four arms at "
-             "124M / 355M / 1.5B with ±1 stderr bars (limit=500).  This is a "
-             "QUALITATIVE companion to the BPB result, NOT a second CEG claim — "
-             "at this noise level (stderr ≈ 0.022) most arm gaps overlap within "
-             "error.  The clearest recurring hint is new-data (D1) arms edging "
+             "124M / 355M / 1.5B with ±1 stderr bars taken directly from lm-eval "
+             "(≈0.021–0.022 per task, except copa ≈0.048 — it has only 100 "
+             "examples vs 500).  This is a QUALITATIVE companion to the BPB "
+             "result, NOT a second CEG claim — at this noise level most arm gaps "
+             "overlap within error.  The clearest recurring hint is new-data (D1) "
+             "arms edging "
              "out their old-data (D0) counterparts on arc_easy and piqa at every "
              "scale (sizable on arc_easy, within ~1–2 stderr on piqa); boolq "
              "shows no such pattern, so it is task-specific, not universal.  Read "
