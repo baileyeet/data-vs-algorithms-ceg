@@ -77,7 +77,8 @@ pod for validation smokes is fine.
 5. On the pod (ssh):
    - clone repo, `pip install -r requirements-lock.txt`
    - `python scripts/check_sizes.py` (env sanity)
-   - toy data: rerun the Phase 1 toy prep commands from README (few minutes)
+   - toy data: tiny OWT (~3M tok) + wiki slices via `data/prepare.py`, then a
+     short `train_old --size small` smoke on them (few minutes; tiny batch/block)
    - **modded-nanogpt smoke test** (the first CUDA run of the patched trainer):
      `torchrun --nproc_per_node=1 train_new/train_wrapper.py --size small --arm a1d1
      --data-glob 'datasets/toy_owt_nanogpt/train_*.bin' --neutral-eval-dir

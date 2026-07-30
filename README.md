@@ -3,7 +3,7 @@
 Isolates how much of GPT-2-era → 2024-era capability progress comes from
 **data quality** vs. **algorithms/architecture**, via a 2x2 grid
 (old/new data x old/new algorithm) trained at three core GPT-2 sizes
-(124M, 355M, 1.5B; 770M optional), measuring compute-to-reference-BPB and
+(124M, 355M, 1.5B), measuring compute-to-reference-BPB and
 Shapley-decomposing the savings in log-compute space.
 
 | | Old data (OpenWebText) | New data (DCLM/Nemotron-CC) |
@@ -56,25 +56,5 @@ the historical GPT-2 setup. A1D0 repeats OpenWebText for exactly 2 epochs
 9. A1D0 = exactly 2 epochs of OpenWebText, reshuffled between epochs, called
    out in the writeup as that cell's extra confound.
 
-## Quick smoke test (pipeline validation)
-
-A cheap end-to-end check — tiny corpora, ~2M-token train — that data prep →
-train → neutral-BPB eval → checkpointing all work before committing to any paid
-run. Also the reproduction on-ramp (RUNBOOK Session 0 reruns it verbatim).
-
-```bash
-V=../.venv/bin/python   # shared venv one level up
-$V data/prepare.py --dataset openwebtext --tokenizer gpt2 \
-  --out datasets/toy_owt_gpt2 --train-tokens 3000000 --val-tokens 100000
-$V data/prepare.py --dataset wikipedia --tokenizer gpt2 \
-  --out datasets/toy_wiki_gpt2 --val-tokens 150000
-$V train_old/train.py --size small --data-dir datasets/toy_owt_gpt2 \
-  --neutral-eval-dir datasets/toy_wiki_gpt2 --token-budget 2000000 \
-  --total-batch-tokens 16384 --device-batch-size 8 --block-size 256 \
-  --n-checkpoints 6 --out-dir runs/toy_a0d0
-$V scripts/check_sizes.py
-```
-
-Budget/process: ~$10k cap, RunPod on-demand 8xH100 only, **no paid launch
-without explicit confirmation**, per-tier cost tracking vs. the $2-5k core
-estimate.
+Session procedures, pipeline smoke test, and the cost ledger live in
+`RUNBOOK.md`; the final write-up is `report.md`.
