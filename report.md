@@ -102,6 +102,10 @@ DCLM CORE is a secondary check; BPB is primary. A task is used only where the A0
 
 Note: `boolq` drops at 124M / ScaleUp-124M (A0D0 sits at chance, 0.504) but clears from 355M up — a scale effect, not an error. Arms cluster closely on the gated tasks (limit=500, near-noisy), with slightly more separation at 1.5B but still within the noise floor, so no quantitative CORE-based CEG is claimed at any scale; it is a sanity gate. The ScaleUp-arch A1 lambada diagnostic rises cleanly with scale (acc 0.32 at 124M -> 0.52/0.55 at 1.5B; perplexity 55 -> 8), confirming the plain-causal adapter's logits path is sound.
 
+Across all four arms (a qualitative companion to BPB, not a second CEG claim), the only recurring hint is new-data (D1) arms edging out their old-data (D0) counterparts on arc_easy and piqa at every scale — sizable on arc_easy, within ~1–2 stderr on piqa; boolq shows no such order, so it is task-specific. Error bars (±1 stderr, limit=500) overlap widely, so this is directionally suggestive only.
+
+![CORE accuracy across all four arms, per task](core_arms_by_task.png)
+
 ## Methodology notes & confounds
 
 - Loss metric is bits-per-byte on a fixed, decontaminated Wikipedia slice (tokenizer-invariant; identical raw text across all runs). Per-dataset val BPB was logged as same-distribution diagnostics only.

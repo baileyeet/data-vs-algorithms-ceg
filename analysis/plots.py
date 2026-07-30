@@ -372,13 +372,107 @@ def core_vs_scale(root: Path, out_path):
     plt.close(fig)
 
 
+# (scale, arm) -> core_finals JSON stem — mirrors analysis/core_gate.py SCALES
+# (A0 at ScaleUp-124M is the shared 124M baseline, so only 124M/355M/1.5B here).
+_CORE_FILES = {
+    ("124M", "a0d0"): "small_a0d0_dense_ckpt_016925",
+    ("124M", "a0d1"): "small_a0d1_ckpt_016925",
+    ("124M", "a1d0"): "small_a1d0_2x_v2_ckpt_002780",
+    ("124M", "a1d1"): "small_a1d1_2x_v2_ckpt_002780",
+    ("355M", "a0d0"): "medium_a0d0_ckpt_016925",
+    ("355M", "a0d1"): "medium_a0d1_ckpt_016925",
+    ("355M", "a1d0"): "medium_a1d0_v2_ckpt_009480",
+    ("355M", "a1d1"): "medium_a1d1_v2_ckpt_009480",
+    ("1.5B", "a0d0"): "xl_a0d0_ckpt_017325",
+    ("1.5B", "a0d1"): "xl_a0d1_ckpt_017325",
+    ("1.5B", "a1d0"): "xl_a1d0_ckpt_020343",
+    ("1.5B", "a1d1"): "xl_a1d1_ckpt_020343",
+}
+_CORE_CHANCE = {"arc_easy": 0.25, "hellaswag": 0.25, "boolq": 0.50, "copa": 0.50,
+                "piqa": 0.50, "winogrande": 0.50, "xwinograd_en": 0.50}
+
+
+def core_arms_by_task(root: Path, out_path):
+    """All FOUR arms' CORE accuracy per gate-usable task, with ±1 stderr bars.
+
+    A QUALITATIVE companion to the BPB result — explicitly NOT a second
+    quantitative CEG claim. One panel per gated task; within a panel the four
+    arms are shown at 124M / 355M / 1.5B as points with error bars (no
+    connecting lines — the arms are compared *within* each scale, and the noise
+    is the point). The A1 (new-algorithm) arm is the current modded speedrun at
+    124M/355M and the 2024-ScaleUp arch at 1.5B, so it is not one track across
+    scales; that's fine here because nothing is connected across scale.
+    """
+    from matplotlib.lines import Line2D
+    gate = json.loads((root / "core_gate_v2.json").read_text())
+    data = {k: json.loads((root / "core_finals" / f"{v}.json").read_text())
+            for k, v in _CORE_FILES.items()}
+    scales = ["124M", "355M", "1.5B"]
+    arms = ["a0d0", "a0d1", "a1d0", "a1d1"]
+    offs = {"a0d0": -0.27, "a0d1": -0.09, "a1d0": 0.09, "a1d1": 0.27}
+    tasks = sorted(set(t for sc in ("124M", "355M", "1.5B", "ScaleUp-124M")
+                       for t in gate[sc]["usable_tasks"]))
+    ncol = 3
+    nrow = (len(tasks) + ncol - 1) // ncol
+    fig, axes = plt.subplots(nrow, ncol, figsize=(11.6, 3.5 * nrow), dpi=150)
+    axf = axes.ravel()
+    for i, task in enumerate(tasks):
+        ax = axf[i]
+        ch = _CORE_CHANCE.get(task)
+        if ch is not None:
+            ax.axhline(ch, color=GRID, linewidth=1, linestyle=(0, (1, 3)), zorder=1)
+            ax.annotate(f"chance {ch:.2f}", xy=(2.5, ch), xytext=(-2, 2),
+                        textcoords="offset points", ha="right", fontsize=6.5,
+                        color=INK2)
+        for si, sc in enumerate(scales):
+            for arm in arms:
+                d = data[(sc, arm)].get(task, {})
+                acc, se = d.get("acc,none"), d.get("acc_stderr,none")
+                if acc is None:
+                    continue
+                ax.errorbar(si + offs[arm], acc, yerr=se, marker="o",
+                            markersize=5, color=ARM_COLORS[arm],
+                            ecolor=ARM_COLORS[arm], elinewidth=1.1, capsize=2.5,
+                            linestyle="none", zorder=3)
+        ax.set_xticks([0, 1, 2]); ax.set_xticklabels(scales, fontsize=8.5)
+        ax.set_xlim(-0.5, 2.5)
+        ax.set_title(task, fontsize=10, loc="left")
+        _style(ax)
+        if i % ncol == 0:
+            ax.set_ylabel("accuracy", fontsize=9)
+    for j in range(len(tasks), len(axf)):
+        axf[j].set_visible(False)
+    lg = [Line2D([], [], color=ARM_COLORS[a], marker="o", linestyle="none",
+                 markersize=6, label=ARM_LABELS[a]) for a in arms]
+    fig.legend(handles=lg, frameon=False, fontsize=8, labelcolor=INK2,
+               loc="upper center", ncol=4, bbox_to_anchor=(0.5, 0.955))
+    fig.suptitle("CORE accuracy across all four arms — qualitative companion "
+                 "to BPB", fontsize=12.5, x=0.012, ha="left", color=INK, y=0.99)
+    fig.text(0.012, 0.006,
+             "Each panel is one gate-usable task; points are the four arms at "
+             "124M / 355M / 1.5B with ±1 stderr bars (limit=500).  This is a "
+             "QUALITATIVE companion to the BPB result, NOT a second CEG claim — "
+             "at this noise level (stderr ≈ 0.022) most arm gaps overlap within "
+             "error.  The clearest recurring hint is new-data (D1) arms edging "
+             "out their old-data (D0) counterparts on arc_easy and piqa at every "
+             "scale (sizable on arc_easy, within ~1–2 stderr on piqa); boolq "
+             "shows no such pattern, so it is task-specific, not universal.  Read "
+             "as directionally suggestive only — BPB remains the primary, "
+             "decisive metric.  (A1 = current modded speedrun at 124M/355M, "
+             "2024-ScaleUp at 1.5B; nothing is connected across scale.)",
+             fontsize=7.0, color=INK2, va="bottom", wrap=True)
+    fig.tight_layout(rect=(0, 0.11 if nrow == 2 else 0.07, 1, 0.90))
+    fig.savefig(out_path, facecolor=SURFACE)
+    plt.close(fig)
+
+
 if __name__ == "__main__":
     import argparse
 
     ap = argparse.ArgumentParser(description="render one figure type")
     ap.add_argument("kind", choices=["curves", "cross_scale", "sensitivity",
                                      "all_configs", "multipliers",
-                                     "core_vs_scale"])
+                                     "core_vs_scale", "core_arms_by_task"])
     ap.add_argument("--size-label", default="")
     ap.add_argument("--out", required=True)
     ap.add_argument("--threshold", type=float)
@@ -397,6 +491,8 @@ if __name__ == "__main__":
         multipliers_vs_scale(_assemble_all_configs(Path("results")), a.out)
     elif a.kind == "core_vs_scale":
         core_vs_scale(Path("results"), a.out)
+    elif a.kind == "core_arms_by_task":
+        core_arms_by_task(Path("results"), a.out)
     else:
         threshold_sensitivity(a.csv, a.size_label, a.out)
     print(f"wrote {a.out}")

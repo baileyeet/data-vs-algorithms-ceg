@@ -245,6 +245,17 @@ def main():
                   "perplexity 55 -> 8), confirming the plain-causal adapter's logits "
                   "path is sound.",
                   ""]
+        if (root / "core_arms_by_task.png").exists():
+            lines += ["Across all four arms (a qualitative companion to BPB, not "
+                      "a second CEG claim), the only recurring hint is new-data "
+                      "(D1) arms edging out their old-data (D0) counterparts on "
+                      "arc_easy and piqa at every scale — sizable on arc_easy, "
+                      "within ~1–2 stderr on piqa; boolq shows no such order, so "
+                      "it is task-specific. Error bars (±1 stderr, limit=500) "
+                      "overlap widely, so this is directionally suggestive only.",
+                      "",
+                      "![CORE accuracy across all four arms, per task]"
+                      "(core_arms_by_task.png)", ""]
 
     lines += ["## Methodology notes & confounds",
               "",
