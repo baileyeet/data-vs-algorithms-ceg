@@ -21,7 +21,9 @@ eager fp32, forwards full seq with dummy targets for full logits; single source
 of truth, no code dup). GPT-2 arms use eval/lm_eval_adapter.py (verified
 size-agnostic: loads XL dims 48/25/1600 from ckpt["config"]). Both smoke-passed.
 Sweep: 15 tasks limit 500, 6 finals across 5 GPUs, all exit 0.
-RESULTS (results/core_sweep_v2/{xl_*,su124_*}.json; gate results/core_gate_v2.json):
+RESULTS (14 final CORE JSONs consolidated into results/core_finals/; gate
+results/core_gate_v2.json — the sprawling per-checkpoint core_sweep*/ dirs were
+pruned 2026-07-30 after finals were fixed, gate output byte-identical):
 124M 5 usable / 355M 6 / 1.5B 6 / ScaleUp-124M 5 (bit-identical for 124M/355M —
 edit was additive). Arms cluster near noise; slightly more spread at 1.5B but
 still noise-limited — no quantitative CORE CEG claimed (BPB primary, CORE a

@@ -1,155 +1,0 @@
-[Gloo] Rank 0 is connected to 0 peer ranks. Expected number of connected peer ranks is : 0
-Fetching 8 files:   0%|          | 0/8 [00:00<?, ?it/s]Fetching 8 files: 100%|██████████| 8/8 [00:00<00:00, 8158.14it/s]
-/usr/local/lib/python3.11/dist-packages/requests/__init__.py:113: RequestsDependencyWarning: urllib3 (2.2.3) or chardet (6.0.0.post1)/charset_normalizer (3.3.2) doesn't match a supported version!
-  warnings.warn(
-[Task: bigbench_cs_algorithms_multiple_choice] metric acc is defined, but aggregation is not. using default aggregation=mean
-[Task: bigbench_cs_algorithms_multiple_choice] metric acc is defined, but higher_is_better is not. using default higher_is_better=True
-[Task: bigbench_dyck_languages_multiple_choice] metric acc is defined, but aggregation is not. using default aggregation=mean
-[Task: bigbench_dyck_languages_multiple_choice] metric acc is defined, but higher_is_better is not. using default higher_is_better=True
-[Task: bigbench_language_identification_multiple_choice] metric acc is defined, but aggregation is not. using default aggregation=mean
-[Task: bigbench_language_identification_multiple_choice] metric acc is defined, but higher_is_better is not. using default higher_is_better=True
-[Task: boolq] metric acc is defined, but aggregation is not. using default aggregation=mean
-[Task: boolq] metric acc is defined, but higher_is_better is not. using default higher_is_better=True
-[Task: copa] metric acc is defined, but aggregation is not. using default aggregation=mean
-[Task: copa] metric acc is defined, but higher_is_better is not. using default higher_is_better=True
-loaded /workspace/runs/small_a1d0_2x/ckpt_001698.pt: step=1698 algo=None
-  0%|          | 0/230 [00:00<?, ?it/s] 66%|██████▌   | 151/230 [00:00<00:00, 1508.01it/s]100%|██████████| 230/230 [00:00<00:00, 1511.11it/s]
-  0%|          | 0/500 [00:00<?, ?it/s] 22%|██▏       | 111/500 [00:00<00:00, 1109.68it/s] 45%|████▍     | 223/500 [00:00<00:00, 1112.38it/s] 67%|██████▋   | 335/500 [00:00<00:00, 372.06it/s]  89%|████████▉ | 446/500 [00:00<00:00, 503.06it/s]100%|██████████| 500/500 [00:00<00:00, 562.35it/s]
-  0%|          | 0/500 [00:00<?, ?it/s] 22%|██▏       | 112/500 [00:00<00:00, 1113.82it/s] 45%|████▍     | 224/500 [00:00<00:00, 1115.38it/s] 67%|██████▋   | 336/500 [00:00<00:00, 1112.86it/s] 90%|████████▉ | 448/500 [00:00<00:00, 1111.23it/s]100%|██████████| 500/500 [00:00<00:00, 1111.64it/s]
-  0%|          | 0/500 [00:00<?, ?it/s] 29%|██▉       | 144/500 [00:00<00:00, 1435.43it/s] 58%|█████▊    | 289/500 [00:00<00:00, 1439.50it/s] 88%|████████▊ | 439/500 [00:00<00:00, 1465.37it/s]100%|██████████| 500/500 [00:00<00:00, 1464.25it/s]
-  0%|          | 0/500 [00:00<?, ?it/s] 22%|██▏       | 109/500 [00:00<00:00, 1083.47it/s] 44%|████▍     | 219/500 [00:00<00:00, 1088.44it/s] 66%|██████▌   | 328/500 [00:00<00:00, 1081.70it/s] 88%|████████▊ | 438/500 [00:00<00:00, 1087.91it/s]100%|██████████| 500/500 [00:00<00:00, 1087.46it/s]
-  0%|          | 0/500 [00:00<?, ?it/s] 28%|██▊       | 142/500 [00:00<00:00, 1416.40it/s] 57%|█████▋    | 285/500 [00:00<00:00, 1421.47it/s] 86%|████████▌ | 428/500 [00:00<00:00, 1422.91it/s]100%|██████████| 500/500 [00:00<00:00, 1422.41it/s]
-  0%|          | 0/500 [00:00<?, ?it/s] 88%|████████▊ | 441/500 [00:00<00:00, 4403.40it/s]100%|██████████| 500/500 [00:00<00:00, 4401.93it/s]
-  0%|          | 0/500 [00:00<?, ?it/s] 22%|██▏       | 110/500 [00:00<00:00, 1095.30it/s] 44%|████▍     | 220/500 [00:00<00:00, 1084.79it/s] 66%|██████▌   | 329/500 [00:00<00:00, 1084.61it/s] 88%|████████▊ | 439/500 [00:00<00:00, 1088.12it/s]100%|██████████| 500/500 [00:00<00:00, 1088.19it/s]
-  0%|          | 0/100 [00:00<?, ?it/s]100%|██████████| 100/100 [00:00<00:00, 137698.75it/s]
-  0%|          | 0/500 [00:00<?, ?it/s] 63%|██████▎   | 315/500 [00:00<00:00, 3146.09it/s]100%|██████████| 500/500 [00:00<00:00, 3147.92it/s]
-  0%|          | 0/500 [00:00<?, ?it/s] 16%|█▌        | 80/500 [00:00<00:00, 798.49it/s] 32%|███▏      | 161/500 [00:00<00:00, 803.31it/s] 49%|████▊     | 243/500 [00:00<00:00, 806.81it/s] 65%|██████▍   | 324/500 [00:00<00:00, 783.67it/s] 81%|████████  | 405/500 [00:00<00:00, 792.43it/s] 97%|█████████▋| 486/500 [00:00<00:00, 797.45it/s]100%|██████████| 500/500 [00:00<00:00, 796.68it/s]
-  0%|          | 0/500 [00:00<?, ?it/s] 26%|██▋       | 132/500 [00:00<00:00, 1311.42it/s] 53%|█████▎    | 265/500 [00:00<00:00, 1318.09it/s] 79%|███████▉  | 397/500 [00:00<00:00, 1317.82it/s]100%|██████████| 500/500 [00:00<00:00, 1318.09it/s]
-  0%|          | 0/500 [00:00<?, ?it/s] 32%|███▏      | 158/500 [00:00<00:00, 1572.21it/s] 63%|██████▎   | 317/500 [00:00<00:00, 1576.84it/s] 95%|█████████▌| 475/500 [00:00<00:00, 1553.69it/s]100%|██████████| 500/500 [00:00<00:00, 1559.21it/s]
-  0%|          | 0/500 [00:00<?, ?it/s]100%|██████████| 500/500 [00:00<00:00, 107095.90it/s]
-  0%|          | 0/500 [00:00<?, ?it/s]100%|██████████| 500/500 [00:00<00:00, 108925.99it/s]
-bootstrapping for stddev: perplexity
-  0%|          | 0/100 [00:00<?, ?it/s] 56%|█████▌    | 56/100 [00:00<00:00, 446.21it/s]100%|██████████| 100/100 [00:00<00:00, 783.66it/s]
-fatal: not a git repository (or any of the parent directories): .git
-{
-  "agieval_lsat_ar": {
-    "name": "agieval_lsat_ar",
-    "alias": "agieval_lsat_ar",
-    "sample_len": 230,
-    "acc,none": 0.2391304347826087,
-    "acc_stderr,none": 0.028187385293933945,
-    "acc_norm,none": 0.22608695652173913,
-    "acc_norm_stderr,none": 0.027641785707241334
-  },
-  "arc_challenge": {
-    "name": "arc_challenge",
-    "alias": "arc_challenge",
-    "sample_len": 500,
-    "acc,none": 0.198,
-    "acc_stderr,none": 0.01783895896384722,
-    "acc_norm,none": 0.224,
-    "acc_norm_stderr,none": 0.018663994464710777
-  },
-  "arc_easy": {
-    "name": "arc_easy",
-    "alias": "arc_easy",
-    "sample_len": 500,
-    "acc,none": 0.4,
-    "acc_stderr,none": 0.021930844120728505,
-    "acc_norm,none": 0.388,
-    "acc_norm_stderr,none": 0.021814300984787635
-  },
-  "bigbench_cs_algorithms_multiple_choice": {
-    "name": "bigbench_cs_algorithms_multiple_choice",
-    "alias": "bigbench_cs_algorithms_multiple_choice",
-    "sample_len": 500,
-    "acc,none": 0.234,
-    "acc_stderr,none": 0.018952741564893738
-  },
-  "bigbench_dyck_languages_multiple_choice": {
-    "name": "bigbench_dyck_languages_multiple_choice",
-    "alias": "bigbench_dyck_languages_multiple_choice",
-    "sample_len": 500,
-    "acc,none": 0.122,
-    "acc_stderr,none": 0.014651324945044794
-  },
-  "bigbench_language_identification_multiple_choice": {
-    "name": "bigbench_language_identification_multiple_choice",
-    "alias": "bigbench_language_identification_multiple_choice",
-    "sample_len": 500,
-    "acc,none": 0.112,
-    "acc_stderr,none": 0.014117741364768056
-  },
-  "boolq": {
-    "name": "boolq",
-    "alias": "boolq",
-    "sample_len": 500,
-    "acc,none": 0.568,
-    "acc_stderr,none": 0.02217510926561316
-  },
-  "commonsense_qa": {
-    "name": "commonsense_qa",
-    "alias": "commonsense_qa",
-    "sample_len": 500,
-    "acc,none": 0.182,
-    "acc_stderr,none": 0.01727277329773045
-  },
-  "copa": {
-    "name": "copa",
-    "alias": "copa",
-    "sample_len": 100,
-    "acc,none": 0.61,
-    "acc_stderr,none": 0.04902071300001974
-  },
-  "hellaswag": {
-    "name": "hellaswag",
-    "alias": "hellaswag",
-    "sample_len": 500,
-    "acc,none": 0.33,
-    "acc_stderr,none": 0.02104961216613481,
-    "acc_norm,none": 0.382,
-    "acc_norm_stderr,none": 0.02175082059125083
-  },
-  "lambada_openai": {
-    "name": "lambada_openai",
-    "alias": "lambada_openai",
-    "sample_len": 500,
-    "perplexity,none": 114.9056410107718,
-    "perplexity_stderr,none": 18.704455203429976,
-    "acc,none": 0.0,
-    "acc_stderr,none": 0.0
-  },
-  "openbookqa": {
-    "name": "openbookqa",
-    "alias": "openbookqa",
-    "sample_len": 500,
-    "acc,none": 0.174,
-    "acc_stderr,none": 0.01697127125751615,
-    "acc_norm,none": 0.26,
-    "acc_norm_stderr,none": 0.019635965529725512
-  },
-  "piqa": {
-    "name": "piqa",
-    "alias": "piqa",
-    "sample_len": 500,
-    "acc,none": 0.572,
-    "acc_stderr,none": 0.022149790663861926,
-    "acc_norm,none": 0.58,
-    "acc_norm_stderr,none": 0.022094713229761784
-  },
-  "winogrande": {
-    "name": "winogrande",
-    "alias": "winogrande",
-    "sample_len": 500,
-    "acc,none": 0.486,
-    "acc_stderr,none": 0.0223742981663532
-  },
-  "xwinograd_en": {
-    "name": "xwinograd_en",
-    "alias": "xwinograd_en",
-    "sample_len": 500,
-    "acc,none": 0.562,
-    "acc_stderr,none": 0.022210326363977413
-  }
-}
-[rank0]:[W714 03:55:41.426444763 ProcessGroupNCCL.cpp:1553] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())

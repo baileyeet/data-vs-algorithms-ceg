@@ -11,8 +11,11 @@ caveats, both from the loader saga:
   * lambada_openai accuracy is INVALID for A1 arms — the modded loader has no
     logits/generation path (is_greedy hardcoded False -> acc 0.0), so it is
     excluded from A1 CORE and never contributes to the gate for A1 rows.
-  * A1 scores are read from the v2-canonical sweep (results/core_sweep_v2);
-    A0 scores from the standard-loader sweeps (results/core_sweep[_t2]).
+  * scores are the final-checkpoint CORE JSONs consolidated into
+    results/core_finals/ (A1 arms from the v2-canonical sweep, A0 arms from the
+    standard-loader sweeps; the full per-checkpoint sweeps were pruned once the
+    finals were fixed — see git history if the training-step CORE curves are
+    needed).
 
 Chance baselines are 1/(n_choices). The three bigbench_*_multiple_choice
 tasks have per-instance-variable option counts, so a fixed chance is not
@@ -48,34 +51,34 @@ MODDED_A1_SCALES = {"124M", "355M"}
 
 SCALES = {
     "124M": {
-        "a0d0": RESULTS / "core_sweep/small_a0d0_dense_ckpt_016925.json",
-        "a0d1": RESULTS / "core_sweep/small_a0d1_ckpt_016925.json",
-        "a1d0": RESULTS / "core_sweep_v2/small_a1d0_2x_v2_ckpt_002780.json",
-        "a1d1": RESULTS / "core_sweep_v2/small_a1d1_2x_v2_ckpt_002780.json",
+        "a0d0": RESULTS / "core_finals/small_a0d0_dense_ckpt_016925.json",
+        "a0d1": RESULTS / "core_finals/small_a0d1_ckpt_016925.json",
+        "a1d0": RESULTS / "core_finals/small_a1d0_2x_v2_ckpt_002780.json",
+        "a1d1": RESULTS / "core_finals/small_a1d1_2x_v2_ckpt_002780.json",
     },
     "355M": {
-        "a0d0": RESULTS / "core_sweep_t2/medium_a0d0_ckpt_016925.json",
-        "a0d1": RESULTS / "core_sweep_t2/medium_a0d1_ckpt_016925.json",
-        "a1d0": RESULTS / "core_sweep_v2/medium_a1d0_v2_ckpt_009480.json",
-        "a1d1": RESULTS / "core_sweep_v2/medium_a1d1_v2_ckpt_009480.json",
+        "a0d0": RESULTS / "core_finals/medium_a0d0_ckpt_016925.json",
+        "a0d1": RESULTS / "core_finals/medium_a0d1_ckpt_016925.json",
+        "a1d0": RESULTS / "core_finals/medium_a1d0_v2_ckpt_009480.json",
+        "a1d1": RESULTS / "core_finals/medium_a1d1_v2_ckpt_009480.json",
     },
     # 1.5B (Tier-3): A0 = GPT-2-XL (A0 adapter), A1 = 2024-ScaleUp plain arch
     # (plain-causal adapter). Both cross-scale curves' 1.5B point.
     "1.5B": {
-        "a0d0": RESULTS / "core_sweep_v2/xl_a0d0_ckpt_017325.json",
-        "a0d1": RESULTS / "core_sweep_v2/xl_a0d1_ckpt_017325.json",
-        "a1d0": RESULTS / "core_sweep_v2/xl_a1d0_ckpt_020343.json",
-        "a1d1": RESULTS / "core_sweep_v2/xl_a1d1_ckpt_020343.json",
+        "a0d0": RESULTS / "core_finals/xl_a0d0_ckpt_017325.json",
+        "a0d1": RESULTS / "core_finals/xl_a0d1_ckpt_017325.json",
+        "a1d0": RESULTS / "core_finals/xl_a1d0_ckpt_020343.json",
+        "a1d1": RESULTS / "core_finals/xl_a1d1_ckpt_020343.json",
     },
     # ScaleUp-arch 124M point: A1 = ScaleUp-arch 124M (plain-causal adapter);
     # A0 = the SAME GPT-2-small baseline as the 124M scale (CORE quality is a
     # property of scale/data/arch, independent of GPU count), so its A0 CORE is
     # reused rather than re-scored on the 5-GPU rerun.
     "ScaleUp-124M": {
-        "a0d0": RESULTS / "core_sweep/small_a0d0_dense_ckpt_016925.json",
-        "a0d1": RESULTS / "core_sweep/small_a0d1_ckpt_016925.json",
-        "a1d0": RESULTS / "core_sweep_v2/su124_a1d0_ckpt_005100.json",
-        "a1d1": RESULTS / "core_sweep_v2/su124_a1d1_ckpt_005100.json",
+        "a0d0": RESULTS / "core_finals/small_a0d0_dense_ckpt_016925.json",
+        "a0d1": RESULTS / "core_finals/small_a0d1_ckpt_016925.json",
+        "a1d0": RESULTS / "core_finals/su124_a1d0_ckpt_005100.json",
+        "a1d1": RESULTS / "core_finals/su124_a1d1_ckpt_005100.json",
     },
 }
 

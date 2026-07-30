@@ -1,58 +1,0 @@
-/usr/local/lib/python3.11/dist-packages/requests/__init__.py:113: RequestsDependencyWarning: urllib3 (2.2.3) or chardet (6.0.0.post1)/charset_normalizer (3.3.2) doesn't match a supported version!
-  warnings.warn(
-Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
-Using the latest cached version of the dataset since hails/agieval-lsat-ar couldn't be found on the Hugging Face Hub
-Found the latest cached dataset configuration 'default' at /root/.cache/huggingface/datasets/hails___agieval-lsat-ar/default/0.0.0/052cc636b612f5563329dd182fb6c2cad56681c8 (last modified on Mon Jul 13 03:56:05 2026).
-Using the latest cached version of the dataset since allenai/ai2_arc couldn't be found on the Hugging Face Hub
-Found the latest cached dataset configuration 'ARC-Challenge' at /root/.cache/huggingface/datasets/allenai___ai2_arc/ARC-Challenge/0.0.0/210d026faf9955653af8916fad021475a3f00453 (last modified on Mon Jul 13 03:56:08 2026).
-Using the latest cached version of the dataset since allenai/ai2_arc couldn't be found on the Hugging Face Hub
-Found the latest cached dataset configuration 'ARC-Easy' at /root/.cache/huggingface/datasets/allenai___ai2_arc/ARC-Easy/0.0.0/210d026faf9955653af8916fad021475a3f00453 (last modified on Mon Jul 13 03:56:11 2026).
-[Task: bigbench_cs_algorithms_multiple_choice] metric acc is defined, but aggregation is not. using default aggregation=mean
-[Task: bigbench_cs_algorithms_multiple_choice] metric acc is defined, but higher_is_better is not. using default higher_is_better=True
-Using the latest cached version of the dataset since hails/bigbench couldn't be found on the Hugging Face Hub
-Found the latest cached dataset configuration 'cs_algorithms_zero_shot' at /root/.cache/huggingface/datasets/hails___bigbench/cs_algorithms_zero_shot/0.0.0/2915f06cecbbad3d7e28c096ad682ab277aee984 (last modified on Mon Jul 13 03:56:16 2026).
-[Task: bigbench_dyck_languages_multiple_choice] metric acc is defined, but aggregation is not. using default aggregation=mean
-[Task: bigbench_dyck_languages_multiple_choice] metric acc is defined, but higher_is_better is not. using default higher_is_better=True
-Using the latest cached version of the dataset since hails/bigbench couldn't be found on the Hugging Face Hub
-Found the latest cached dataset configuration 'dyck_languages_zero_shot' at /root/.cache/huggingface/datasets/hails___bigbench/dyck_languages_zero_shot/0.0.0/2915f06cecbbad3d7e28c096ad682ab277aee984 (last modified on Mon Jul 13 03:56:20 2026).
-[Task: bigbench_language_identification_multiple_choice] metric acc is defined, but aggregation is not. using default aggregation=mean
-[Task: bigbench_language_identification_multiple_choice] metric acc is defined, but higher_is_better is not. using default higher_is_better=True
-Using the latest cached version of the dataset since hails/bigbench couldn't be found on the Hugging Face Hub
-Found the latest cached dataset configuration 'language_identification_zero_shot' at /root/.cache/huggingface/datasets/hails___bigbench/language_identification_zero_shot/0.0.0/2915f06cecbbad3d7e28c096ad682ab277aee984 (last modified on Mon Jul 13 03:56:24 2026).
-[Task: boolq] metric acc is defined, but aggregation is not. using default aggregation=mean
-[Task: boolq] metric acc is defined, but higher_is_better is not. using default higher_is_better=True
-Using the latest cached version of the dataset since aps/super_glue couldn't be found on the Hugging Face Hub
-Found the latest cached dataset configuration 'boolq' at /root/.cache/huggingface/datasets/aps___super_glue/boolq/0.0.0/3de24cf8022e94f4ee4b9d55a6f539891524d646 (last modified on Mon Jul 13 03:56:27 2026).
-Using the latest cached version of the dataset since tau/commonsense_qa couldn't be found on the Hugging Face Hub
-Found the latest cached dataset configuration 'default' at /root/.cache/huggingface/datasets/tau___commonsense_qa/default/0.0.0/94630fe30dad47192a8546eb75f094926d47e155 (last modified on Mon Jul 13 03:56:31 2026).
-[Task: copa] metric acc is defined, but aggregation is not. using default aggregation=mean
-[Task: copa] metric acc is defined, but higher_is_better is not. using default higher_is_better=True
-Using the latest cached version of the dataset since aps/super_glue couldn't be found on the Hugging Face Hub
-Found the latest cached dataset configuration 'copa' at /root/.cache/huggingface/datasets/aps___super_glue/copa/0.0.0/3de24cf8022e94f4ee4b9d55a6f539891524d646 (last modified on Mon Jul 13 03:56:34 2026).
-Using the latest cached version of the dataset since Rowan/hellaswag couldn't be found on the Hugging Face Hub
-Found the latest cached dataset configuration 'default' at /root/.cache/huggingface/datasets/Rowan___hellaswag/default/0.0.0/218ec52e09a7e7462a5400043bb9a69a41d06b76 (last modified on Mon Jul 13 03:56:43 2026).
-Using the latest cached version of the dataset since EleutherAI/lambada_openai couldn't be found on the Hugging Face Hub
-Found the latest cached dataset configuration 'default' at /root/.cache/huggingface/datasets/EleutherAI___lambada_openai/default/0.0.0/900124bf3b8235c6daf21033af9948b3f07346c4 (last modified on Mon Jul 13 03:56:45 2026).
-Using the latest cached version of the dataset since allenai/openbookqa couldn't be found on the Hugging Face Hub
-Found the latest cached dataset configuration 'main' at /root/.cache/huggingface/datasets/allenai___openbookqa/main/0.0.0/388097ea7776314e93a529163e0fea805b8a6454 (last modified on Mon Jul 13 03:56:49 2026).
-Using the latest cached version of the dataset since baber/piqa couldn't be found on the Hugging Face Hub
-Found the latest cached dataset configuration 'default' at /root/.cache/huggingface/datasets/baber___piqa/default/0.0.0/142f6d7367fd9877f0fb3b5734ea6a545f54cdd1 (last modified on Mon Jul 13 03:56:52 2026).
-Using the latest cached version of the dataset since allenai/winogrande couldn't be found on the Hugging Face Hub
-Found the latest cached dataset configuration 'winogrande_xl' at /root/.cache/huggingface/datasets/allenai___winogrande/winogrande_xl/0.0.0/01e74176c63542e6b0bcb004dcdea22d94fb67b5 (last modified on Mon Jul 13 03:56:56 2026).
-Using the latest cached version of the dataset since Muennighoff/xwinograd couldn't be found on the Hugging Face Hub
-Found the latest cached dataset configuration 'en' at /root/.cache/huggingface/datasets/Muennighoff___xwinograd/en/0.0.0/90b619ef5278605cd4f572e3e8506ab16afd44f2 (last modified on Mon Jul 13 03:56:59 2026).
-  0%|          | 0/230 [00:00<?, ?it/s] 65%|██████▌   | 150/230 [00:00<00:00, 1498.40it/s]100%|██████████| 230/230 [00:00<00:00, 1502.75it/s]
-  0%|          | 0/500 [00:00<?, ?it/s] 22%|██▏       | 111/500 [00:00<00:00, 1105.56it/s] 44%|████▍     | 222/500 [00:00<00:00, 1105.69it/s] 67%|██████▋   | 333/500 [00:00<00:00, 1103.49it/s] 89%|████████▉ | 444/500 [00:00<00:00, 1098.86it/s]100%|██████████| 500/500 [00:00<00:00, 1100.83it/s]
-  0%|          | 0/500 [00:00<?, ?it/s] 22%|██▏       | 111/500 [00:00<00:00, 1106.23it/s] 44%|████▍     | 222/500 [00:00<00:00, 1095.94it/s] 67%|██████▋   | 333/500 [00:00<00:00, 1100.97it/s] 89%|████████▉ | 444/500 [00:00<00:00, 1103.69it/s]100%|██████████| 500/500 [00:00<00:00, 1103.01it/s]
-  0%|          | 0/500 [00:00<?, ?it/s] 29%|██▊       | 143/500 [00:00<00:00, 1428.87it/s] 57%|█████▋    | 287/500 [00:00<00:00, 1432.38it/s] 87%|████████▋ | 437/500 [00:00<00:00, 1458.73it/s]100%|██████████| 500/500 [00:00<00:00, 1456.76it/s]
-  0%|          | 0/500 [00:00<?, ?it/s] 22%|██▏       | 108/500 [00:00<00:00, 1070.69it/s] 43%|████▎     | 217/500 [00:00<00:00, 1078.47it/s] 65%|██████▌   | 326/500 [00:00<00:00, 1080.91it/s] 87%|████████▋ | 435/500 [00:00<00:00, 1080.37it/s]100%|██████████| 500/500 [00:00<00:00, 638.24it/s] 
-  0%|          | 0/500 [00:00<?, ?it/s] 28%|██▊       | 140/500 [00:00<00:00, 1397.81it/s] 56%|█████▌    | 280/500 [00:00<00:00, 1387.81it/s] 84%|████████▍ | 420/500 [00:00<00:00, 1390.73it/s]100%|██████████| 500/500 [00:00<00:00, 1390.46it/s]
-  0%|          | 0/500 [00:00<?, ?it/s] 87%|████████▋ | 435/500 [00:00<00:00, 4341.57it/s]100%|██████████| 500/500 [00:00<00:00, 4344.56it/s]
-  0%|          | 0/500 [00:00<?, ?it/s] 22%|██▏       | 110/500 [00:00<00:00, 1091.97it/s] 44%|████▍     | 220/500 [00:00<00:00, 1088.66it/s] 66%|██████▌   | 329/500 [00:00<00:00, 1088.79it/s] 88%|████████▊ | 438/500 [00:00<00:00, 1089.02it/s]100%|██████████| 500/500 [00:00<00:00, 1088.23it/s]
-  0%|          | 0/100 [00:00<?, ?it/s]100%|██████████| 100/100 [00:00<00:00, 139160.72it/s]
-  0%|          | 0/500 [00:00<?, ?it/s] 63%|██████▎   | 315/500 [00:00<00:00, 3141.94it/s]100%|██████████| 500/500 [00:00<00:00, 3157.66it/s]
-  0%|          | 0/500 [00:00<?, ?it/s] 16%|█▌        | 79/500 [00:00<00:00, 788.75it/s] 32%|███▏      | 160/500 [00:00<00:00, 795.03it/s] 48%|████▊     | 241/500 [00:00<00:00, 797.77it/s] 64%|██████▍   | 321/500 [00:00<00:00, 798.41it/s] 80%|████████  | 401/500 [00:00<00:00, 798.75it/s] 96%|█████████▌| 481/500 [00:00<00:00, 786.33it/s]100%|██████████| 500/500 [00:00<00:00, 791.81it/s]
-  0%|          | 0/500 [00:00<?, ?it/s] 27%|██▋       | 133/500 [00:00<00:00, 1323.35it/s] 53%|█████▎    | 266/500 [00:00<00:00, 1327.00it/s] 80%|███████▉  | 399/500 [00:00<00:00, 1323.34it/s]100%|██████████| 500/500 [00:00<00:00, 1321.50it/s]
-  0%|          | 0/500 [00:00<?, ?it/s] 32%|███▏      | 158/500 [00:00<00:00, 1574.07it/s] 64%|██████▎   | 318/500 [00:00<00:00, 1583.67it/s] 96%|█████████▌| 478/500 [00:00<00:00, 1586.93it/s]100%|██████████| 500/500 [00:00<00:00, 1583.99it/s]
-  0%|          | 0/500 [00:00<?, ?it/s]100%|██████████| 500/500 [00:00<00:00, 108598.83it/s]
-  0%|          | 0/500 [00:00<?, ?it/s]100%|██████████| 500/500 [00:00<00:00, 113740.75it/s]

@@ -1,167 +1,0 @@
-/usr/local/lib/python3.11/dist-packages/requests/__init__.py:113: RequestsDependencyWarning: urllib3 (2.2.3) or chardet (6.0.0.post1)/charset_normalizer (3.3.2) doesn't match a supported version!
-  warnings.warn(
-Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
-[Task: bigbench_cs_algorithms_multiple_choice] metric acc is defined, but aggregation is not. using default aggregation=mean
-[Task: bigbench_cs_algorithms_multiple_choice] metric acc is defined, but higher_is_better is not. using default higher_is_better=True
-[Task: bigbench_dyck_languages_multiple_choice] metric acc is defined, but aggregation is not. using default aggregation=mean
-[Task: bigbench_dyck_languages_multiple_choice] metric acc is defined, but higher_is_better is not. using default higher_is_better=True
-[Task: bigbench_language_identification_multiple_choice] metric acc is defined, but aggregation is not. using default aggregation=mean
-[Task: bigbench_language_identification_multiple_choice] metric acc is defined, but higher_is_better is not. using default higher_is_better=True
-[Task: boolq] metric acc is defined, but aggregation is not. using default aggregation=mean
-[Task: boolq] metric acc is defined, but higher_is_better is not. using default higher_is_better=True
-[Task: copa] metric acc is defined, but aggregation is not. using default aggregation=mean
-[Task: copa] metric acc is defined, but higher_is_better is not. using default higher_is_better=True
-Using the latest cached version of the dataset since Rowan/hellaswag couldn't be found on the Hugging Face Hub
-Found the latest cached dataset configuration 'default' at /root/.cache/huggingface/datasets/Rowan___hellaswag/default/0.0.0/218ec52e09a7e7462a5400043bb9a69a41d06b76 (last modified on Tue Jul 14 00:19:05 2026).
-Using the latest cached version of the dataset since EleutherAI/lambada_openai couldn't be found on the Hugging Face Hub
-Found the latest cached dataset configuration 'default' at /root/.cache/huggingface/datasets/EleutherAI___lambada_openai/default/0.0.0/900124bf3b8235c6daf21033af9948b3f07346c4 (last modified on Tue Jul 14 02:57:37 2026).
-Using the latest cached version of the dataset since allenai/openbookqa couldn't be found on the Hugging Face Hub
-Found the latest cached dataset configuration 'main' at /root/.cache/huggingface/datasets/allenai___openbookqa/main/0.0.0/388097ea7776314e93a529163e0fea805b8a6454 (last modified on Tue Jul 14 02:57:42 2026).
-Using the latest cached version of the dataset since baber/piqa couldn't be found on the Hugging Face Hub
-Found the latest cached dataset configuration 'default' at /root/.cache/huggingface/datasets/baber___piqa/default/0.0.0/142f6d7367fd9877f0fb3b5734ea6a545f54cdd1 (last modified on Tue Jul 14 02:57:47 2026).
-Using the latest cached version of the dataset since allenai/winogrande couldn't be found on the Hugging Face Hub
-Found the latest cached dataset configuration 'winogrande_xl' at /root/.cache/huggingface/datasets/allenai___winogrande/winogrande_xl/0.0.0/01e74176c63542e6b0bcb004dcdea22d94fb67b5 (last modified on Tue Jul 14 02:57:52 2026).
-Using the latest cached version of the dataset since Muennighoff/xwinograd couldn't be found on the Hugging Face Hub
-Found the latest cached dataset configuration 'en' at /root/.cache/huggingface/datasets/Muennighoff___xwinograd/en/0.0.0/90b619ef5278605cd4f572e3e8506ab16afd44f2 (last modified on Tue Jul 14 02:57:55 2026).
-  0%|          | 0/230 [00:00<?, ?it/s] 66%|██████▌   | 152/230 [00:00<00:00, 1514.96it/s]100%|██████████| 230/230 [00:00<00:00, 1522.33it/s]
-  0%|          | 0/500 [00:00<?, ?it/s] 22%|██▏       | 111/500 [00:00<00:00, 1109.13it/s] 44%|████▍     | 222/500 [00:00<00:00, 1109.50it/s] 67%|██████▋   | 333/500 [00:00<00:00, 1105.02it/s] 89%|████████▉ | 444/500 [00:00<00:00, 1100.72it/s]100%|██████████| 500/500 [00:00<00:00, 1102.89it/s]
-  0%|          | 0/500 [00:00<?, ?it/s] 22%|██▏       | 110/500 [00:00<00:00, 1098.19it/s] 44%|████▍     | 221/500 [00:00<00:00, 1104.25it/s] 67%|██████▋   | 333/500 [00:00<00:00, 1108.88it/s] 89%|████████▉ | 444/500 [00:00<00:00, 1108.99it/s]100%|██████████| 500/500 [00:00<00:00, 1106.89it/s]
-  0%|          | 0/500 [00:00<?, ?it/s] 28%|██▊       | 140/500 [00:00<00:00, 1398.25it/s] 57%|█████▋    | 284/500 [00:00<00:00, 1418.36it/s] 86%|████████▋ | 432/500 [00:00<00:00, 1443.52it/s]100%|██████████| 500/500 [00:00<00:00, 1442.77it/s]
-  0%|          | 0/500 [00:00<?, ?it/s] 22%|██▏       | 108/500 [00:00<00:00, 1071.85it/s] 43%|████▎     | 216/500 [00:00<00:00, 1072.80it/s] 65%|██████▍   | 324/500 [00:00<00:00, 1073.30it/s] 86%|████████▋ | 432/500 [00:00<00:00, 1073.93it/s]100%|██████████| 500/500 [00:00<00:00, 636.61it/s] 
-  0%|          | 0/500 [00:00<?, ?it/s] 28%|██▊       | 139/500 [00:00<00:00, 1387.05it/s] 56%|█████▌    | 280/500 [00:00<00:00, 1397.52it/s] 84%|████████▍ | 421/500 [00:00<00:00, 1399.49it/s]100%|██████████| 500/500 [00:00<00:00, 1398.84it/s]
-  0%|          | 0/500 [00:00<?, ?it/s] 87%|████████▋ | 436/500 [00:00<00:00, 4356.90it/s]100%|██████████| 500/500 [00:00<00:00, 4357.95it/s]
-  0%|          | 0/500 [00:00<?, ?it/s] 22%|██▏       | 108/500 [00:00<00:00, 1074.05it/s] 43%|████▎     | 216/500 [00:00<00:00, 1075.69it/s] 65%|██████▍   | 324/500 [00:00<00:00, 1074.58it/s] 86%|████████▋ | 432/500 [00:00<00:00, 1075.54it/s]100%|██████████| 500/500 [00:00<00:00, 1075.47it/s]
-  0%|          | 0/100 [00:00<?, ?it/s]100%|██████████| 100/100 [00:00<00:00, 133110.25it/s]
-  0%|          | 0/500 [00:00<?, ?it/s] 63%|██████▎   | 314/500 [00:00<00:00, 3136.67it/s]100%|██████████| 500/500 [00:00<00:00, 3151.30it/s]
-  0%|          | 0/500 [00:00<?, ?it/s] 16%|█▌        | 80/500 [00:00<00:00, 790.72it/s] 32%|███▏      | 160/500 [00:00<00:00, 793.76it/s] 48%|████▊     | 240/500 [00:00<00:00, 796.23it/s] 64%|██████▍   | 321/500 [00:00<00:00, 797.96it/s] 80%|████████  | 401/500 [00:00<00:00, 798.09it/s] 96%|█████████▌| 481/500 [00:00<00:00, 798.55it/s]100%|██████████| 500/500 [00:00<00:00, 797.33it/s]
-  0%|          | 0/500 [00:00<?, ?it/s] 26%|██▋       | 132/500 [00:00<00:00, 1310.43it/s] 53%|█████▎    | 265/500 [00:00<00:00, 1319.69it/s] 79%|███████▉  | 397/500 [00:00<00:00, 1319.06it/s]100%|██████████| 500/500 [00:00<00:00, 1317.15it/s]
-  0%|          | 0/500 [00:00<?, ?it/s] 32%|███▏      | 159/500 [00:00<00:00, 1586.48it/s] 64%|██████▍   | 319/500 [00:00<00:00, 1591.91it/s] 96%|█████████▌| 479/500 [00:00<00:00, 1593.03it/s]100%|██████████| 500/500 [00:00<00:00, 1591.09it/s]
-  0%|          | 0/500 [00:00<?, ?it/s]100%|██████████| 500/500 [00:00<00:00, 110626.79it/s]
-  0%|          | 0/500 [00:00<?, ?it/s]100%|██████████| 500/500 [00:00<00:00, 113005.28it/s]
-bootstrapping for stddev: perplexity
-  0%|          | 0/100 [00:00<?, ?it/s] 95%|█████████▌| 95/100 [00:00<00:00, 943.79it/s]100%|██████████| 100/100 [00:00<00:00, 989.93it/s]
-fatal: detected dubious ownership in repository at '/root/ceg'
-To add an exception for this directory, call:
-
-	git config --global --add safe.directory /root/ceg
-{
-  "agieval_lsat_ar": {
-    "name": "agieval_lsat_ar",
-    "alias": "agieval_lsat_ar",
-    "sample_len": 230,
-    "acc,none": 0.2,
-    "acc_stderr,none": 0.026432744018203554,
-    "acc_norm,none": 0.21304347826086956,
-    "acc_norm_stderr,none": 0.0270577543899362
-  },
-  "arc_challenge": {
-    "name": "arc_challenge",
-    "alias": "arc_challenge",
-    "sample_len": 500,
-    "acc,none": 0.194,
-    "acc_stderr,none": 0.017701827855304626,
-    "acc_norm,none": 0.238,
-    "acc_norm_stderr,none": 0.019064072958198452
-  },
-  "arc_easy": {
-    "name": "arc_easy",
-    "alias": "arc_easy",
-    "sample_len": 500,
-    "acc,none": 0.242,
-    "acc_stderr,none": 0.01917308567833716,
-    "acc_norm,none": 0.25,
-    "acc_norm_stderr,none": 0.019384310743640384
-  },
-  "bigbench_cs_algorithms_multiple_choice": {
-    "name": "bigbench_cs_algorithms_multiple_choice",
-    "alias": "bigbench_cs_algorithms_multiple_choice",
-    "sample_len": 500,
-    "acc,none": 0.244,
-    "acc_stderr,none": 0.019226734893614626
-  },
-  "bigbench_dyck_languages_multiple_choice": {
-    "name": "bigbench_dyck_languages_multiple_choice",
-    "alias": "bigbench_dyck_languages_multiple_choice",
-    "sample_len": 500,
-    "acc,none": 0.114,
-    "acc_stderr,none": 0.014227186146645575
-  },
-  "bigbench_language_identification_multiple_choice": {
-    "name": "bigbench_language_identification_multiple_choice",
-    "alias": "bigbench_language_identification_multiple_choice",
-    "sample_len": 500,
-    "acc,none": 0.098,
-    "acc_stderr,none": 0.013309631572104899
-  },
-  "boolq": {
-    "name": "boolq",
-    "alias": "boolq",
-    "sample_len": 500,
-    "acc,none": 0.37,
-    "acc_stderr,none": 0.021613289165165788
-  },
-  "commonsense_qa": {
-    "name": "commonsense_qa",
-    "alias": "commonsense_qa",
-    "sample_len": 500,
-    "acc,none": 0.226,
-    "acc_stderr,none": 0.018722956449139926
-  },
-  "copa": {
-    "name": "copa",
-    "alias": "copa",
-    "sample_len": 100,
-    "acc,none": 0.57,
-    "acc_stderr,none": 0.04975698519562427
-  },
-  "hellaswag": {
-    "name": "hellaswag",
-    "alias": "hellaswag",
-    "sample_len": 500,
-    "acc,none": 0.278,
-    "acc_stderr,none": 0.02005583388807091,
-    "acc_norm,none": 0.272,
-    "acc_norm_stderr,none": 0.019920483209566065
-  },
-  "lambada_openai": {
-    "name": "lambada_openai",
-    "alias": "lambada_openai",
-    "sample_len": 500,
-    "perplexity,none": 917221.6735055897,
-    "perplexity_stderr,none": 247078.14868122464,
-    "acc,none": 0.0,
-    "acc_stderr,none": 0.0
-  },
-  "openbookqa": {
-    "name": "openbookqa",
-    "alias": "openbookqa",
-    "sample_len": 500,
-    "acc,none": 0.116,
-    "acc_stderr,none": 0.014335236237885726,
-    "acc_norm,none": 0.28,
-    "acc_norm_stderr,none": 0.020099950647503237
-  },
-  "piqa": {
-    "name": "piqa",
-    "alias": "piqa",
-    "sample_len": 500,
-    "acc,none": 0.522,
-    "acc_stderr,none": 0.022361396739207878,
-    "acc_norm,none": 0.512,
-    "acc_norm_stderr,none": 0.02237662679792717
-  },
-  "winogrande": {
-    "name": "winogrande",
-    "alias": "winogrande",
-    "sample_len": 500,
-    "acc,none": 0.502,
-    "acc_stderr,none": 0.02238289498648352
-  },
-  "xwinograd_en": {
-    "name": "xwinograd_en",
-    "alias": "xwinograd_en",
-    "sample_len": 500,
-    "acc,none": 0.556,
-    "acc_stderr,none": 0.022242244375731024
-  }
-}
