@@ -7,11 +7,11 @@
   rotary, ReLU^2, FlexAttention, value embeddings, etc.)
 - **355M track**: `records/medium_track/` (~5,960 steps, batch 512, bf16) —
   adjust step count to our 9B/18B token budgets, not its native budget
-- **1.5B track**: the README's documented 1.5B scaling result — starting recipe
-  for Tier 3
-- **770M**: no first-party recipe (optional Tier 4; expect LR/warmup tuning)
+- **1.5B track**: the upstream documented 1.5B scaling result (the 2024
+  ScaleUp1B recipe) — used for the Tier-3 / ScaleUp-curve A1 arms via
+  `train_gpt_xl_ceg.py`
 
-## Required adaptations (Phase 2 work, tracked here)
+## Required adaptations (all implemented)
 
 Implemented via `train_wrapper.py` (entry point, all measurement logic) plus
 `train_gpt_ceg.py` / `train_gpt_medium_ceg.py` (copies of
@@ -45,9 +45,11 @@ torchrun --nproc_per_node=8 train_new/train_wrapper.py --size small --arm a1d1 \
 5. **Token budget override** — DONE. Step count is derived from
    `--token-budget` + the upstream stage batch schedule (fractions of total
    steps preserved; extension phase kept at the upstream 10/1380 ratio).
-6. **Eval wrapper** (`eval/lm_eval_adapter.py` second `make_lm` path) — TODO;
-   checkpoints save the compiled state_dict (`_orig_mod.` prefixes) plus a
-   `model_args` dict for reconstruction.
+6. **Eval wrapper** — DONE. Checkpoints save the compiled state_dict
+   (`_orig_mod.` prefixes) plus a `model_args` dict for reconstruction; the
+   CORE loglikelihood adapters are `eval/lm_eval_adapter_modded.py` (current-
+   arch A1, with the yarn_state / split_embed reload-fidelity handling) and
+   `eval/lm_eval_adapter_scaleup.py` (the plain-causal 2024-ScaleUp A1).
 7. **run_config.json parity with train_old** — DONE (`arm`, `gpu_name`,
    `torch_version`, `algorithm: "new_modded_nanogpt"` /
    `"new_modded_nanogpt_medium"`, `n_params`, `ckpt_steps`, `world_size`,
@@ -122,34 +124,26 @@ Structural differences from the small track, and how they were handled:
   per-rank token counts exact, doc extents from natural-order successors)
   while following the per-epoch permutation deterministically.
 
-## NOT validated until the first pod session
+## Validation status (all subsequently exercised)
 
-Upstream hard-requires CUDA + torchrun at import (flash-attn kernels, Muon
-distributed comms, torch.compile), so none of the following has actually run
-(for **either** track; everything below applies to medium too):
+The items below were CUDA-only and unrun at adaptation time (upstream
+hard-requires CUDA + torchrun at import: flash-attn kernels, Muon distributed
+comms, torch.compile). All were exercised end-to-end across the full study
+(Tiers 1–3, both tracks — see `report.md`):
 
-- The full patched training loop end-to-end (incl. warmup-reset, batch-size
-  transitions, the DataExhausted graceful-stop path, DDP barrier behavior
-  while rank 0 runs BPB evals — long neutral corpora could approach the NCCL
-  barrier timeout; raise `--eval-windows-per-chunk` if so).
-- The BPB shim against the *real* compiled model (dtype/shape plumbing of
-  `cu_seqlens`/bigram inputs, eval-graph recompiles when attention window
-  sizes change stage; recompiles happen while the clock is paused).
-- Checkpoint save/reload of the compiled state_dict.
-- Loss-EMA magnitudes (upstream train loss includes multi-token-prediction
-  weighting, so `train_loss_ema` is inflated early vs plain CE — diagnostic
-  only, never used for CEG measurement).
-- Toy-scale caveats: `--val-batch-size` must be shrunk so the upstream
-  kernel-warmup val pass fits toy val shards, and tiny step counts interact
-  crudely with the fixed 300/50-step Muon momentum warmup/cooldown (upstream
-  constants, deliberately untouched).
-- Medium-only: the `reduction="none"` eval branch has never been compiled
-  (torch.compile of the eval graph with a vector return); `NorMuon`'s
-  custom 8-GPU param grouping vs the standard grouping on other world sizes
-  is upstream behavior we haven't exercised; the medium checkpoint's
-  `model_args` reconstruction (`blocks[0].attn` dims through the compiled
-  module) is unverified.
+- The full patched training loop (warmup-reset, batch-size transitions, the
+  DataExhausted graceful stop, DDP-barrier behavior during rank-0 BPB evals)
+  ran clean; the BPB shim on the real compiled model, the medium
+  `reduction="none"` eval branch, and NorMuon's 8-GPU param grouping all held.
+- **Checkpoint save/reload was the one that bit.** Post-hoc loading of the
+  compiled state_dict needed four fixes — yarn_state persistence,
+  eager-vs-compiled numerics, medium split_embed restoration, and eval-packing
+  parity — all resolved and validated 8/8 exact (deltas 0.0000). Full writeup:
+  the "Loader saga" in `CLAUDE.md`.
+- Loss-EMA magnitudes are MTP-weighted (inflated early vs plain CE) —
+  diagnostic only, never used for CEG measurement.
 
-First pod session plan: single-GPU toy run (`--val-batch-size 131072
---eval-windows-per-chunk 16`, few-M token budget) before any paid full run —
-one per track (`--size small`, `--size medium`).
+Toy-scale caveats still apply if re-running the smoke test: shrink
+`--val-batch-size` so the upstream kernel-warmup val pass fits toy val shards,
+and note tiny step counts interact crudely with the fixed 300/50-step Muon
+momentum warmup/cooldown (upstream constants, deliberately untouched).
