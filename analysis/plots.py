@@ -305,59 +305,76 @@ TASK_COLORS = {
 
 
 def core_vs_scale(root: Path, out_path):
-    """CORE task accuracy vs model size, one line per gate-usable task.
+    """CORE task accuracy vs model size — TWO tracks, matching the report's two
+    curves and their disclosed gaps (never one spliced line).
 
-    Plots the A0D0 (old-algo/old-data) baseline accuracy at each size — the gate
-    reference. Filled marker = the task passed the 2σ>chance validity gate at
-    that size; hollow = below the gate (near chance). Visualizes findings like
-    'boolq comes alive at 355M+' that were previously only in the text table.
-    Accuracy is a different unit from BPB, so this stays its own figure.
+    Plots the A0D0 (old-algo/old-data) GPT-2 baseline accuracy — the gate
+    reference — per usable task, split by track:
+      * current-arch: 124M -> 355M (solid; this curve has no validated 1.5B).
+      * ScaleUp:      124M -> 1.5B (dashed; skips 355M, its disclosed gap).
+    The 124M A0 CORE is the SAME shared GPT-2 baseline for both tracks, so they
+    share that node (no false 355M->1.5B splice across tracks). Filled marker =
+    passed the 2σ>chance validity gate at that size; hollow = below it. Accuracy
+    is a different unit from BPB, so this stays its own figure.
     """
     from matplotlib.lines import Line2D
     g = json.loads((root / "core_gate_v2.json").read_text())
-    sizes = [("124M", 124), ("355M", 355), ("1.5B", 1536)]
-    xs = [x for _, x in sizes]
-    tasks = sorted(set(t for s, _ in sizes for t in g[s]["usable_tasks"]))
-    fig, ax = plt.subplots(figsize=(8.0, 5.2), dpi=150)
+    tracks = [("current-arch", "-", [("124M", 124), ("355M", 355)]),
+              ("ScaleUp", (0, (5, 3)), [("ScaleUp-124M", 124), ("1.5B", 1536)])]
+    tasks = sorted(set(t for sc in ("124M", "355M", "1.5B", "ScaleUp-124M")
+                       for t in g[sc]["usable_tasks"]))
+
+    def pt(scale, task):
+        ga = g[scale]["gate"].get(task, {})
+        return ga.get("a0d0_acc"), bool(ga.get("usable"))
+
+    fig, ax = plt.subplots(figsize=(8.4, 5.4), dpi=150)
     for ch in (0.25, 0.50):
         ax.axhline(ch, color=GRID, linewidth=1, linestyle=(0, (1, 3)), zorder=1)
-        ax.annotate(f"chance {ch:.2f}", xy=(xs[0], ch), xytext=(0, 2),
+        ax.annotate(f"chance {ch:.2f}", xy=(118, ch), xytext=(0, 2),
                     textcoords="offset points", fontsize=7.5, color=INK2,
                     va="bottom")
-    for t in tasks:
-        col = TASK_COLORS.get(t, INK2)
-        ys = [g[s]["gate"].get(t, {}).get("a0d0_acc") for s, _ in sizes]
-        use = [bool(g[s]["gate"].get(t, {}).get("usable")) for s, _ in sizes]
-        ax.plot(xs, ys, color=col, linewidth=1.8, zorder=3)
-        for x, y, u in zip(xs, ys, use):
-            ax.plot(x, y, marker="o", markersize=7, color=col, zorder=4,
-                    markerfacecolor=(col if u else SURFACE),
-                    markeredgecolor=col, markeredgewidth=1.6)
-        ax.annotate(t, xy=(xs[-1], ys[-1]), xytext=(7, 0),
-                    textcoords="offset points", fontsize=8.5, color=col,
-                    va="center")
+    for task in tasks:
+        col = TASK_COLORS.get(task, INK2)
+        for _, ls, nodes in tracks:
+            pts = [pt(s, task) for s, _ in nodes]
+            ax.plot([x for _, x in nodes], [p[0] for p in pts], color=col,
+                    linewidth=1.8, linestyle=ls, zorder=3)
+            for (_, x), (y, u) in zip(nodes, pts):
+                ax.plot(x, y, marker="o", markersize=7, color=col, zorder=4,
+                        markerfacecolor=(col if u else SURFACE),
+                        markeredgecolor=col, markeredgewidth=1.6)
     ax.set_xscale("log")
-    ax.set_xticks(xs); ax.set_xticklabels([s for s, _ in sizes])
-    ax.set_xlim(108, 3200)
-    ax.set_xlabel("Model size (log scale)")
+    ax.set_xticks([124, 355, 1536]); ax.set_xticklabels(["124M", "355M", "1.5B"])
+    ax.set_xlim(112, 2050)
     ax.set_ylabel("CORE task accuracy — A0D0 baseline")
-    ax.set_title("CORE task accuracy vs model size", fontsize=11, loc="left")
+    ax.set_xlabel("Model size (log scale)")
     _style(ax)
-    legend = [Line2D([], [], color=INK2, marker="o", linestyle="none",
-                     markersize=7, label="passed validity gate"),
-              Line2D([], [], color=INK2, marker="o", linestyle="none",
-                     markersize=7, markerfacecolor=SURFACE,
-                     markeredgecolor=INK2, label="below gate (near chance)")]
-    ax.legend(handles=legend, frameon=False, fontsize=8, labelcolor=INK2,
-              loc="upper left")
-    fig.text(0.012, 0.01,
-             "A0D0 (old-algo / old-data) accuracy per task, limit=500 (the gate "
-             "reference). Only gate-passing (filled) tasks enter the quantitative "
-             "CORE table; e.g. boolq sits at chance at 124M (hollow) then clears "
-             "from 355M up. Chance differs by task (0.25 four-way; 0.50 binary). "
+    enc = [Line2D([], [], color=INK2, linestyle="-", label="current-arch (→355M)"),
+           Line2D([], [], color=INK2, linestyle=(0, (5, 3)), label="ScaleUp (→1.5B)"),
+           Line2D([], [], color=INK2, marker="o", linestyle="none", markersize=7,
+                  label="passed gate"),
+           Line2D([], [], color=INK2, marker="o", linestyle="none", markersize=7,
+                  markerfacecolor=SURFACE, markeredgecolor=INK2, label="below gate")]
+    ax.legend(handles=enc, frameon=False, fontsize=7.5, labelcolor=INK2,
+              loc="lower right", ncol=2, columnspacing=1.2)
+    tasklg = [Line2D([], [], color=TASK_COLORS[t], linewidth=2.6, label=t)
+              for t in tasks]
+    fig.legend(handles=tasklg, frameon=False, fontsize=8, labelcolor=INK2,
+               loc="upper center", ncol=6, bbox_to_anchor=(0.5, 0.93))
+    fig.suptitle("CORE task accuracy vs model size", fontsize=12.5, x=0.012,
+                 ha="left", color=INK, y=0.985)
+    fig.text(0.012, 0.008,
+             "A0D0 (old-algo / old-data) GPT-2 baseline accuracy per task, "
+             "limit=500 (the gate reference). Two tracks match the report's two "
+             "curves: solid = current-arch (124M→355M, no 1.5B point); dashed = "
+             "ScaleUp (124M→1.5B, skipping its 355M gap); the 124M node is the "
+             "shared baseline. Filled = passed the 2σ>chance validity gate; "
+             "hollow = below it (e.g. boolq sits at chance at 124M, clears from "
+             "355M). Chance differs by task (0.25 four-way; 0.50 binary). "
              "Secondary metric — BPB is primary.", fontsize=7.0, color=INK2,
              va="bottom", wrap=True)
-    fig.tight_layout(rect=(0, 0.07, 1, 1))
+    fig.tight_layout(rect=(0, 0.085, 1, 0.88))
     fig.savefig(out_path, facecolor=SURFACE)
     plt.close(fig)
 
