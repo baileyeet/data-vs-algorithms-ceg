@@ -251,31 +251,20 @@ def multipliers_vs_scale(curves: dict, out_path):
         ax.set_xscale("log"); ax.set_yscale("log")
         ax.set_xticks([124, 355, 1536])
         ax.set_xticklabels(["124M", "355M", "1.5B"])
-        ax.set_xlabel("Model size (log scale)")
+        ax.set_xlabel("Model size")
         ax.set_title(ttl, fontsize=11, loc="left")
         _style(ax)
         ax.set_ylim(0.9, max(20, ax.get_ylim()[1]))
-    ax1.set_ylabel("Compute-reduction multiplier (log scale)")
+    ax1.set_ylabel("Compute-reduction multiplier")
     ax1.legend(frameon=False, fontsize=8, labelcolor=INK2, loc="upper right")
     fig.suptitle("Compute-equivalent-gain multipliers vs model scale",
                  fontsize=12.5, x=0.012, ha="left", color=INK)
-    note = ("The two lines are DIFFERENT estimators — do not read them as "
-            "directly comparable magnitudes.  Current-arch (solid, filled) = the "
-            "symmetric 2-ordering Shapley value (all four cells cross, so both "
-            "data orderings and both algorithm orderings are defined and "
-            "averaged).  ScaleUp (dashed, open) = a SINGLE computable margin, NOT "
-            "a Shapley split: its A1D0 (ScaleUp on OpenWebText) never crosses the "
-            "threshold, so the complementary marginal is censored — data = the A0 "
-            "(GPT-2) row ratio, algorithm = the D1 (DCLM) column ratio.  That "
-            "censored complement is ≤1× (ScaleUp < GPT-2 on old data), so these "
-            "are the FAVORABLE new-data margins; a true Shapley, were it defined, "
-            "would average them with a ≤1× term and sit BELOW the plotted values. "
-            " Each curve also stops where it has no validated recipe (current-"
-            "arch: no 1.5B; ScaleUp: no 355M).  Ratios are within-hardware GPU-"
-            "hours (8-GPU current-arch, 5-GPU ScaleUp); the count overhead "
-            "cancels.")
-    fig.text(0.012, 0.02, note, fontsize=7.0, color=INK2, va="bottom", wrap=True)
-    fig.tight_layout(rect=(0, 0.20, 1, 0.94))
+    note = ("Different estimators — NOT directly comparable.  current-arch "
+            "(solid, filled) = true 2-ordering Shapley; ScaleUp (dashed, open) = "
+            "a single censored margin (A1D0 never crosses), whose bias vs a full "
+            "Shapley differs BY AXIS — see the report's multiplier notes.")
+    fig.text(0.012, 0.02, note, fontsize=7.6, color=INK2, va="bottom", wrap=True)
+    fig.tight_layout(rect=(0, 0.10, 1, 0.94))
     fig.savefig(out_path, facecolor=SURFACE)
     plt.close(fig)
 
@@ -352,7 +341,7 @@ def core_vs_scale(root: Path, out_path):
     ax.set_xticks([124, 355, 1536]); ax.set_xticklabels(["124M", "355M", "1.5B"])
     ax.set_xlim(112, 2050)
     ax.set_ylabel("CORE task accuracy — A0D0 baseline")
-    ax.set_xlabel("Model size (log scale)")
+    ax.set_xlabel("Model size")
     _style(ax)
     enc = [Line2D([], [], color=INK2, linestyle="-", label="current-arch (→355M)"),
            Line2D([], [], color=INK2, linestyle=(0, (5, 3)), label="ScaleUp (→1.5B)"),

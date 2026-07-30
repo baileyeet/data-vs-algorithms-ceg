@@ -52,9 +52,16 @@ Every arm on one figure: neutral BPB vs GPU-hours for all 16 setups (4 scale-poi
 
 ## Both curves at a glance (multiplier summary)
 
-The 16 arms distilled to the compute-equivalent-gain multipliers (data / algorithm Shapley split) for both lineages across scale. The two curves are kept strictly separate (different A1 generations); each is missing the one scale where it has no validated recipe.
+The 16 arms distilled to compute-equivalent-gain multipliers for both lineages across scale. The two curves are kept strictly separate (different A1 generations); each is missing the one scale where it has no validated recipe.
 
 ![multipliers vs scale](multipliers_vs_scale.png)
+
+**The two curves are different estimators — not directly comparable.** The current-arch points are true compute-Shapley values: all four cells cross the threshold, so the data effect is averaged over both rows and the algorithm effect over both columns (in log-compute, data = ½·[(A0D0−A0D1)+(A1D0−A1D1)], algorithm = ½·[(A0D0−A1D0)+(A0D1−A1D1)]). For ScaleUp, A1D0 (ScaleUp on OpenWebText) never crosses, so one term in each average is censored and no symmetric Shapley exists; the plotted ScaleUp points are the single surviving margin — data = the A0 (GPT-2) row ratio, algorithm = the D1 (DCLM) column ratio. The censoring biases the two axes in **opposite** directions:
+
+- **Algorithm** — the censored complement is the old-data (D0) column, where ScaleUp is *worse* than GPT-2 (≤1×). A full Shapley would average the plotted new-data margin (2.9×→2.3×) with a ≤1× term and sit **below** it, so the plotted algorithm multiplier **over-states** the balanced value.
+- **Data** — the censored complement is the ScaleUp (A1) row, where ScaleUp cannot cross *at all* on old data (an effectively unbounded data multiplier). A full Shapley would sit **above** the plotted A0-row margin (3.2×→3.4×), so the plotted data multiplier **under-states** it.
+
+So the single-margin ScaleUp numbers bound a full Shapley from opposite sides on the two axes. (Multipliers are within-hardware GPU-hour ratios — current-arch 8-GPU, ScaleUp 5-GPU — so the count overhead cancels in each ratio.)
 
 ## Curve 1 — current-arch (124M, 355M)
 
