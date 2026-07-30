@@ -263,13 +263,17 @@ def multipliers_vs_scale(curves: dict, out_path):
             "directly comparable magnitudes.  Current-arch (solid, filled) = the "
             "symmetric 2-ordering Shapley value (all four cells cross, so both "
             "data orderings and both algorithm orderings are defined and "
-            "averaged).  ScaleUp (dashed, open) = a single computable margin: its "
-            "A1D0 (ScaleUp on OpenWebText) never crosses, so the complementary "
-            "marginal is censored and no symmetric Shapley exists — data = the A0 "
-            "(GPT-2) row ratio, algorithm = the D1 (DCLM) column ratio.  Each "
-            "curve also stops where it has no validated recipe (current-arch: no "
-            "1.5B; ScaleUp: no 355M).  Ratios are within-hardware GPU-hours "
-            "(current-arch 8-GPU, ScaleUp 5-GPU); the count overhead cancels.")
+            "averaged).  ScaleUp (dashed, open) = a SINGLE computable margin, NOT "
+            "a Shapley split: its A1D0 (ScaleUp on OpenWebText) never crosses the "
+            "threshold, so the complementary marginal is censored — data = the A0 "
+            "(GPT-2) row ratio, algorithm = the D1 (DCLM) column ratio.  That "
+            "censored complement is ≤1× (ScaleUp < GPT-2 on old data), so these "
+            "are the FAVORABLE new-data margins; a true Shapley, were it defined, "
+            "would average them with a ≤1× term and sit BELOW the plotted values. "
+            " Each curve also stops where it has no validated recipe (current-"
+            "arch: no 1.5B; ScaleUp: no 355M).  Ratios are within-hardware GPU-"
+            "hours (8-GPU current-arch, 5-GPU ScaleUp); the count overhead "
+            "cancels.")
     fig.text(0.012, 0.02, note, fontsize=7.0, color=INK2, va="bottom", wrap=True)
     fig.tight_layout(rect=(0, 0.20, 1, 0.94))
     fig.savefig(out_path, facecolor=SURFACE)
