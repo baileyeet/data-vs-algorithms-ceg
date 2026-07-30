@@ -190,11 +190,10 @@ def all_configs_curves(root: Path, out_path):
             ax.plot(hs, bs, color=ARM_COLORS[arm], linewidth=1.8, marker="o",
                     markersize=3, label=ARM_LABELS[arm])
             # an arm 'crosses' iff its BPB curve reaches the threshold; the
-            # ScaleUp A1D0 (ScaleUp on OWT) never does — flag it explicitly so a
-            # zoomed panel can't be misread as a crop.
+            # ScaleUp A1D0 (ScaleUp on OWT) never does — bold + arm-colored end
+            # label so a zoomed panel can't be misread as a crop.
             crossed = min(bs) <= thr
-            lbl = arm.upper() if crossed else f"{arm.upper()} — never crosses"
-            ax.annotate(lbl, xy=(hs[-1], bs[-1]), xytext=(5, 0),
+            ax.annotate(arm.upper(), xy=(hs[-1], bs[-1]), xytext=(5, 0),
                         textcoords="offset points", fontsize=7.5,
                         color=(INK if crossed else ARM_COLORS[arm]),
                         fontweight=("normal" if crossed else "bold"),
@@ -209,26 +208,17 @@ def all_configs_curves(root: Path, out_path):
         # crossing zone.
         ax.set_ylim(lo - 0.03, thr + 0.40)
         ax.set_xlim(right=ax.get_xlim()[1] * 3.2)  # room for end labels
-        ax.set_xlabel("GPU-hours (timed, log)")
+        ax.set_xlabel("GPU-hours")
         ax.set_ylabel("Neutral BPB")
         ax.set_title(label, fontsize=10.5, loc="left")
         _style(ax)
     handles, labels = axes[0, 0].get_legend_handles_labels()
     fig.legend(handles, labels, frameon=False, fontsize=8.5, labelcolor=INK2,
                loc="upper center", ncol=4, bbox_to_anchor=(0.5, 0.945))
-    fig.suptitle("All 16 configurations — BPB vs GPU-hours to the reference "
-                 "threshold", fontsize=12.5, x=0.012, ha="left", color=INK,
+    fig.suptitle("BPB vs GPU-hours to reference threshold for all "
+                 "configurations", fontsize=12.5, x=0.012, ha="left", color=INK,
                  y=0.99)
-    fig.text(0.012, 0.005,
-             "Each panel is one scale-point; its 4 arms are A0/A1 (old/new "
-             "algorithm) × D0/D1 (old/new data). An arm 'crosses' where its "
-             "curve meets the dashed reference BPB — that GPU-hour value is the "
-             "raw material for the multipliers. The ScaleUp A1D0 (new-algo / "
-             "old-data) never crosses at either scale (ScaleUp < GPT-2 on "
-             "OpenWebText). GPU-hours are comparable within a panel (current-arch "
-             "8-GPU, ScaleUp 5-GPU).", fontsize=7.2, color=INK2, va="bottom",
-             wrap=True)
-    fig.tight_layout(rect=(0, 0.055, 1, 0.90))
+    fig.tight_layout(rect=(0, 0, 1, 0.90))
     fig.savefig(out_path, facecolor=SURFACE)
     plt.close(fig)
 
