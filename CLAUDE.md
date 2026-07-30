@@ -313,7 +313,13 @@ explicit correction, not silently. v1/v2 agreement is within the measured
   manual via user's console.
 - HF repo: **MIRIBerkeley/data-vs-algorithms-ceg** (private; MOVED 2026-07-28
   from baileymachihirota/… which now redirects). 54 files / 37.7 GB: full 2x2
-  matrix finals (1.5B, 355M, 124M current-arch, 124M-scaleup — 4 arms each) +
-  eval_corpus. scripts/hf_upload.py still hardcodes the old namespace — update
-  its target if uploading new arms. Eval corpus frozen:
+  matrix finals (4 arms each) + eval_corpus. **Folders REORGANIZED 2026-07-28 to
+  an explicit-flat scheme** naming curve + scale (server-side path move, no
+  re-upload): `current-arch-124M/`, `current-arch-355M/` (current modded A1,
+  8-GPU), `scaleup-124M/`, `scaleup-1.5B/` (2024-ScaleUp A1, 5-GPU) — replacing
+  the old `124M/ 355M/ 124M-scaleup/ 1.5B/`. Each curve is internally
+  hardware-consistent; the two are never mixed in one GPU-hour ratio. Repo README
+  updated to the two-curve scheme. scripts/hf_upload.py derives the namespace
+  from whoami() by default — set **HF_NAMESPACE=MIRIBerkeley** (and --size to a
+  new folder name) to upload new arms to the canonical repo. Eval corpus frozen:
   /workspace/datasets/wiki_eval, sha256 cbdd72ac…, never regenerate.

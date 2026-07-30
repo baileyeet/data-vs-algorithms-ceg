@@ -23,12 +23,21 @@ the historical GPT-2 setup. A1D0 repeats OpenWebText for exactly 2 epochs
 - `data/prepare.py` — download/tokenize, parameterized by (dataset, tokenizer)
 - `train_old/train.py` — GPT-2 reproduction trainer (A0 arms)
 - `train_new/` — modded-nanoGPT clone + adaptation notes (A1 arms)
+- `train_new/train_gpt_xl_ceg.py` — the 2024 ScaleUp1B plain-transformer
+  trainer used for the 1.5B and ScaleUp-curve A1 arms (an OLDER modded
+  generation than the current speedrun tracks — see the report caveat)
 - `eval/` — neutral-corpus BPB (`neutral_bpb.py`), decontamination
-  (`decontam.py`), lm-eval/CORE adapter (`lm_eval_adapter.py`, gated by the
-  requirement-#3 validity check)
-- `analysis/ceg_shapley.py` — per-size interpolated compute-to-threshold +
-  log-space Shapley split (plots added in Phase 5)
+  (`decontam.py`), and CORE loglikelihood adapters, all gated by the
+  requirement-#3 validity check: `lm_eval_adapter.py` (A0 / GPT-2),
+  `lm_eval_adapter_modded.py` (current-arch A1, with yarn/split_embed reload
+  fidelity), `lm_eval_adapter_scaleup.py` (plain-causal 2024-ScaleUp A1)
+- `analysis/` — `threshold.py` (canonical neutral-BPB threshold fn),
+  `ceg_shapley.py` + `matched_compute.py` (compute-to-threshold + log-space
+  Shapley), `core_gate.py` (CORE validity gate), `threshold_sensitivity.py`,
+  `plots.py`, `make_report.py` (regenerates `report.md`)
 - `scripts/check_sizes.py` — param-count verification for all sizes
+- `report.md` — the final write-up: two cross-scale curves (current-arch and
+  ScaleUp-arch), kept separate, with all disclosed gaps
 
 ## Methodology invariants (do not "improve")
 
@@ -47,7 +56,11 @@ the historical GPT-2 setup. A1D0 repeats OpenWebText for exactly 2 epochs
 9. A1D0 = exactly 2 epochs of OpenWebText, reshuffled between epochs, called
    out in the writeup as that cell's extra confound.
 
-## Toy pipeline (Phase 1/2 validation)
+## Quick smoke test (pipeline validation)
+
+A cheap end-to-end check — tiny corpora, ~2M-token train — that data prep →
+train → neutral-BPB eval → checkpointing all work before committing to any paid
+run. Also the reproduction on-ramp (RUNBOOK Session 0 reruns it verbatim).
 
 ```bash
 V=../.venv/bin/python   # shared venv one level up

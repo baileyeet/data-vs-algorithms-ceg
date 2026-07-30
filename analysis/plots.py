@@ -130,11 +130,86 @@ def threshold_sensitivity(csv_path, size_label: str, out_path):
     plt.close(fig)
 
 
+# the two cross-scale curves are kept separate everywhere; color follows the
+# lineage (an entity), never the rank. current-arch = blue, ScaleUp = orange
+# (high CVD separation; from the validated categorical palette).
+CURVE_COLORS = {"current-arch": "#2a78d6", "scaleup": "#eb6834"}
+CURVE_LABELS = {"current-arch": "current-arch (2024 speedrun)",
+                "scaleup": "ScaleUp-arch (2024)"}
+
+
+def all_configs(curves: dict, out_path):
+    """One figure comparing BOTH cross-scale curves across every configuration.
+
+    curves[name] = {scales:[M params], algo:[x], data:[x], algo_note, gap_note}.
+    Two panels (algorithm | data multiplier) share the model-size axis; each
+    line is one lineage. Gaps (a scale with no validated recipe) are simply
+    absent points; censoring/gaps are called out in the footnote, not faked.
+    """
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11.2, 4.8), dpi=150,
+                                   sharex=True)
+    for ax, key, ttl in ((ax1, "algo", "Algorithm multiplier"),
+                         (ax2, "data", "Data multiplier")):
+        for name, c in curves.items():
+            col = CURVE_COLORS[name]
+            xs, ys = c["scales"], c[key]
+            ax.plot(xs, ys, color=col, marker="o", markersize=7, linewidth=2,
+                    label=CURVE_LABELS[name] if ax is ax1 else None)
+            for x, y in zip(xs, ys):
+                ax.annotate(f"{y:.1f}×", xy=(x, y), xytext=(0, 8),
+                            textcoords="offset points", fontsize=8.5,
+                            color=INK, ha="center")
+        ax.set_xscale("log"); ax.set_yscale("log")
+        ax.set_xticks([124, 355, 1536])
+        ax.set_xticklabels(["124M", "355M", "1.5B"])
+        ax.set_xlabel("Model size (log scale)")
+        ax.set_title(ttl, fontsize=11, loc="left")
+        _style(ax)
+        ax.set_ylim(0.9, max(20, ax.get_ylim()[1]))
+    ax1.set_ylabel("Compute-reduction multiplier (log scale)")
+    ax1.legend(frameon=False, fontsize=8.5, labelcolor=INK2, loc="upper right")
+    fig.suptitle("Compute-equivalent gain across all configurations",
+                 fontsize=12.5, x=0.012, ha="left", color=INK)
+    note = ("Each curve stops where it has no validated recipe: current-arch "
+            "has no 1.5B point, ScaleUp has no 355M point (both disclosed "
+            "gaps).  ScaleUp algorithm multiplier is on DCLM (new) data; on "
+            "OpenWebText it is censored ≤1× at both scales (ScaleUp < GPT-2 on "
+            "old data).  Multipliers are within-hardware GPU-hour ratios "
+            "(current-arch 8-GPU, ScaleUp 5-GPU); the count overhead cancels in "
+            "each ratio.")
+    fig.text(0.012, 0.02, note, fontsize=7.4, color=INK2, va="bottom",
+             wrap=True)
+    fig.tight_layout(rect=(0, 0.16, 1, 0.94))
+    fig.savefig(out_path, facecolor=SURFACE)
+    plt.close(fig)
+
+
+def _assemble_all_configs(root: Path):
+    """Build the all_configs curves dict from the canonical CEG JSONs."""
+    sm = json.loads((root / "small" / "ceg_newdef.json").read_text())
+    md = json.loads((root / "medium" / "ceg_newdef.json").read_text())
+    su = json.loads((root / "scaleup" / "ceg_124m_matrix.json").read_text())
+    xl = json.loads((root / "xl" / "ceg_1p5b_matrix.json").read_text())
+    return {
+        "current-arch": {
+            "scales": [124, 355],
+            "algo": [sm["multipliers"]["algorithm"], md["multipliers"]["algorithm"]],
+            "data": [sm["multipliers"]["data"], md["multipliers"]["data"]],
+        },
+        "scaleup": {
+            "scales": [124, 1536],
+            "algo": [su["shapley"]["algo_DCLM_x"], xl["shapley_pieces"]["algo_D1col_x"]],
+            "data": [su["shapley"]["data_A0row_x"], xl["shapley_pieces"]["data_A0row_x"]],
+        },
+    }
+
+
 if __name__ == "__main__":
     import argparse
 
     ap = argparse.ArgumentParser(description="render one figure type")
-    ap.add_argument("kind", choices=["curves", "cross_scale", "sensitivity"])
+    ap.add_argument("kind", choices=["curves", "cross_scale", "sensitivity",
+                                     "all_configs"])
     ap.add_argument("--size-label", default="")
     ap.add_argument("--out", required=True)
     ap.add_argument("--threshold", type=float)
@@ -147,6 +222,8 @@ if __name__ == "__main__":
                         a.out, a.threshold)
     elif a.kind == "cross_scale":
         cross_scale([json.loads(Path(p).read_text()) for p in a.results], a.out)
+    elif a.kind == "all_configs":
+        all_configs(_assemble_all_configs(Path("results")), a.out)
     else:
         threshold_sensitivity(a.csv, a.size_label, a.out)
     print(f"wrote {a.out}")

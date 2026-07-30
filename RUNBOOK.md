@@ -11,6 +11,22 @@ Costs actually incurred — two buckets, per user: **prep/validation** vs
 |------|--------|---------|------|--------|-------|
 | 2026-07-12/13 | prep/validation | Session 0+1 merged (8xH100 @ $23.92/hr) | $50-90 | ~$115 (final at terminate) | 4/4 smokes + CORE validity + 27B-token prep; overage: 3 kernel-dep smoke retries + initial single-stream tokenization |
 
+## STATUS (2026-07-28): STUDY COMPLETE — everything below is historical
+
+The full study is finished (deliverable: `report.md`; both cross-scale curves
+done, all arms on HF at **MIRIBerkeley/data-vs-algorithms-ceg**, GitHub in sync).
+Everything below this banner is kept as the **reproduction runbook + audit
+trail** and reflects the state *at the time it was written* — in particular the
+"awaiting user / go-no-go" language and the unchecked Tier-3 pre-flight boxes are
+FROZEN pre-Tier-3 snapshots; those tiers all subsequently ran and completed. Do
+not read them as open action items.
+
+**Cost ledger is INCOMPLETE:** the two-bucket table above holds only the
+prep/validation row. Per-tier training costs (Tier 1/2/3 + the ScaleUp curve)
+were tracked in-session (scattered figures in `CLAUDE.md`, e.g. Tier 3
+~$850–900) but were never consolidated back into this table. If a full audited
+ledger is needed, reconstruct it from the CLAUDE.md session notes.
+
 ## COMPACTION-PROOF STATE (user-mandated, 2026-07-15 — do not drop)
 
 Four facts that must survive any context compaction. If a future session is
@@ -41,9 +57,9 @@ unsure of any of these, re-read this section before acting:
    launch Tier 3 (paid) without explicit per-tier confirmation AND the
    pre-flight gates below.
 
-Open cleanup (non-blocking): HF path 124M/A1D1 has a stale ckpt_001390.pt
-(abandoned 1x-native run); its metrics/config are already v2. Flagged to
-user, not deleted (external delete, not self-created).
+Open cleanup (RESOLVED): the stale ckpt_001390.pt under the 124M/A1D1 path was
+subsequently removed — that arm now holds exactly its v2 final (ckpt_002780.pt)
++ metrics + config, verified 2026-07-28.
 
 **Cost-efficiency rule (user, 2026-07-13): CPU-bound work (tokenization,
 decontam scans, merging, re-chunking) is NOT run on GPU pods by default at

@@ -44,11 +44,17 @@ Reference threshold: **1.2287 BPB** (neutral corpus; = fully-trained A0D0 at thi
 
 ![threshold sensitivity](medium/sensitivity.png)
 
+## Both curves at a glance
+
+All configurations on one figure — the compute-equivalent-gain multipliers derived from every arm, for both lineages across scale. The two curves are kept strictly separate (different A1 generations); each is missing the one scale where it has no validated recipe. Detail follows in the two curve sections.
+
+![all configurations](all_configs.png)
+
 ## Curve 1 — current-arch (124M, 355M)
 
 The SOTA modded-nanoGPT speedrun as A1. Direct test of whether the data/algorithm split is scale-invariant for this algorithm:
 
-![cross-scale](cross_scale.png)
+![current-arch Shapley split (124M, 355M)](cross_scale.png)
 
 | Size | data x | algorithm x | total x |
 |--|--|--|--|
