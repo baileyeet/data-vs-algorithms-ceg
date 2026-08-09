@@ -78,8 +78,24 @@ TWO MANDATORY VALIDATION GATES before applying across candidates (user):
 batch (tokens/step) + total tokens (GPU-count-invariant), realize as per-device=
 global/(8*accum); VERIFY each candidate's global batch divides evenly by 8 at
 build time, STOP-and-flag if not (the ScaleUp 5-vs-8 forced-batch-change trap).
-STATUS: nothing built yet; next = build shared harness + the 2 gates + kick off
-matched baselines.
+B1 BUILD STATUS (2026-08-08, fork): harness=train_hf/train_hf_ceg.py; BPB-over-
+HF-tokenizer instrument=eval/bpb_hf.py; Gate-2 check=scripts/gate2_bpb_check.py;
+prepare.py HF-tokenizer path added; Pythia-160M cfg=configs/hf/pythia_160m.json.
+Committed+pushed (77ad508 instrument, 546930e eval-mode fix, cbe977e harness).
+**GATE 2 = PASS, EXACT** (bpb_hf reproduces common/bpb.py ground truth 1.18151583,
+|Δ|=0.0 on both math-identity + raw-text-retokenize paths). Caught+fixed a
+common/bpb.py-leaves-train()-mode gotcha (dropout skewed the identity check) —
+does NOT affect the completed study (its evals set eval() per-eval).
+**GATE 1 (Pythia-160M smoke)**: GPTNeoXForCausalLM from cfg, OWT-gpt2, cosine
+re-anchored to 8.87B (global batch 2,097,152 tok/step = 1024 seq, /8 = 128/GPU
+CLEAN divides), peak LR 6e-4, warmup 1%. Runs first 600 of ~4229 steps (max-steps
+caps loop; schedule stays anchored to full budget). Through step 178: train_loss
+AND neutral_bpb co-descend monotonically (7.01->5.33 / 2.495->2.146), NO
+divergence signature. Completing to step 600 under monitor. CAVEAT: smoke covers
+the EARLY portion (warmup + early descent) — not the late cosine decay; catches
+early-divergence well, not late-convergence. NEXT (pending user): accept early-
+clean+Gate2 as sufficient, OR full-length 160M run first, before building out the
+6 sizes x arches + matched baselines.
 
 ## Current state (2026-07-16)
 
