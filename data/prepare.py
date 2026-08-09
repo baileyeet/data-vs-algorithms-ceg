@@ -44,10 +44,34 @@ DATASETS = {
 }
 
 
-def get_encoder(name):
-    import tiktoken
+class _HFEncoder:
+    """Adapter giving an HF tokenizer the tiktoken interface prepare.py uses
+    (encode_ordinary / encode_ordinary_batch / eot_token). Used for Exp B, where
+    each architecture brings its own tokenizer (e.g. EleutherAI/gpt-neox-20b for
+    Pythia/Mamba, HuggingFaceTB/SmolLM2-* for SmolLM2). add_special_tokens=False
+    so only raw BPE is emitted — the EOT doc separator is prepended by the caller,
+    exactly as for the tiktoken path (keeps the corpus convention identical)."""
+    def __init__(self, hf_id):
+        from transformers import AutoTokenizer
+        self.tok = AutoTokenizer.from_pretrained(hf_id)
+        assert self.tok.eos_token_id is not None, f"{hf_id} has no eos_token_id"
+        self.eot_token = self.tok.eos_token_id
 
-    enc = tiktoken.get_encoding(TOKENIZERS[name])
+    def encode_ordinary(self, text):
+        return self.tok.encode(text, add_special_tokens=False)
+
+    def encode_ordinary_batch(self, texts):
+        return self.tok(texts, add_special_tokens=False)["input_ids"]
+
+
+def get_encoder(name):
+    # tiktoken for the study's GPT-2 BPE ("gpt2"/"new"); any other value is
+    # treated as a Hugging Face tokenizer id (Exp B per-architecture tokenizers).
+    if name in TOKENIZERS:
+        import tiktoken
+        enc = tiktoken.get_encoding(TOKENIZERS[name])
+        return enc, enc.eot_token
+    enc = _HFEncoder(name)
     return enc, enc.eot_token
 
 
@@ -148,7 +172,8 @@ def doc_stream(args):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dataset", required=True, choices=list(DATASETS) + ["jsonl", "txt"])
-    ap.add_argument("--tokenizer", default="gpt2", choices=list(TOKENIZERS))
+    ap.add_argument("--tokenizer", default="gpt2",
+                    help="'gpt2'/'new' (tiktoken GPT-2 BPE) or any HF tokenizer id")
     ap.add_argument("--out", required=True)
     ap.add_argument("--train-tokens", type=int, default=0, help="0 = no train split (eval-only corpus)")
     ap.add_argument("--val-tokens", type=int, default=250_000)
