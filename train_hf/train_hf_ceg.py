@@ -146,9 +146,12 @@ def main():
             f"{world} GPUs — do NOT nudge the global batch.")
     grad_accum = args.global_batch_tokens // (per_micro * world)
     tokens_per_step = args.global_batch_tokens
+    # total_steps anchors the LR schedule + checkpoint schedule to the FULL
+    # token budget (the re-anchored native schedule). --max-steps only cuts the
+    # LOOP short (smoke/gate) so we observe the EARLY part of the real schedule,
+    # never a schedule squeezed into the short run.
     total_steps = math.ceil(args.token_budget / tokens_per_step)
-    if args.max_steps:
-        total_steps = min(total_steps, args.max_steps)
+    run_steps = min(total_steps, args.max_steps) if args.max_steps else total_steps
 
     model, config = build_model(spec)
     model = model.to(device)
@@ -164,7 +167,7 @@ def main():
                                  n_epochs=args.n_epochs, seed=args.seed,
                                  rank=rank, world_size=world)
     avail = loader.unique_tokens * args.n_epochs
-    need = total_steps * tokens_per_step
+    need = run_steps * tokens_per_step
     if need > avail:
         raise SystemExit(f"STOP: need {need:,} tokens but only {avail:,} available "
                          f"({args.n_epochs} epoch(s)) — tokenize more or pass --n-epochs")
@@ -189,9 +192,9 @@ def main():
         csv_w = csv.writer(csv_f)
         csv_w.writerow(["step", "tokens", "timed_hours", "gpu_hours", "train_loss_ema",
                         "neutral_bpb", "ownval_bpb", "lr", "wallclock_s"])
-        print(f"arch={spec['arch']} params={n_params:,} steps={total_steps} "
-              f"tokens/step={tokens_per_step} grad_accum={grad_accum} world={world} "
-              f"per_micro_tokens/gpu={per_micro}")
+        print(f"arch={spec['arch']} params={n_params:,} total_steps={total_steps} "
+              f"run_steps={run_steps} tokens/step={tokens_per_step} grad_accum={grad_accum} "
+              f"world={world} per_micro_tokens/gpu={per_micro}")
         print(f"ckpt steps: {sorted(ckpt_steps)}")
 
     def lr_at(step):  # step is 0-indexed
@@ -241,7 +244,7 @@ def main():
     loss_ema = None
     wall0 = time.time()
     V = config.vocab_size
-    for step in range(1, total_steps + 1):
+    for step in range(1, run_steps + 1):
         if device_type == "cuda":
             torch.cuda.synchronize()
         t0 = time.perf_counter()
@@ -270,7 +273,7 @@ def main():
         if step > args.warmup_timed_steps:
             timed_seconds += dt
         loss_ema = loss_acc if loss_ema is None else 0.95 * loss_ema + 0.05 * loss_acc
-        if step in ckpt_steps or step == total_steps:
+        if step in ckpt_steps or step == run_steps:
             run_evals(step, step * tokens_per_step, timed_seconds, loss_ema, cur_lr, wall0)
             if ddp:
                 torch.distributed.barrier()
