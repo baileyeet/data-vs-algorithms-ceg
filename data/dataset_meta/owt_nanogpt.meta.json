@@ -1,0 +1,53 @@
+{
+  "dataset": "openwebtext",
+  "tokenizer": "gpt2",
+  "tiktoken_encoding": "gpt2",
+  "eot_id": 50256,
+  "dtype": "uint16",
+  "seed": 1234,
+  "shuffle_buffer": 20000,
+  "val_tokens": 3001044,
+  "val_bytes": 13177692,
+  "val_docs": 2679,
+  "train_tokens": 8873229164,
+  "train_bytes": 39003872845,
+  "train_docs": 7865277,
+  "stream_shards": [
+    {
+      "dir": "/workspace/datasets/owt_s0",
+      "train_tokens": 1500000708,
+      "seed": 1234,
+      "shuffle_buffer": 20000
+    },
+    {
+      "dir": "/workspace/datasets/owt_s1",
+      "train_tokens": 1500000194,
+      "seed": 1234,
+      "shuffle_buffer": 20000
+    },
+    {
+      "dir": "/workspace/datasets/owt_s2",
+      "train_tokens": 1468014334,
+      "seed": 1234,
+      "shuffle_buffer": 20000
+    },
+    {
+      "dir": "/workspace/datasets/owt_s3",
+      "train_tokens": 1472017009,
+      "seed": 1234,
+      "shuffle_buffer": 20000
+    },
+    {
+      "dir": "/workspace/datasets/owt_s4",
+      "train_tokens": 1467189111,
+      "seed": 1234,
+      "shuffle_buffer": 20000
+    },
+    {
+      "dir": "/workspace/datasets/owt_s5",
+      "train_tokens": 1466007808,
+      "seed": 1234,
+      "shuffle_buffer": 20000
+    }
+  ]
+}

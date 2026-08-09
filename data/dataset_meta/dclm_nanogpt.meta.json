@@ -1,0 +1,53 @@
+{
+  "dataset": "dclm",
+  "tokenizer": "gpt2",
+  "tiktoken_encoding": "gpt2",
+  "eot_id": 50256,
+  "dtype": "uint16",
+  "seed": 1234,
+  "shuffle_buffer": 60000,
+  "val_tokens": 3001876,
+  "val_bytes": 12976084,
+  "val_docs": 2393,
+  "train_tokens": 18000001876,
+  "train_bytes": 77271489831,
+  "train_docs": 13718804,
+  "stream_shards": [
+    {
+      "dir": "/workspace/datasets/dclm_s0",
+      "train_tokens": 3000000334,
+      "seed": 1234,
+      "shuffle_buffer": 60000
+    },
+    {
+      "dir": "/workspace/datasets/dclm_s1",
+      "train_tokens": 3000000047,
+      "seed": 1234,
+      "shuffle_buffer": 60000
+    },
+    {
+      "dir": "/workspace/datasets/dclm_s2",
+      "train_tokens": 3000000454,
+      "seed": 1234,
+      "shuffle_buffer": 60000
+    },
+    {
+      "dir": "/workspace/datasets/dclm_s3",
+      "train_tokens": 3000000161,
+      "seed": 1234,
+      "shuffle_buffer": 60000
+    },
+    {
+      "dir": "/workspace/datasets/dclm_s4",
+      "train_tokens": 3000000688,
+      "seed": 1234,
+      "shuffle_buffer": 60000
+    },
+    {
+      "dir": "/workspace/datasets/dclm_s5",
+      "train_tokens": 3000000192,
+      "seed": 1234,
+      "shuffle_buffer": 60000
+    }
+  ]
+}
