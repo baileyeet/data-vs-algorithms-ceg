@@ -7,6 +7,80 @@ only with explicit user confirmation, per tier. Commits: one line, never
 mention Claude/Anthropic. Long jobs: persistent state-change monitors until
 completion.
 
+## NEW EXPERIMENTS A + B (IN PROGRESS, launched 2026-08-08)
+
+Two follow-on experiments on the completed 124M/355M/1.5B study. Ground rules
+(user): budget NOT binding this round; ENGINEERING RISK + WALL-CLOCK are the
+constraints; estimate + confirm before each paid launch; STOP-and-flag on
+anything that doesn't transfer cleanly (tokenizer/ckpt/eval-harness/schedule);
+flag the train-improving-while-neutral-BPB-worsening divergence signature.
+
+**Pod (restarted 2026-08-08): 8xH100 at `31.24.80.43:12738 -i ~/.ssh/id_ed25519`.
+KEEP RUNNING (user: 8xH100 SXM is "Low" availability on this account — don't
+risk an availability gap; wall-clock > idle-GPU cost).** Container disk reset on
+restart (only /workspace persists) — re-bootstrapped repo to /root/ceg via git
+archive + `pip install datasets tiktoken numpy` (full requirements-lock still
+needed for training). No HF_TOKEN on pod (downloads throttled/unauth).
+
+**TOKENIZER FINDING (report note):** ALL arms in the completed study used GPT-2
+BPE (A0, current-arch, AND ScaleUp all = vocab 50304). Tokenizer never actually
+varied. So Exp A's "both tokenizers" collapses to one GPT-2-BPE tokenization +
+nanogpt reshard; Exp B is the FIRST place tokenizer varies (each arch its own).
+
+**EXP A — data-era ladder @ 124M (CONFIRMED, launched).** Era order (NO Wikipedia
+as train — it's the neutral eval): OWT 2019 (reuse existing A0D0/A1D0), C4 2020
+(NEW), RefinedWeb 2023 (NEW), DCLM 2024 (reuse A0D1/A1D1). C4+RefinedWeb each need
+old-algo + current-arch = 4 new runs @124M, 8-GPU. Datasets verified accessible/
+ungated/streamable: c4=`allenai/c4` cfg `en` field `text`; refinedweb=
+`tiiuae/falcon-refinedweb` field `content` (wired into prepare.py). Tokenizing
+9B unique GPT-2-BPE tokens each (seed 1234, shuffle-buffer 60000) -> /workspace/
+datasets/{c4_gpt2,refinedweb_gpt2}; driver /root/tokenize_era.sh, logs /workspace/
+session_logs/. ETA ~7h (unauth HF throttle; overlaps Exp B build). NEXT after
+tokenize: (1) convert_to_nanogpt_bin for current-arch shards; (2) decontam
+wiki_eval vs C4 and vs RefinedWeb SEPARATELY (eval/decontam.py), REPORT each
+contamination % (expect ~20% CC-derived like DCLM); (3) report per-arm training
+estimate, confirm, then train. Budgets: old-algo 8.87B single-pass; current-arch
+native 124M budget. Output: CEG (data + algo contribution) vs dataset-release-year,
+its OWN figure. NOT yet done: training launch (awaiting estimate+confirm).
+
+**EXP B — architecture landscape (STAGED; B1 cleared to build).** Test whether
+"algo advantage shrinks with scale" holds across lineages/classes. Feasibility
+(4 web agents, 2026-08-08):
+- Transformer lineage: Pythia (HF GPTNeoXForCausalLM; schedule REPRODUCIBLE;
+  tok gpt-neox-20b; 160M/410M/1.4B) + SmolLM2 (HF LlamaForCausalLM; WSD =
+  scale-down-friendly; own tok vocab 49152; 135M/360M/1.7B). current-arch +
+  ScaleUp are the 2024-25 points (done).
+- SSM lineage: Mamba (HF MambaForCausalLM; deps mamba-ssm+causal-conv1d) < Mamba-2
+  (HF Mamba2ForCausalLM; +Triton SSD) < **H3 = HIGH RISK** (no HF class; dead repo;
+  old flash-attn pin hostile to CUDA12/H100; training in separate safari repo).
+  tok gpt-neox-20b. H3 125M/355M/1.3B, Mamba 130M/370M/1.4B, Mamba2 130M/370M/1.3B.
+- **LFM2 DROPPED** (recipe NOT documented — arch/evals only; no LR/opt/batch;
+  per no-invented-recipes rule). Arch is HF Lfm2ForCausalLM if ever revisited.
+- KEY ENABLER: 4 of 5 arches (Pythia/SmolLM2/Mamba/Mamba2) are HF classes ->
+  ONE shared from-scratch harness (HF model-from-config + BPB-over-HF-tokenizer +
+  dense-tail ckpt + our metrics/threshold). Only H3 is bespoke.
+DECISIONS (user-ratified): B1 first (Transformer lineage only) then B2 (Mamba/
+Mamba2) then B3 (H3 timeboxed); **OWT-only** (data held fixed); **matched GPT-2
+baseline at EVERY distinct candidate size** incl 1.3-1.7B, NO reuse-with-disclosure
+(baseline defines that size's threshold denominator; trains parallel to harness
+build so no wall-clock cost) — baseline question CLOSED, do not reopen.
+TWO MANDATORY VALIDATION GATES before applying across candidates (user):
+  (1) smoke-test the shared 8.87B re-anchored-schedule approach on Pythia-160M
+      specifically, watching for the divergence signature (train loss down while
+      neutral BPB up) — re-anchoring cosine/WSD to a shared budget is the same
+      CLASS of op as the collapse-causing schedule-stretch; don't trust "agents
+      said standard."
+  (2) explicit correctness check of the new BPB-over-arbitrary-tokenizer
+      instrument vs an independently-computed ground truth BEFORE it scores any
+      real arm (precedent: the "conceptually clean" reload logic that was
+      silently wrong).
+8-GPU CONSISTENCY (user): everything Exp B on 8 GPUs; define schedules by GLOBAL
+batch (tokens/step) + total tokens (GPU-count-invariant), realize as per-device=
+global/(8*accum); VERIFY each candidate's global batch divides evenly by 8 at
+build time, STOP-and-flag if not (the ScaleUp 5-vs-8 forced-batch-change trap).
+STATUS: nothing built yet; next = build shared harness + the 2 gates + kick off
+matched baselines.
+
 ## Current state (2026-07-16)
 
 ## CORE scoring for the new arms — DONE (2026-07-25)
