@@ -21,6 +21,8 @@ import re
 import sys
 from pathlib import Path
 
+import numpy as np
+
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 WORD_RE = re.compile(r"\w+")
@@ -38,11 +40,53 @@ def _scan_chunk(texts, universe, n):
     return found
 
 
+# --- tokenized-train.bin path (scan exactly what we trained on, no HF re-stream) ---
+_BIN_ENC = None
+
+
+def _init_bin_worker():
+    import tiktoken
+    global _BIN_ENC
+    _BIN_ENC = tiktoken.get_encoding("gpt2")
+
+
+def _scan_chunk_bin(token_arrays, universe, n):
+    """Worker: decode a chunk of per-doc GPT-2 token arrays back to text, then
+    intersect their n-grams with the eval universe. Decoding happens here (not
+    in the parent) so it parallelizes with the scan."""
+    texts = _BIN_ENC.decode_batch([a.tolist() for a in token_arrays])
+    found = set()
+    for t in texts:
+        found |= universe & ngrams(t, n)
+    return found
+
+
+def bin_token_doc_stream(path, eot, max_docs=0):
+    """Yield per-doc uint16 token arrays from a prepare.py train.bin
+    ([eot] doc [eot] doc ...), splitting on the eot separator. Memmapped, so
+    only doc slices (not the whole 18GB) are materialized as we go."""
+    arr = np.memmap(path, dtype=np.uint16, mode="r")
+    eot_pos = np.flatnonzero(arr == eot)
+    n = 0
+    for i in range(len(eot_pos)):
+        start = int(eot_pos[i]) + 1
+        end = int(eot_pos[i + 1]) if i + 1 < len(eot_pos) else len(arr)
+        if end > start:
+            yield np.asarray(arr[start:end])
+            n += 1
+            if max_docs and n >= max_docs:
+                return
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--eval-jsonl", required=True)
-    ap.add_argument("--train-dataset", required=True,
+    ap.add_argument("--train-dataset",
                     help="name from data/prepare.py DATASETS, or a local jsonl path")
+    ap.add_argument("--train-bin",
+                    help="path to a prepare.py train.bin (GPT-2 BPE, eot 50256); "
+                         "scans the ACTUAL tokenized training data, decoded back to "
+                         "text — no HF re-stream. Mutually exclusive with --train-dataset")
     ap.add_argument("--train-docs", type=int, default=0, help="0 = whole stream")
     ap.add_argument("--n", type=int, default=13)
     ap.add_argument("--workers", type=int, default=1,
@@ -54,49 +98,65 @@ def main():
     ap.add_argument("--out", required=True)
     args = ap.parse_args()
 
+    if bool(args.train_bin) == bool(args.train_dataset):
+        ap.error("give exactly one of --train-bin or --train-dataset")
+
     eval_docs = [json.loads(l) for l in open(args.eval_jsonl)]
     doc_grams = [ngrams(d["text"], args.n) for d in eval_docs]
     universe = set().union(*doc_grams) if doc_grams else set()
     print(f"{len(eval_docs)} eval docs, {len(universe):,} distinct {args.n}-grams")
 
-    if Path(args.train_dataset).exists():
-        stream = (json.loads(l)["text"] for l in open(args.train_dataset))
-    else:
-        from data.prepare import DATASETS
-        from datasets import load_dataset
-        path, config, field = DATASETS[args.train_dataset]
-        ds = load_dataset(path, config, split="train", streaming=True)
-        stream = (row[field] for row in ds)
+    from functools import partial
+    from itertools import islice
+    from multiprocessing import Pool
+
+    def batches(it, size):
+        while chunk := list(islice(it, size)):
+            yield chunk
 
     hit = set()
-    if args.workers > 1:
-        # full-scale path: fan out n-gram scanning across processes in chunks
-        from functools import partial
-        from itertools import islice
-        from multiprocessing import Pool
-
-        def batches(it, size):
-            while chunk := list(islice(it, size)):
-                yield chunk
-
+    if args.train_bin:
+        # scan the tokenized training data itself (decode -> n-gram), in workers
+        gen = bin_token_doc_stream(args.train_bin, eot=50256, max_docs=args.train_docs)
         scanned = 0
-        with Pool(args.workers) as pool:
-            src = islice(stream, args.train_docs) if args.train_docs else stream
+        with Pool(args.workers, initializer=_init_bin_worker) as pool:
             for found in pool.imap_unordered(
-                    partial(_scan_chunk, universe=universe, n=args.n),
-                    batches(src, args.chunk_docs)):
+                    partial(_scan_chunk_bin, universe=universe, n=args.n),
+                    batches(gen, args.chunk_docs)):
                 hit |= found
                 scanned += args.chunk_docs
-                if scanned % 100_000 < args.chunk_docs:
+                if scanned % 500_000 < args.chunk_docs:
                     print(f"  scanned ~{scanned:,} training docs, "
                           f"{len(hit):,} contaminated n-grams", flush=True)
     else:
-        for i, text in enumerate(stream):
-            if args.train_docs and i >= args.train_docs:
-                break
-            hit |= universe & ngrams(text, args.n)
-            if (i + 1) % 100_000 == 0:
-                print(f"  scanned {i + 1:,} training docs, {len(hit):,} contaminated n-grams")
+        if Path(args.train_dataset).exists():
+            stream = (json.loads(l)["text"] for l in open(args.train_dataset))
+        else:
+            from data.prepare import DATASETS
+            from datasets import load_dataset
+            path, config, field = DATASETS[args.train_dataset]
+            ds = load_dataset(path, config, split="train", streaming=True)
+            stream = (row[field] for row in ds)
+
+        if args.workers > 1:
+            scanned = 0
+            with Pool(args.workers) as pool:
+                src = islice(stream, args.train_docs) if args.train_docs else stream
+                for found in pool.imap_unordered(
+                        partial(_scan_chunk, universe=universe, n=args.n),
+                        batches(src, args.chunk_docs)):
+                    hit |= found
+                    scanned += args.chunk_docs
+                    if scanned % 100_000 < args.chunk_docs:
+                        print(f"  scanned ~{scanned:,} training docs, "
+                              f"{len(hit):,} contaminated n-grams", flush=True)
+        else:
+            for i, text in enumerate(stream):
+                if args.train_docs and i >= args.train_docs:
+                    break
+                hit |= universe & ngrams(text, args.n)
+                if (i + 1) % 100_000 == 0:
+                    print(f"  scanned {i + 1:,} training docs, {len(hit):,} contaminated n-grams")
 
     kept, dropped = [], 0
     for d, g in zip(eval_docs, doc_grams):
