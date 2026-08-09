@@ -56,9 +56,14 @@ def main():
           f"{meta.get('val_docs','?')} docs")
 
     wrap = HFWrap(model)
+    # common/bpb.evaluate_bpb flips the model to train() on exit (a footgun),
+    # so re-assert eval() before every measurement (dropout must be OFF).
+    model.eval()
     gt = evaluate_bpb(wrap, tokens, total_bytes, BLOCK, DEV, device_batch_size=8)
+    model.eval()
     c1 = evaluate_bpb_stream(lambda x: model(x).logits, tokens, total_bytes,
                              BLOCK, DEV, device_batch_size=8)
+    model.eval()
     c2 = evaluate_bpb_hf(model, tok, EVAL_DIR, BLOCK, DEV, device_batch_size=8)
 
     print(f"\nGT (common/bpb, gpt2 val.bin)         bpb = {gt['bpb']:.8f}")
