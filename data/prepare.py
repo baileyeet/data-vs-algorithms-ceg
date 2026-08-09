@@ -37,6 +37,10 @@ DATASETS = {
     "dclm": ("mlfoundations/dclm-baseline-1.0-parquet", None, "text"),
     "wikipedia": ("wikimedia/wikipedia", "20231101.en", "text"),
     "fineweb": ("HuggingFaceFW/fineweb", "sample-10BT", "text"),
+    # data-era ladder (Exp A). Both public/ungated + streamable (verified
+    # 2026-08-08). NOTE the text field differs: C4 uses "text", RefinedWeb "content".
+    "c4": ("allenai/c4", "en", "text"),                       # 2020, Common-Crawl
+    "refinedweb": ("tiiuae/falcon-refinedweb", None, "content"),  # 2023, Common-Crawl
 }
 
 
