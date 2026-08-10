@@ -89,10 +89,27 @@ EXP A ERA-LADDER LAUNCHED (2026-08-10): union eval /workspace/datasets/wiki_eval
 /root/era_ladder_driver.sh runs 8 arms @124M SEQUENTIAL on union eval (4 rescore
 = explicit correction + 4 new C4/RefinedWeb), divergence-guarded, then auto-analysis
 (ceg_shapley 2x2 correction -> era_correction_2x2.json; per-dataset crossings ->
-era_ladder_results.json). Completion monitor bb81g33o8. NEXT after done: render
-results/era_ladder.png (CEG vs release-year); report correction table (old
-1.274421/2.23x/13.69x vs new union-eval). 355M/1.5B union-rescore = disclosed-only
-(user async decision pending; not blocking).
+era_ladder_results.json). NEXT after done: render results/era_ladder.png (CEG vs
+release-year); report correction table (old 1.274421/2.23x/13.69x vs new
+union-eval). 355M/1.5B union-rescore = disclosed-only (user async decision
+pending; not blocking).
+**VOLUME LOST + RECOVERED (2026-08-10):** the era-ladder chain aborted mid-run —
+4 OLD-ALGO arms finished on torch 2.4.1, then the CURRENT-ARCH arms failed: the
+modded trainer needs train_new/modded-nanogpt/triton_kernels.py which is GITIGNORED
+so git-archive never synced it (restore via tar-pipe from local), + `pip install
+kernels`, + **TORCH 2.10 REQUIRED** (study-lock 2.13.0 is cu130-only/undriveable;
+2.4.1's triton lacks tensor_descriptor; use torch 2.10.0+cu128 = matches modded
+requirements.txt). Then the whole pod's network volume was briefly lost, then
+RECOVERED on a CPU pod **31.24.80.40:15961**. All /workspace data INTACT (tokenized
+datasets, wiki_eval_union, era runs) — NO re-tokenization needed. **HF BACKUP in
+progress** (durability): /root/hf_backup.py uploads datasets+eval+era-run-provenance
+to MIRIBerkeley/data-vs-algorithms-ceg under `era-ladder/` (Xet DISABLED / setsid /
+HF_TOKEN env-only). DCLM raw shards -> private-repo-internal ONLY (unreviewed
+redistribution terms), never public. NEXT: user restarts pod w/ GPUs (volume
+attached) -> re-bootstrap torch 2.10 + modded stack -> RE-RUN ALL 8 era arms on
+2.10 (old-algo re-run too, for env consistency; the 2.4.1 runs are provenance only)
+with per-arm HF upload -> analysis + era_ladder.png. Tokenized datasets are
+torch-independent so reused as-is.
 B1 BUILD STATUS (2026-08-08, fork): harness=train_hf/train_hf_ceg.py; BPB-over-
 HF-tokenizer instrument=eval/bpb_hf.py; Gate-2 check=scripts/gate2_bpb_check.py;
 prepare.py HF-tokenizer path added; Pythia-160M cfg=configs/hf/pythia_160m.json.
