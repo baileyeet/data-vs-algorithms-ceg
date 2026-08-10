@@ -78,6 +78,21 @@ TWO MANDATORY VALIDATION GATES before applying across candidates (user):
 batch (tokens/step) + total tokens (GPU-count-invariant), realize as per-device=
 global/(8*accum); VERIFY each candidate's global batch divides evenly by 8 at
 build time, STOP-and-flag if not (the ScaleUp 5-vs-8 forced-batch-change trap).
+GATE 1 FULL-LENGTH = PASS (2026-08-10): full Pythia-160M (4230 steps, re-anchored
+cosine, owt_gpt2) BPB 3.51->1.293 monotonic, plateau at floor through fully-decayed
+LR (0.1x peak); max rise above running min anywhere = 0.0009 (<<0.05). Late-decay
+region clean. Re-anchored-schedule + shared harness validated end-to-end -> OK to
+build out the Exp B lineage (matched baselines + Pythia/SmolLM2 full runs on their
+own tokenizers, then B2 SSM) after the Exp A era-ladder + user review.
+EXP A ERA-LADDER LAUNCHED (2026-08-10): union eval /workspace/datasets/wiki_eval_union
+(2053 docs, 151 dropped/6.9% from 2204; C4 80 + RW 86 overlap 15). Driver
+/root/era_ladder_driver.sh runs 8 arms @124M SEQUENTIAL on union eval (4 rescore
+= explicit correction + 4 new C4/RefinedWeb), divergence-guarded, then auto-analysis
+(ceg_shapley 2x2 correction -> era_correction_2x2.json; per-dataset crossings ->
+era_ladder_results.json). Completion monitor bb81g33o8. NEXT after done: render
+results/era_ladder.png (CEG vs release-year); report correction table (old
+1.274421/2.23x/13.69x vs new union-eval). 355M/1.5B union-rescore = disclosed-only
+(user async decision pending; not blocking).
 B1 BUILD STATUS (2026-08-08, fork): harness=train_hf/train_hf_ceg.py; BPB-over-
 HF-tokenizer instrument=eval/bpb_hf.py; Gate-2 check=scripts/gate2_bpb_check.py;
 prepare.py HF-tokenizer path added; Pythia-160M cfg=configs/hf/pythia_160m.json.
