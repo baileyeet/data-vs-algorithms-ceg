@@ -126,6 +126,22 @@ the 37.7GB completed-study finals — a storage-limit 403 blocks NEW writes only
 does NOT delete/alter existing objects, so prior-tier finals are intact (and also
 exist on the volume + in git/results). Era datasets are NOT hosted on HF this round;
 irreplaceable eval + era provenance backed up locally to ~/Desktop/era_ladder_backup/.
+**EXP A ERA-LADDER COMPLETE (2026-08-11, commit 0f6fafe).** All 8 arms re-ran clean
+on torch 2.10 / union eval (8-GPU pod 103.207.149.86:11685). Two data-prep bugs on the
+NEW C4/RefinedWeb current-arch arms, both fixed (data-only, no numerics change): (1) own-val
+shard ~96k tokens short of the fixed 2,097,152 eval batch -> regenerated 3.5M-tok held-out
+val_000000.bin from the *_gpt2 train tail; (2) modded loader's OWT-tuned TRAIN_MAX_NUM_DOCS
+overflowed on C4's shorter docs -> train_gpt_ceg.py sizes the doc buffer from a ~64 tok/doc
+floor (commit cced40d, inert padding). RESULTS (results/era_correction_2x2.json,
+era_ladder_results.json, era_ladder.png): corrected threshold 1.275975 (vs published
+1.274421, unchanged); 2x2 data 2.39x / algo 16.10x / total 38.5x (vs 2.23/13.69/30.5) —
+shift is union-eval + same-seed variance, NO torch component (both published+corrected are
+2.10; torch-neutrality side-check: 2.4.1->2.10 at fixed eval = +0.0156 a0d0 / +0.0007 a0d1,
+NOT negligible -> validated running all 8 on one torch). Per-dataset: OWT algo 23.8x; C4
+CENSORED under BOTH algos (worse than OWT -> data-quality NON-monotonic in release year);
+RefinedWeb data 3.27x/algo 11.6x; DCLM data 3.53x/algo 10.9x. Metrics for all 8 arms backed
+up locally ~/Desktop/era_ladder_backup/run_metrics/. NEXT: Exp B B1 (config prep + matched
+GPT-2 baselines on idle GPUs + OWT tokenization in neox/smollm2 tokenizers, all IN PROGRESS).
 B1 BUILD STATUS (2026-08-08, fork): harness=train_hf/train_hf_ceg.py; BPB-over-
 HF-tokenizer instrument=eval/bpb_hf.py; Gate-2 check=scripts/gate2_bpb_check.py;
 prepare.py HF-tokenizer path added; Pythia-160M cfg=configs/hf/pythia_160m.json.
