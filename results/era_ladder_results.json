@@ -1,0 +1,89 @@
+{
+  "experiment": "Exp A per-dataset era ladder @124M (union eval)",
+  "corrected_threshold_neutral_bpb": 1.275975,
+  "baseline": "old-algo OWT (a0d0), gpu_hours=6.2403 \u2014 CEG measured vs this",
+  "param_counts": {
+    "old_algo": 123689472,
+    "current_arch": 498773000,
+    "note": "@124M = matched DIMENSIONS (12L/12H/768d), NOT matched param count; current-arch's value-embed/U-net additions ARE the algorithm"
+  },
+  "datasets": {
+    "OWT": {
+      "release_year": 2019,
+      "old_algo": {
+        "run": "era_a0d0_owt",
+        "gpu_hours_to_threshold": 6.2403,
+        "crossing": "interpolated",
+        "ceg_vs_a0d0": 1.0
+      },
+      "current_arch": {
+        "run": "era_a1d0_owt",
+        "gpu_hours_to_threshold": 0.2626,
+        "crossing": "interpolated",
+        "ceg_vs_a0d0": 23.762
+      },
+      "data_ceg_old_algo": 1.0,
+      "data_ceg_current_arch": 1.0,
+      "algo_ceg_at_dataset": 23.762
+    },
+    "C4": {
+      "release_year": 2020,
+      "old_algo": {
+        "run": "era_a0_c4",
+        "gpu_hours_to_threshold": null,
+        "crossing": "never_crossed",
+        "ceg_vs_a0d0": null
+      },
+      "current_arch": {
+        "run": "era_a1_c4",
+        "gpu_hours_to_threshold": null,
+        "crossing": "never_crossed",
+        "ceg_vs_a0d0": null
+      },
+      "data_ceg_old_algo": null,
+      "data_ceg_current_arch": null,
+      "algo_ceg_at_dataset": null
+    },
+    "RefinedWeb": {
+      "release_year": 2023,
+      "old_algo": {
+        "run": "era_a0_refinedweb",
+        "gpu_hours_to_threshold": 1.9115,
+        "crossing": "interpolated",
+        "ceg_vs_a0d0": 3.265
+      },
+      "current_arch": {
+        "run": "era_a1_refinedweb",
+        "gpu_hours_to_threshold": 0.1648,
+        "crossing": "interpolated",
+        "ceg_vs_a0d0": 37.861
+      },
+      "data_ceg_old_algo": 3.265,
+      "data_ceg_current_arch": 1.593,
+      "algo_ceg_at_dataset": 11.597
+    },
+    "DCLM": {
+      "release_year": 2024,
+      "old_algo": {
+        "run": "era_a0d1_dclm",
+        "gpu_hours_to_threshold": 1.7678,
+        "crossing": "interpolated",
+        "ceg_vs_a0d0": 3.53
+      },
+      "current_arch": {
+        "run": "era_a1d1_dclm",
+        "gpu_hours_to_threshold": 0.1621,
+        "crossing": "interpolated",
+        "ceg_vs_a0d0": 38.488
+      },
+      "data_ceg_old_algo": 3.53,
+      "data_ceg_current_arch": 1.62,
+      "algo_ceg_at_dataset": 10.903
+    }
+  },
+  "censored_arms": [
+    "era_a0_c4",
+    "era_a1_c4"
+  ],
+  "key_finding": "C4 (2020) is CENSORED under BOTH algorithms \u2014 its neutral BPB never reaches the OWT-baseline threshold, so the data-quality ladder is NON-MONOTONIC in release year (2019 OWT > 2020 C4). RefinedWeb (2023) and DCLM (2024) both beat OWT."
+}
