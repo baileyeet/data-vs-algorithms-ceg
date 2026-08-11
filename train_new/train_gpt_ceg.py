@@ -1673,7 +1673,13 @@ def distributed_data_generator(filename_pattern: str, num_tokens: int, max_seq_l
 
     while True:
         num_tokens_local = num_tokens // world_size
-        max_num_docs = TRAIN_MAX_NUM_DOCS.get(num_tokens_local, next_multiple_of_n(num_tokens_local // 300, n=128))
+        # CEG: the explicit TRAIN_MAX_NUM_DOCS caps are tuned for OWT/DCLM (~340+ tok/doc);
+        # short-doc corpora (C4/RefinedWeb) pack more docs per window and overflow the fixed
+        # buffer. Size it from a conservative ~64 tok/doc floor; the extra slots are inert
+        # (padding = sequence end -> empty attention segments), so this only raises capacity,
+        # never changes numerics, and max() keeps the original cap when it is already larger.
+        max_num_docs = max(TRAIN_MAX_NUM_DOCS.get(num_tokens_local, 0),
+                           next_multiple_of_n(num_tokens_local // 64, n=128))
 
         if align_to_bos:
             try:
