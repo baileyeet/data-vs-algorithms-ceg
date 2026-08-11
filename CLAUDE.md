@@ -110,6 +110,22 @@ attached) -> re-bootstrap torch 2.10 + modded stack -> RE-RUN ALL 8 era arms on
 2.10 (old-algo re-run too, for env consistency; the 2.4.1 runs are provenance only)
 with per-arm HF upload -> analysis + era_ladder.png. Tokenized datasets are
 torch-independent so reused as-is.
+**PRE-LAUNCH CONFIRMATIONS (2026-08-10, user-required before the paid 8-arm launch):**
+(1) PARAM-COUNT DISCLOSURE (MANDATORY in report): "@124M" = matched DIMENSIONS
+(12L/12H/768d), NOT matched param count. Old-algo GPT-2 = 123,689,472 params;
+current-arch modded = 498,773,000 (value-embeds/U-net additions ARE the algorithm
+being measured — same config as the completed/accepted study's small A1). Real
+counts for BOTH arms MUST appear in report.md Exp A section + era_ladder.png caption
++ a `param_counts` field in era_correction_2x2.json. (2) ALL FOUR original 124M arms
+are re-scored on the union eval — the 8-arm re-run RE-TRAINS + union-eval-scores
+A0D0(old-owt), A0D1(old-dclm), A1D0(new-owt), A1D1(new-dclm), NOT just A0D0; every
+BPB in the corrected 2x2 (threshold + all 4 cells + crossings + Shapley) is on the
+SAME union-eval basis; + 4 new C4/RefinedWeb arms = 8 total. (3) HF QUOTA: private
+repo hit its storage cap after the backup added owt_gpt2+c4_gpt2 (~36GB) on top of
+the 37.7GB completed-study finals — a storage-limit 403 blocks NEW writes only and
+does NOT delete/alter existing objects, so prior-tier finals are intact (and also
+exist on the volume + in git/results). Era datasets are NOT hosted on HF this round;
+irreplaceable eval + era provenance backed up locally to ~/Desktop/era_ladder_backup/.
 B1 BUILD STATUS (2026-08-08, fork): harness=train_hf/train_hf_ceg.py; BPB-over-
 HF-tokenizer instrument=eval/bpb_hf.py; Gate-2 check=scripts/gate2_bpb_check.py;
 prepare.py HF-tokenizer path added; Pythia-160M cfg=configs/hf/pythia_160m.json.
