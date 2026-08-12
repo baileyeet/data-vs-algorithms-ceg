@@ -2,5 +2,11 @@
   "small":  {"label": "124M", "n_layer": 12, "n_head": 12, "n_embd": 768},
   "medium": {"label": "355M", "n_layer": 24, "n_head": 16, "n_embd": 1024},
   "large":  {"label": "770M", "n_layer": 36, "n_head": 20, "n_embd": 1280},
-  "xl":     {"label": "1.5B", "n_layer": 48, "n_head": 25, "n_embd": 1600}
+  "xl":     {"label": "1.5B", "n_layer": 48, "n_head": 25, "n_embd": 1600},
+  "b135":  {"label": "135M-baseline", "n_layer": 21, "n_head": 10, "n_embd": 640},
+  "b160":  {"label": "160M-baseline", "n_layer": 21, "n_head": 11, "n_embd": 704},
+  "b360":  {"label": "360M-baseline", "n_layer": 19, "n_head": 18, "n_embd": 1152},
+  "b410":  {"label": "410M-baseline", "n_layer": 28, "n_head": 16, "n_embd": 1024},
+  "b1400": {"label": "1.4B-baseline", "n_layer": 37, "n_head": 27, "n_embd": 1728},
+  "b1700": {"label": "1.7B-baseline", "n_layer": 42, "n_head": 28, "n_embd": 1792}
 }

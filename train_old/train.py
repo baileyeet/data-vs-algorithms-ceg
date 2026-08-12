@@ -49,7 +49,9 @@ SIZE_HPARAMS = {
 
 def get_args():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--size", required=True, choices=["small", "medium", "large", "xl"])
+    ap.add_argument("--size", required=True,
+                    choices=list(json.loads((Path(__file__).resolve().parent.parent /
+                                             "configs" / "model_sizes.json").read_text())))
     ap.add_argument("--arm", default="", choices=["", "a0d0", "a0d1", "a1d0", "a1d1"],
                     help="grid cell this run belongs to (recorded in run_config; required for real runs)")
     ap.add_argument("--data-dir", required=True)
