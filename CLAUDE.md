@@ -142,6 +142,20 @@ CENSORED under BOTH algos (worse than OWT -> data-quality NON-monotonic in relea
 RefinedWeb data 3.27x/algo 11.6x; DCLM data 3.53x/algo 10.9x. Metrics for all 8 arms backed
 up locally ~/Desktop/era_ladder_backup/run_metrics/. NEXT: Exp B B1 (config prep + matched
 GPT-2 baselines on idle GPUs + OWT tokenization in neox/smollm2 tokenizers, all IN PROGRESS).
+EXP B B1 PREP LAUNCHED (2026-08-12, pod 103.207.149.86:11685): (a) MATCHED GPT-2 BASELINES —
+user greenlit ALL 6 candidate sizes. Driver /root/ceg/b1_baselines.sh (train_old, owt_gpt2,
+8.87B, union eval, chain-abort keep-3), monitor bgl58yb2y. Matched dims (configs/model_sizes.json
+b135/b160/b360/b410/b1400/b1700; param-matched +-1.3%, aspect in GPT-2 range [28-70]):
+b135=21L/640/10H, b160=21L/704/11H, b360=19L/1152/18H, b410=28L/1024/16H, b1400=37L/1728/27H,
+b1700=42L/1792/28H. --size reads model_sizes.json keys (commit 9753e1e). RECIPE: global batch
+524288 fixed; lr 6e-4 small/3e-4 mid/2e-4 large; device-batch b135/b160=32, b360/b410=16,
+b1400/b1700=8. LESSON: train_old eager attention mem ~ db*layers*heads (NOT param-bound) —
+db64 OOMs the deep-narrow 21L small models even at 135M; scaled db to the b1700@db8 smoke-fit
+envelope (all divide 64; grad-accum absorbs, same FLOPs). ~241 GPU-h/~30 wall-clock h/~$600.
+(b) OWT TOKENIZATION (CPU) -> owt_neox + owt_smollm2, prepare.py HF path, train-tokens 12B/val 5M;
+driver /root/ceg/owt_tokenize.sh, monitor beuzd79c3. train_hf format = single train.bin uint16 +
+raw val_text.jsonl (evaluate_bpb_hf re-tokenizes) -> NO C4 val.bin trap; both vocabs fit uint16.
+NEXT: re-anchored schedules for the 6 candidates, then Pythia/SmolLM2 vs matched baselines.
 B1 BUILD STATUS (2026-08-08, fork): harness=train_hf/train_hf_ceg.py; BPB-over-
 HF-tokenizer instrument=eval/bpb_hf.py; Gate-2 check=scripts/gate2_bpb_check.py;
 prepare.py HF-tokenizer path added; Pythia-160M cfg=configs/hf/pythia_160m.json.
