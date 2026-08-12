@@ -156,6 +156,14 @@ envelope (all divide 64; grad-accum absorbs, same FLOPs). ~241 GPU-h/~30 wall-cl
 driver /root/ceg/owt_tokenize.sh, monitor beuzd79c3. train_hf format = single train.bin uint16 +
 raw val_text.jsonl (evaluate_bpb_hf re-tokenizes) -> NO C4 val.bin trap; both vocabs fit uint16.
 NEXT: re-anchored schedules for the 6 candidates, then Pythia/SmolLM2 vs matched baselines.
+**EXP B EXECUTION = GATED PHASES (user-ratified 2026-08-12).** NOT a blind all-sizes/all-arch
+launch (this session's bug pattern: every scale/data/arch transition surfaced a distinct bug).
+Gate structure: (B1) candidates scale-validated small->mid->large (Pythia-160M + SmolLM2-135M
+first = already Gate-1'd; then 360/410M; then 1.4/1.7B), STOP-and-flag on any scale-transition
+bug; (Gate B1->B2) user reviews B1 result, then confirm; (B2) build+smoke Mamba/Mamba2 in shared
+harness (deps mamba-ssm/causal-conv1d/Triton-SSD; reuses owt_neox) BEFORE full runs; (Gate
+B2->B3) confirm or drop; (B3) H3 timeboxed/bespoke, high-risk. MONITORING: hourly heartbeat +
+event alerts (combined monitor; user wants periodic status like the earlier tiers).
 B1 BUILD STATUS (2026-08-08, fork): harness=train_hf/train_hf_ceg.py; BPB-over-
 HF-tokenizer instrument=eval/bpb_hf.py; Gate-2 check=scripts/gate2_bpb_check.py;
 prepare.py HF-tokenizer path added; Pythia-160M cfg=configs/hf/pythia_160m.json.
