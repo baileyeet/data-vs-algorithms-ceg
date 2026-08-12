@@ -235,7 +235,7 @@ def main():
     meta = {
         "dataset": args.dataset,
         "tokenizer": args.tokenizer,
-        "tiktoken_encoding": TOKENIZERS[args.tokenizer],
+        "tiktoken_encoding": TOKENIZERS.get(args.tokenizer, args.tokenizer),
         "eot_id": int(eot),
         "dtype": "uint16",
         "seed": args.seed,
