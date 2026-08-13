@@ -241,6 +241,29 @@ accept as a genuine small/no-advantage result, or (b) sanity-probe the baseline-
 design). Corrected SmolLM2-135M arm STILL RUNNING (2nd data point; crosses b135=1.2616 or not TBD).
 Fresh local backup loop for corrected SmolLM2 = scratchpad sm2_backup.sh (pulls final ckpt on
 B1_SMOLLM2_FIXED_DONE). NO new paid launch pending user decision on the Pythia non-crossing.
+**BOTH CANDIDATES COMPLETE — BOTH CENSORED NON-CROSSINGS (2026-08-13, STRONGER STOP-AND-FLAG).**
+Corrected SmolLM2-135M done clean: neutral_bpb 3.x->1.328436, 19.15 GPU-h, 4230 steps, WSD decayed
+to ~0 (lr 3.58e-06 at end, confirms decay-frac 0.20 + min-lr 0.0), no divergence. Final ckpt_004230.pt
++ metrics LOCAL (~/Desktop/era_ladder_backup/b1_cand/, verified 538MB). PAIR RESULT vs matched
+GPT-2 baselines:
+  Pythia-160M   1.369  vs b160 1.2668  -> gap +0.102 (NO cross)
+  SmolLM2-135M  1.328  vs b135 1.2616  -> gap +0.067 (NO cross)
+BOTH above baseline -> algo CEG <=1x at 135-160M for BOTH lineages (censored). INTERNAL consistency:
+SmolLM2 (2024 Llama/GQA/SwiGLU) 1.328 < Pythia (2023 GPTNeoX) 1.369 = better arch -> lower BPB, so the
+instrument IS ordering arches sensibly. But a UNIFORM ~0.07-0.10 offset above baseline across two
+DIFFERENT arches + tokenizers (neox vs smollm2) + schedules (cosine vs WSD) points to a SHARED
+systematic factor, not two independent arch weaknesses. LEADING HYPOTHESIS: the baselines were trained
+with train_old (owt_gpt2) but the candidates with train_hf (owt_neox/owt_smollm2) — DIFFERENT TRAINERS;
+if train_hf trains a GPT-2-equivalent to a ~0.07-0.10 worse BPB than train_old (compile/attn-impl/
+optimizer-detail differences), every candidate is penalized by the harness, not the architecture.
+Removing a ~0.08 offset: SmolLM2 1.328-0.08=1.25 < 1.2616 (WOULD cross, small 2024 advantage); Pythia
+1.369-0.08=1.29 > 1.2668 (still no cross) — a far more believable Exp B picture. PROPOSED CHEAP CHECK
+(paid, ~$5-8/~1h, NEEDS USER CONFIRM): train a GPT-2 at b135 dims THROUGH train_hf, compare to the
+train_old b135 threshold 1.2616. Match -> non-crossings are real architecture (accept/report). ~0.07-0.10
+worse -> HARNESS CONFOUND -> re-derive baselines via train_hf (or run both arms through one trainer)
+before any mid/large candidates. DO NOT proceed to mid (360/410M) candidates until this is resolved.
+Gate-2 (BPB instrument) was validated exact earlier; what was NEVER head-to-head validated is
+train_old-vs-train_hf training EQUIVALENCE on an identical GPT-2 config.
 B1 BUILD STATUS (2026-08-08, fork): harness=train_hf/train_hf_ceg.py; BPB-over-
 HF-tokenizer instrument=eval/bpb_hf.py; Gate-2 check=scripts/gate2_bpb_check.py;
 prepare.py HF-tokenizer path added; Pythia-160M cfg=configs/hf/pythia_160m.json.
