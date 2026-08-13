@@ -50,9 +50,11 @@ from eval.bpb_hf import evaluate_bpb_hf  # noqa: E402
 def build_model(spec):
     """spec = {"arch": "gptneox"|"llama"|"mamba"|"mamba2", "config": {...}}."""
     from transformers import (GPTNeoXConfig, GPTNeoXForCausalLM,
-                              LlamaConfig, LlamaForCausalLM)
+                              LlamaConfig, LlamaForCausalLM,
+                              GPT2Config, GPT2LMHeadModel)
     reg = {"gptneox": (GPTNeoXConfig, GPTNeoXForCausalLM),
-           "llama": (LlamaConfig, LlamaForCausalLM)}
+           "llama": (LlamaConfig, LlamaForCausalLM),
+           "gpt2": (GPT2Config, GPT2LMHeadModel)}
     try:  # SSM classes only exist in newer transformers; import lazily
         from transformers import MambaConfig, MambaForCausalLM
         reg["mamba"] = (MambaConfig, MambaForCausalLM)

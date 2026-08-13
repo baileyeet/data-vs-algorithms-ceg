@@ -1,0 +1,17 @@
+{
+  "arch": "gpt2",
+  "label": "gpt2-b135-harness-check",
+  "note": "GPT-2 at b135 dims (21L/640/10H, vocab 50304) via train_hf to test train_old-vs-train_hf pipeline equivalence against the train_old b135 baseline threshold 1.2616. Dropouts zeroed to match nanoGPT pretraining (HF GPT2Config defaults them to 0.1).",
+  "config": {
+    "vocab_size": 50304,
+    "n_positions": 1024,
+    "n_embd": 640,
+    "n_layer": 21,
+    "n_head": 10,
+    "resid_pdrop": 0.0,
+    "embd_pdrop": 0.0,
+    "attn_pdrop": 0.0,
+    "layer_norm_epsilon": 1e-5,
+    "tie_word_embeddings": true
+  }
+}
