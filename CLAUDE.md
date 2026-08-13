@@ -164,6 +164,35 @@ bug; (Gate B1->B2) user reviews B1 result, then confirm; (B2) build+smoke Mamba/
 harness (deps mamba-ssm/causal-conv1d/Triton-SSD; reuses owt_neox) BEFORE full runs; (Gate
 B2->B3) confirm or drop; (B3) H3 timeboxed/bespoke, high-risk. MONITORING: hourly heartbeat +
 event alerts (combined monitor; user wants periodic status like the earlier tiers).
+**EXP B B1 BASELINES COMPLETE + CANDIDATE PAIR LAUNCHING (2026-08-13).**
+- ALL 6 matched GPT-2 baselines DONE (186 GPU-h actual, under ~241 est; big models better MFU).
+  THRESHOLDS (CEG denominators) in results/b1_baseline_thresholds.json (commit c9021cf):
+  b135=1.2616 b160=1.2668 b360=1.2448 b410=1.2437 b1400=1.1896 b1700=1.1792. FLAG: b160
+  threshold marginally > b135 despite larger (within same-seed noise; each candidate vs its
+  OWN-size baseline). Clean monotonic descent, no divergence/NaN, all arms 8.87B/union eval.
+- DURABILITY (user-decided 2026-08-13): metrics+thresholds in GIT (durable, laptop-independent).
+  6 baseline CHECKPOINTS (weights) pulled LOCAL to ~/Desktop/era_ladder_backup/b1_checkpoints/
+  (b135 0.55 / b160 0.64 / b360 1.45 / b410 1.62 / b1400 5.66 GB done; b1700 ~6.9GB was mid-pull
+  via task bo8taan09 -> VERIFY full size, re-pull /workspace/runs/b1_baseline_b1700/ckpt_016925.pt
+  if truncated). NOT on HF (private quota still full) or git (too big). owt_neox + owt_smollm2
+  datasets local at ~/Desktop/era_ladder_backup/b1_datasets/ + pod. USER: KEEP LOCAL until HF
+  quota resolved — CORE eval of baselines planned later, so weights ARE needed. When HF quota
+  fixed -> push 6 ckpts + era datasets to HF, then local copies redundant.
+- CANDIDATE PAIR LAUNCHING (fork aeee317f, IN PROGRESS at compaction): gated scale-validation =
+  Pythia-160M (owt_neox, config configs/hf/pythia_160m.json, crosses b160=1.2668) + SmolLM2-135M
+  (owt_smollm2, fork WRITES configs/hf/smollm2_135m.json, crosses b135=1.2616), via
+  train_hf/train_hf_ceg.py, global-batch-tokens 2097152 (Gate-1 value), token-budget 8870000000,
+  block 1024, --neutral-eval-dir /workspace/datasets/wiki_eval_union, --hf-tokenizer per arch.
+  Driver /root/ceg/b1_candidates.sh, out-dirs /workspace/runs/b1_cand_{pythia160m,smollm2_135m}.
+  SmolLM2 (Llama) smoked first. NEXT after this validates clean (BPB descends + crosses baseline,
+  no divergence): mid candidates (360/410M) -> large (1.4/1.7B), THEN Gate to B2 (Mamba/Mamba2).
+- MONITORING GAP: the local heartbeat + backup loops REPEATEDLY DIE on laptop sleep (training on
+  the pod is ALWAYS unaffected — detached). After the fork reports the candidate launch, RE-SET
+  a completion monitor + metrics/checkpoint backup-to-local for b1_cand_* (same pattern as
+  baselines: divcheck + disk + hourly heartbeat; pull metrics every ~10min + final ckpt on
+  completion). User advised to run `caffeinate -dimsu` for continuous local monitoring/backup.
+- POD 103.207.149.86:11685 torch 2.10, /workspace ephemeral (NOT the network volume). Baseline
+  run dirs /workspace/runs/b1_baseline_* still present (ckpts prunable once all 6 confirmed local).
 B1 BUILD STATUS (2026-08-08, fork): harness=train_hf/train_hf_ceg.py; BPB-over-
 HF-tokenizer instrument=eval/bpb_hf.py; Gate-2 check=scripts/gate2_bpb_check.py;
 prepare.py HF-tokenizer path added; Pythia-160M cfg=configs/hf/pythia_160m.json.
