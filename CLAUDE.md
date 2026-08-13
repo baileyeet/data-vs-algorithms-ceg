@@ -193,6 +193,25 @@ event alerts (combined monitor; user wants periodic status like the earlier tier
   completion). User advised to run `caffeinate -dimsu` for continuous local monitoring/backup.
 - POD 103.207.149.86:11685 torch 2.10, /workspace ephemeral (NOT the network volume). Baseline
   run dirs /workspace/runs/b1_baseline_* still present (ckpts prunable once all 6 confirmed local).
+  All 6 baseline ckpts VERIFIED local incl b1700 (6.85GB = pod exact). owt_neox+owt_smollm2 local.
+- CANDIDATE PAIR LAUNCHED + TRAINING (2026-08-13; fork aeee317f done; commits a705ba7 smollm2
+  config + 4ce1469 driver). Chained driver /root/ceg/b1_candidates.sh, setsid. Common:
+  global-batch-tokens 2097152, device-batch 32, grad_accum 8, block 1024, token-budget 8.87e9,
+  neutral-eval-dir wiki_eval_union, n-checkpoints 25 keep-3, seed 1234 (divisibility PASS).
+  Arm1 PYTHIA-160M (gptneox, 162,322,944 p): --config-json configs/hf/pythia_160m.json --data-dir
+  owt_neox --hf-tokenizer EleutherAI/gpt-neox-20b --peak-lr 6e-4 --schedule cosine (Gate-1 solid),
+  total_steps 4230 — TRAINING CLEAN (BPB 3.49->3.31 descending, no divergence). Arm2 SMOLLM2-135M
+  (llama, 134,515,008 p exact, GQA 9/3, rope_theta 100000): --config-json configs/hf/smollm2_135m.json
+  --data-dir owt_smollm2 --hf-tokenizer HuggingFaceTB/SmolLM2-135M --peak-lr 3e-3 --schedule wsd
+  --wsd-decay-frac 0.10 — smoked OK, QUEUED after Pythia (~2.5h). Crosses: Pythia->b160=1.2668,
+  SmolLM2->b135=1.2616. Logs /workspace/session_logs/{pythia160m,smollm2_135m}.log + status
+  b1_candidates.status; out-dirs /workspace/runs/b1_cand_{pythia160m,smollm2_135m}. Candidate
+  backup loop = task bedxnpp60 -> ~/Desktop/era_ladder_backup/b1_cand/ (metrics+final ckpts).
+  **RECIPE FLAG (no-invented-recipes): SmolLM2-135M --peak-lr 3e-3 + WSD params are the fork's
+  RECOLLECTION of the SmolLM2 report, NOT verified. Pythia's 6e-4 is solid. VERIFY the documented
+  SmolLM2-135M peak LR + WSD (tech report / web) DURING the ~2.5h Pythia window, BEFORE the SmolLM2
+  arm starts; fix the driver + re-run that arm (~$8) if wrong. SmolLM2 crossing is untrustworthy
+  until the LR is confirmed; Pythia crossing is fine.**
 B1 BUILD STATUS (2026-08-08, fork): harness=train_hf/train_hf_ceg.py; BPB-over-
 HF-tokenizer instrument=eval/bpb_hf.py; Gate-2 check=scripts/gate2_bpb_check.py;
 prepare.py HF-tokenizer path added; Pythia-160M cfg=configs/hf/pythia_160m.json.
