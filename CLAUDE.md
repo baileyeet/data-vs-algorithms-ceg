@@ -264,6 +264,25 @@ worse -> HARNESS CONFOUND -> re-derive baselines via train_hf (or run both arms 
 before any mid/large candidates. DO NOT proceed to mid (360/410M) candidates until this is resolved.
 Gate-2 (BPB instrument) was validated exact earlier; what was NEVER head-to-head validated is
 train_old-vs-train_hf training EQUIVALENCE on an identical GPT-2 config.
+**HARNESS-EQUIVALENCE CHECK LAUNCHED (2026-08-13, user-approved).** GPT-2 @ b135 dims (21L/640/10H,
+vocab 50304, dropouts ZEROED to match nanoGPT pretraining) run through the CANDIDATE pipeline
+(train_hf, owt_gpt2 + gpt2 tokenizer, union eval, global-batch 2097152, cosine peak-lr 6e-4,
+warmup-frac 0.01, min-lr 0.1, wd 0.01, 8.87B) to compare final neutral_bpb against the train_old
+b135 baseline threshold 1.2616. This tests the AGGREGATE pipeline difference (trainer AND global batch
+524288->2097152 AND warmup 700steps->0.01 AND wd 0.1->0.01 all differ between baseline and candidates).
+Added gpt2 to train_hf build_model registry (GPT2Config/GPT2LMHeadModel); config configs/hf/gpt2_b135.json
+(commit 1b471c2). Param count 136,245,120 (HF) vs 135,589,760 (train_old) = +655,360 = 1x wpe accounting,
+immaterial. Smoke PASSED (10 steps, loss+bpb descend, bpb_hf(gpt2) sane 3.51). Driver /root/ceg/
+gpt2_b135_harness.sh; monitor /root/gpt2_harness_monitor.sh -> gpt2_harness_monitor.log; divcheck
+/root/divcheck_gpt2harness.py; status gpt2_b135_harness.status; out-dir /workspace/runs/gpt2_b135_harness;
+local backup scratchpad gpt2_harness_backup.sh -> ~/Desktop/era_ladder_backup/b1_cand/. ~10-20 GPU-h/
+~$5-8/~2h. INTERPRETATION: match 1.2616 -> candidate non-crossings are REAL architecture (accept/report
+Pythia+SmolLM2 as small/no-advantage at 135-160M); ~0.08 worse -> PIPELINE CONFOUND.
+**USER GUIDANCE (2026-08-13, if confound confirmed): DO NOT assume a flat correction. Before
+re-deriving all baselines via train_hf, sanity-check whether the b135 offset MAGNITUDE holds at other
+sizes (b160 next, then mid/large dims) or VARIES by architecture shape — the correction may not be
+size/shape-invariant. So the follow-up would be at least a b160 harness check too, and comparing the
+two offsets, before any blanket baseline re-derivation.**
 B1 BUILD STATUS (2026-08-08, fork): harness=train_hf/train_hf_ceg.py; BPB-over-
 HF-tokenizer instrument=eval/bpb_hf.py; Gate-2 check=scripts/gate2_bpb_check.py;
 prepare.py HF-tokenizer path added; Pythia-160M cfg=configs/hf/pythia_160m.json.
