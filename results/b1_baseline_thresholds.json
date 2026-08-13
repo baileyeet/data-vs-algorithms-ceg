@@ -1,0 +1,15 @@
+{
+  "experiment": "Exp B B1 matched GPT-2 baselines (old-algo train_old, OWT gpt2, 8.87B, union eval)",
+  "date": "2026-08-13",
+  "note": "matched to candidate param counts (+-1.3%), aspect kept GPT-2-family [28-70]; tail_threshold = mean neutral_bpb over tokens>=0.9*total = CEG denominator per size",
+  "total_gpu_h": 185.7,
+  "baselines": {
+    "b135":  {"matches": "SmolLM2-135M", "dims": "21L/640/10H", "params": 136245120,  "converged_bpb": 1.2585, "tail_threshold": 1.2616, "gpu_h": 9.2,  "lr": 6e-4, "device_batch": 32},
+    "b160":  {"matches": "Pythia-160M",  "dims": "21L/704/11H", "params": 161223744,  "converged_bpb": 1.2611, "tail_threshold": 1.2668, "gpu_h": 10.3, "lr": 6e-4, "device_batch": 32},
+    "b360":  {"matches": "SmolLM2-360M", "dims": "19L/1152/18H","params": 361996416,  "converged_bpb": 1.2432, "tail_threshold": 1.2448, "gpu_h": 17.3, "lr": 3e-4, "device_batch": 16},
+    "b410":  {"matches": "Pythia-410M",  "dims": "28L/1024/16H","params": 405256192,  "converged_bpb": 1.2383, "tail_threshold": 1.2437, "gpu_h": 20.2, "lr": 3e-4, "device_batch": 16},
+    "b1400": {"matches": "Pythia-1.4B",  "dims": "37L/1728/27H","params": 1415306304, "converged_bpb": 1.1871, "tail_threshold": 1.1896, "gpu_h": 58.9, "lr": 2e-4, "device_batch": 8},
+    "b1700": {"matches": "SmolLM2-1.7B", "dims": "42L/1792/28H","params": 1711438848, "converged_bpb": 1.1810, "tail_threshold": 1.1792, "gpu_h": 69.8, "lr": 2e-4, "device_batch": 8}
+  },
+  "flags": ["b160 tail_threshold (1.2668) marginally > b135 (1.2616) despite larger size — within same-seed noise; each candidate compared to its own-size baseline"]
+}
