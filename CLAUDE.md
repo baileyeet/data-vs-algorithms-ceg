@@ -226,6 +226,21 @@ event alerts (combined monitor; user wants periodic status like the earlier tier
   /root/cand_monitor.sh exits at CHAIN_ABORT). Corrected-arm status /workspace/session_logs/
   b1_smollm2_fixed.status; monitor log smollm2_fixed_monitor.log. SmolLM2 crossing (b135=1.2616) now
   trustworthy once the corrected arm completes; Pythia crossing (b160=1.2668) already fine.**
+**PYTHIA-160M CANDIDATE COMPLETE — DID NOT CROSS ITS BASELINE (2026-08-13, STOP-AND-FLAG).**
+Full run clean: neutral_bpb 3.49->1.369106 monotonic, no divergence, 9.90 GPU-h, 4230 steps, owt_neox,
+gpt-neox-20b tok, cosine peak-lr 6e-4 (documented Pythia-160M LR, faithful). Final ckpt_004230.pt +
+metrics backed up LOCAL (~/Desktop/era_ladder_backup/b1_cand/). **RESULT: 1.369 > matched baseline
+b160=1.2668 -> Pythia-160M does NOT reach the GPT-2-baseline threshold -> algo CEG <=1x at 160M
+(CENSORED crossing, same handling class as ScaleUp-on-OWT@1.5B in the main study).** Consistent with
+Gate-1 (owt_gpt2) which hit 1.293 — ALSO above b160; owt_neox run is 0.076 higher (tokenizer/data-
+exposure diff at fixed token budget). Recipe verified faithful (Pythia-160M documented peak LR = 6e-4),
+so this is a REAL finding not a recipe bug; but it is the FIRST candidate and a censored non-crossing,
+so per gate rules DO NOT auto-proceed to mid (360/410M) candidates — needs user review of whether (a)
+accept as a genuine small/no-advantage result, or (b) sanity-probe the baseline-vs-candidate fairness
+(owt_gpt2 baseline vs owt_neox candidate at fixed 8.87B tokens; each-arch-own-tokenizer is the ratified
+design). Corrected SmolLM2-135M arm STILL RUNNING (2nd data point; crosses b135=1.2616 or not TBD).
+Fresh local backup loop for corrected SmolLM2 = scratchpad sm2_backup.sh (pulls final ckpt on
+B1_SMOLLM2_FIXED_DONE). NO new paid launch pending user decision on the Pythia non-crossing.
 B1 BUILD STATUS (2026-08-08, fork): harness=train_hf/train_hf_ceg.py; BPB-over-
 HF-tokenizer instrument=eval/bpb_hf.py; Gate-2 check=scripts/gate2_bpb_check.py;
 prepare.py HF-tokenizer path added; Pythia-160M cfg=configs/hf/pythia_160m.json.
