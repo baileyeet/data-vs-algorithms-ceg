@@ -207,11 +207,25 @@ event alerts (combined monitor; user wants periodic status like the earlier tier
   SmolLM2->b135=1.2616. Logs /workspace/session_logs/{pythia160m,smollm2_135m}.log + status
   b1_candidates.status; out-dirs /workspace/runs/b1_cand_{pythia160m,smollm2_135m}. Candidate
   backup loop = task bedxnpp60 -> ~/Desktop/era_ladder_backup/b1_cand/ (metrics+final ckpts).
-  **RECIPE FLAG (no-invented-recipes): SmolLM2-135M --peak-lr 3e-3 + WSD params are the fork's
-  RECOLLECTION of the SmolLM2 report, NOT verified. Pythia's 6e-4 is solid. VERIFY the documented
-  SmolLM2-135M peak LR + WSD (tech report / web) DURING the ~2.5h Pythia window, BEFORE the SmolLM2
-  arm starts; fix the driver + re-run that arm (~$8) if wrong. SmolLM2 crossing is untrustworthy
-  until the LR is confirmed; Pythia crossing is fine.**
+  **RECIPE FLAG RESOLVED (2026-08-13): SmolLM2-135M recipe VERIFIED against the OFFICIAL nanotron
+  config (huggingface/smollm text/pretraining/smollm2/config_smollm2_135M.yaml) via gh api.
+  CONFIRMED: peak LR = 0.003 = the driver's 3e-3 (fork recollection was RIGHT; no LR change).
+  CORRECTED WSD shape to the documented recipe: decay fraction = lr_decay_steps 400000 /
+  train_steps 2000000 = 0.20 (driver had 0.10); min_decay_lr = 0 -> --min-lr-ratio 0.0 (driver
+  had 0.1); decay style linear (matches impl). KEPT --warmup-frac 0.01 = study re-anchoring
+  convention (documented lr_warmup_steps 2000 / 2000000 = 0.1% -> ~4 steps on the 8.87B re-anchored
+  run = too abrupt at 3e-3; Gate-1/Pythia use 0.01 too). rope_theta KEPT 100000 (matches released
+  HuggingFaceTB/SmolLM2-135M config.json; pretraining-time value was 10000 but immaterial at
+  block 1024 — flag, not a blocker). The 3e-3 that alarmed the fork is actually SmolLM v1's LR AND
+  SmolLM2's — coincidentally the same. IMPLEMENTATION: chain's wrong SmolLM2 line NEUTRALIZED by
+  renaming its config to configs/hf/smollm2_135m.json.disabled_for_chain (so it fast-fails ->
+  CHAIN_ABORT -> chain exits, NO wasted training); corrected copy at configs/hf/smollm2_135m_v2.json.
+  Corrected arm = /root/ceg/b1_smollm2_fixed.sh (--wsd-decay-frac 0.20 --min-lr-ratio 0.0), launched
+  AUTONOMOUSLY by /root/ceg/b1_smollm2_launcher.sh (setsid; waits for Pythia DONE exit=0 + chain
+  gone + GPUs free) with a FRESH pod-side monitor /root/smollm2_fixed_monitor.sh (the chain monitor
+  /root/cand_monitor.sh exits at CHAIN_ABORT). Corrected-arm status /workspace/session_logs/
+  b1_smollm2_fixed.status; monitor log smollm2_fixed_monitor.log. SmolLM2 crossing (b135=1.2616) now
+  trustworthy once the corrected arm completes; Pythia crossing (b160=1.2668) already fine.**
 B1 BUILD STATUS (2026-08-08, fork): harness=train_hf/train_hf_ceg.py; BPB-over-
 HF-tokenizer instrument=eval/bpb_hf.py; Gate-2 check=scripts/gate2_bpb_check.py;
 prepare.py HF-tokenizer path added; Pythia-160M cfg=configs/hf/pythia_160m.json.
