@@ -372,7 +372,27 @@ budget 8.870B, union eval, only global batch held fixed (524288) each arch keeps
 r512k_gpt2b160 (GPT-2 denom, gpt2_b160.json, owt_gpt2, wd0.1/warmup0.0414/6e-4 cosine) -> r512k_pythia160m
 (pythia_160m.json, owt_neox, 6e-4 cosine/warmup0.01/wd0.01) -> r512k_smollm2 (smollm2_135m_v2.json,
 owt_smollm2, 3e-3 WSD 0.20/min-lr0/warmup0.01/wd0.01). ~9h. On finish: b160 denom = Pythia's threshold;
-compare SmolLM2 vs r512k_gpt2b160 denom (=1.2721 have it) + Pythia vs r512k_gpt2b160; tail-mean each.
+compare SmolLM2 vs b135 denom (=1.2721 confirmatory) + Pythia vs r512k_gpt2b160; tail-mean each.
+**512k RESULTS (2 of 3 in, 2026-08-14):** r512k_gpt2b160 (b160 GPT-2 denom, train_hf) tail-mean 1.251829;
+r512k_pythia160m tail-mean 1.333728 -> Pythia deficit +0.0819 (CONVERGED, like-for-like). CLEAR no-advantage/
+real deficit for Pythia-160M. LARGER than the 2M-regime +0.047 -> see compression note. NOTE b160 denom
+train_hf 1.2518 came out BELOW train_old 1.2668 = the train_hf-vs-train_old gap FLIPPED SIGN (+0.0105 b135,
+-0.0150 b160) = EMPIRICAL confirmation the +0.0105 residual is NOISE, not a systematic. SmolLM2 arm running.
+**METHODOLOGY NOTE #1 — UNDERTRAINING BIASES TOWARD PARITY (not just adds noise).** The 2M-batch regime
+(4x fewer updates) systematically COMPRESSED candidates toward their GPT-2 denominators: Pythia deficit
+0.047 (2M) -> 0.082 (converged 512k). Undertraining pulls BOTH arch and baseline toward each other, biasing
+the measured algo gap TOWARD THE NULL (parity). So undertraining is NOT conservative for detecting an
+advantage — it risks FALSE NEGATIVES ("no difference" that is really undertraining). => all CEG arms MUST be
+compared at convergence; report this explicitly. **METHODOLOGY NOTE #2 — PRE-REGISTERED SIGNIFICANCE RULE
+(fixed 2026-08-14 BEFORE seeing SmolLM2, applies to all B1/B2/B3 candidates).** Noise sigma=0.013 BPB on the
+candidate-minus-denominator gap Delta (empirical: RMS of the two sign-flipped same-arch GPT-2 cross-pipeline
+diffs +0.0105/-0.0150; = study's +-0.01 same-seed floor x sqrt2 for a difference). BANDS: |Delta|>=0.026
+(2sigma) = REAL effect (advantage if Delta<0, deficit if Delta>0), one seed; |Delta|<0.013 (1sigma) = PARITY
+within noise, one seed final; 0.013<=|Delta|<0.026 (1-2sigma) = gray zone -> SECOND SEED **only on the
+advantage side** (Delta in -0.026..-0.013), because only there does the science conclusion turn on sub-noise
+precision (a gray-zone DEFICIT still = "no advantage", no second seed). 2nd seed halves mean-noise to ~0.009
+(2-seed significance at |mean|>=0.018). For SmolLM2 vs 1.2721: advantage if <=1.246, parity if 1.259-1.285,
+second-seed only if 1.246-1.259, real deficit if >=1.298.
 B1 BUILD STATUS (2026-08-08, fork): harness=train_hf/train_hf_ceg.py; BPB-over-
 HF-tokenizer instrument=eval/bpb_hf.py; Gate-2 check=scripts/gate2_bpb_check.py;
 prepare.py HF-tokenizer path added; Pythia-160M cfg=configs/hf/pythia_160m.json.
