@@ -392,6 +392,19 @@ b1_cand/, 645/649/538MB). GPUs idle. NEXT = B1 MID candidates (360/410M) — GAT
 each needs its matched GPT-2 train_hf @512k denominator (b360, b410) + the candidate (Pythia-410M owt_neox,
 SmolLM2-360M owt_smollm2) = ~4 runs. Same 512k pipeline + pre-registered rule apply. Then LARGE (1.4/1.7B),
 then Gate B1->B2 (user review) before Mamba/Mamba2.
+**B1 MID CHAIN + SmolLM2 REPLICATE LAUNCHED (2026-08-14).** Driver /root/ceg/b1_512k_mid.sh (setsid,
+chain-abort), monitor /root/monitor_512k_mid.sh -> monitor_512k_mid.log, status b1_512k_mid.status, divcheck
+/root/divcheck_512k.py (globs r512k_*), backup scratchpad mid512k_backup.sh. 5 arms @512k/16919 steps/8.870B/
+union eval/db16 (repl db32), only global batch fixed 524288, each arch documented recipe. Fit-smoked
+Pythia-410M+SmolLM2-360M @db16 OK (no OOM). Param-matched pairs: SmolLM2-360M 361.8M<->b360 362.0M;
+Pythia-410M 405.3M<->b410 405.3M. Order: (1) r512k_gpt2b360 GPT-2 denom lr3e-4/wd0.1/warmup0.0414;
+(2) r512k_gpt2b410 same; (3) r512k_smollm2_360m lr3e-3 wsd0.20/min0/warmup0.01/wd0.01 (rope_theta 100000
+released); (4) r512k_pythia410m lr3e-4 cosine/warmup0.01/min0.1/wd0.01; (5) r512k_smollm2_seed2 = SmolLM2-135M
+REPLICATE seed 2024 (orig was 1234) to confirm the +0.008 parity across seeds (user-requested; mid NOT blocked
+on it -> appended last, 8-GPU consistency kept vs a GPU-split). Configs configs/hf/{gpt2_b360,gpt2_b410,
+pythia_410m,smollm2_360m}.json committed 662fcf3. ~15h. ON FINISH apply pre-registered rule: SmolLM2-360M vs
+r512k_gpt2b360, Pythia-410M vs r512k_gpt2b410; replicate: 2-seed SmolLM2-135M mean vs 1.2721 (2-seed sig at
+|mean|>=0.018). Then LARGE (b1400/b1700 + Pythia-1.4B/SmolLM2-1.7B), then Gate B1->B2.
 **METHODOLOGY NOTE #1 — UNDERTRAINING BIASES TOWARD PARITY (not just adds noise).** The 2M-batch regime
 (4x fewer updates) systematically COMPRESSED candidates toward their GPT-2 denominators: Pythia deficit
 0.047 (2M) -> 0.082 (converged 512k). Undertraining pulls BOTH arch and baseline toward each other, biasing
