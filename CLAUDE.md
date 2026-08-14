@@ -283,6 +283,21 @@ re-deriving all baselines via train_hf, sanity-check whether the b135 offset MAG
 sizes (b160 next, then mid/large dims) or VARIES by architecture shape — the correction may not be
 size/shape-invariant. So the follow-up would be at least a b160 harness check too, and comparing the
 two offsets, before any blanket baseline re-derivation.**
+**HARNESS CHECK RESULT = CONFOUND CONFIRMED (2026-08-13).** GPT-2 @ b135 via train_hf (candidate
+pipeline) final neutral_bpb = 1.320257 (clean, 19.2 GPU-h, no divergence). train_old b135 = 1.2616.
+OFFSET = +0.0587 — identical GPT-2 arch is 0.059 BPB WORSE purely from the train_hf pipeline. So the
+train_old baselines are NOT the correct denominator for the train_hf candidates. CORRECTED (same-pipeline)
+reading at ~135M: GPT-2(train_hf) 1.320 vs SmolLM2-135M(train_hf) 1.328 = SmolLM2 only 0.008 worse
+(NOISE) -> SmolLM2-135M ~= GPT-2 = PARITY / no measurable algo advantage (NOT the 0.067 deficit the raw
+vs-train_old numbers implied; the confound was inflating the apparent deficit). Pythia-160M 1.369 needs
+the b160 GPT-2-via-train_hf denominator for a clean read (different size AND shape; per user guidance do
+NOT assume the b135 0.0587 offset transfers) — rough subtraction leaves Pythia still ~0.04 worse even
+corrected, but the b160 harness point is required to state it. Final metrics+ckpt local
+(~/Desktop/era_ladder_backup/b1_cand/). NEXT (paid, needs confirm): GPT-2 @ b160 via train_hf ->
+(1) fair denominator for Pythia; (2) 2nd offset to test size-invariance of the correction. THEN decide:
+if offsets ~equal -> correction roughly size-stable at small scale; if they differ -> per-size train_hf
+baseline re-derivation before any mid/large candidates. DO NOT proceed to mid (360/410M) candidates
+until the denominator question is settled.
 B1 BUILD STATUS (2026-08-08, fork): harness=train_hf/train_hf_ceg.py; BPB-over-
 HF-tokenizer instrument=eval/bpb_hf.py; Gate-2 check=scripts/gate2_bpb_check.py;
 prepare.py HF-tokenizer path added; Pythia-160M cfg=configs/hf/pythia_160m.json.
