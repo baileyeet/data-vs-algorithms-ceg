@@ -316,6 +316,24 @@ train_hf code. b160 harness (running) still adds the 2nd offset point + Pythia 2
 under either decision. COST FLAG (user): if b160 offset != b135 offset, the vs-2M-pipeline correction is
 size-dependent => all SIX baselines re-derived via train_hf (~$30-50), not two — but the batch-match fix
 avoids that path entirely (reuses train_old baselines).
+**BOTH HARNESS OFFSETS IN — SIZE-STABLE (2026-08-14).** b160 GPT-2 via train_hf (2M pipeline) final
+neutral_bpb = 1.322368 (clean, 21.1 GPU-h). Offsets: b135 = 1.320257-1.2616 = +0.0587; b160 =
+1.322368-1.2668 = +0.0556; Δ = 0.003 = SIZE-STABLE (~0.057). So the vs-2M-pipeline correction is NOT
+size-dependent -> the all-6-baselines/$30-50 cost flag does NOT trigger. CORRECTED SAME-PIPELINE (2M)
+CANDIDATE READS (candidate vs its matched train_hf GPT-2 denominator): SmolLM2-135M 1.328 vs 1.320 =
++0.008 PARITY (noise); Pythia-160M 1.369 vs 1.322 = +0.047 REAL DEFICIT. Internal SmolLM2(1.328)<
+Pythia(1.369) = 2024>2023 consistent. NET B1 (2M regime): neither small modern transformer beats a
+matched GPT-2 at 135-160M — SmolLM2 parity, Pythia deficit; NO algo advantage. b160 metrics+ckpt local
+(644MB). CAVEAT: this result is in the UNDERTRAINED 2M-batch regime (4x fewer updates) -> differences
+COMPRESSED; the relative parity/deficit may shift under proper 512k convergence. DECISION PENDING (user):
+(A) accept the 2M-regime matched-denominator result as-is ($0, but undertrained + needs train_hf GPT-2
+denominators at mid/large too if we stay 2M); (B) STANDARDIZE Exp B on the converged 512k recipe (global
+batch 524288 + wd 0.1 + warmup ~4%), re-run the 2 small candidates via train_hf @ 512k (~29 GPU-h/
+~$15-25), reuse the existing 6 train_old baselines as denominators for ALL sizes, run mid/large candidates
+@ 512k -> better-resolved + no per-size harness re-derivation + de-risks Mamba. Recommend B (root-cause
+fix, better science for the still-to-come mid/large curve). Optional 1 confirmatory GPT-2 @ b135 via
+train_hf @ 512k/wd0.1 -> if ~1.2616 proves train_hf==train_old (confound = 100% recipe). Network blip
+during b160 was LOCAL laptop only; pod unaffected, run clean.
 B1 BUILD STATUS (2026-08-08, fork): harness=train_hf/train_hf_ceg.py; BPB-over-
 HF-tokenizer instrument=eval/bpb_hf.py; Gate-2 check=scripts/gate2_bpb_check.py;
 prepare.py HF-tokenizer path added; Pythia-160M cfg=configs/hf/pythia_160m.json.
