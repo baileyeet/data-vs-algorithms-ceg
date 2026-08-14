@@ -334,6 +334,24 @@ batch 524288 + wd 0.1 + warmup ~4%), re-run the 2 small candidates via train_hf 
 fix, better science for the still-to-come mid/large curve). Optional 1 confirmatory GPT-2 @ b135 via
 train_hf @ 512k/wd0.1 -> if ~1.2616 proves train_hf==train_old (confound = 100% recipe). Network blip
 during b160 was LOCAL laptop only; pod unaffected, run clean.
+**CONFIRMATORY RESULT (2026-08-14): RESIDUAL +0.0105 -> PLAN CHANGE.** GPT-2 @ b135 via train_hf at the
+EXACT b135 baseline recipe (512k batch, wd 0.1, warmup 700 steps, cosine 6e-4, budget 8.87B/16919 steps)
+tail-mean neutral_bpb = 1.272076 (n=5). vs train_old b135 = 1.2616 -> RESIDUAL +0.0105. So batch/wd/warmup
+fixed 0.0482 (82%) of the 0.0587 2M-gap; a +0.0105 train_hf-vs-train_old residual REMAINS at matched recipe
+(HF GPT2LMHeadModel class + EpochShuffledLoader vs nanoGPT). CRITICAL: +0.0105 ~= the candidate SIGNAL size
+(SmolLM2 was +0.008) -> train_old baselines CANNOT serve as denominators for train_hf candidates (would bias
+each result by ~a full signal, could flip SmolLM2 parity<->deficit). So the "reuse the 6 train_old baselines"
+plan is DEAD. CORRECT METHODOLOGY = like-for-like: each candidate vs a GPT-2 trained through the IDENTICAL
+train_hf pipeline @512k (zeroes BOTH batch confound AND residual; same trainer/batch, only arch differs).
+Have it at b135 = 1.2721. The (initial) crash was the no-silent-wrap data guard (needed 346k tok > owt_gpt2's
+8.8732B at 512k/16925 steps); fixed with budget 8.870B/16919 steps (matches other train_hf runs, -6 steps
+negligible). Confirmatory ckpt+metrics local. **REVISED PLAN (needs user confirm — cost changed): adopt
+GPT-2-via-train_hf@512k as THE Exp B denominator at each size. IMMEDIATE (3 runs ~$25-30): (1) GPT-2-train_hf
+@512k @ b160 = Pythia's denominator; (2)+(3) re-run Pythia + SmolLM2 @512k (their documented recipes, batch
+-> 512k). Then B1 = like-for-like at 512k. LATER (mid/large gates): GPT-2-train_hf@512k denominator at b360/
+b410/b1400/b1700 = 4 more runs. TOTAL train_hf denominators = 6 (b135 done, 5 to go), REPLACING the role of
+the 6 train_old baselines (which stay as a cross-check, differing by the ~0.0105 residual). This IS the
+all-six-denominators cost the user asked be visible — now justified by the residual, not assumed.**
 B1 BUILD STATUS (2026-08-08, fork): harness=train_hf/train_hf_ceg.py; BPB-over-
 HF-tokenizer instrument=eval/bpb_hf.py; Gate-2 check=scripts/gate2_bpb_check.py;
 prepare.py HF-tokenizer path added; Pythia-160M cfg=configs/hf/pythia_160m.json.
