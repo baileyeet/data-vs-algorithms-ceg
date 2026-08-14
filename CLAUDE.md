@@ -298,6 +298,24 @@ corrected, but the b160 harness point is required to state it. Final metrics+ckp
 if offsets ~equal -> correction roughly size-stable at small scale; if they differ -> per-size train_hf
 baseline re-derivation before any mid/large candidates. DO NOT proceed to mid (360/410M) candidates
 until the denominator question is settled.
+**ROOT-CAUSE DIAGNOSIS of the +0.0587 (2026-08-13, user-requested).** Compared train_hf vs train_old
+settings on the identical GPT-2 config. IDENTICAL in both (ruled out): bf16 autocast, tf32 "high",
+AdamW betas 0.9/0.95, grad-clip 1.0, wd param-grouping, AND torch.compile (BOTH ran compile=False =
+eager). DIFFERENCES (run_config-confirmed): (1) PRIMARY = GLOBAL BATCH 524288 (baseline) vs 2097152
+(candidate) = 4x, at the SAME peak LR 6e-4 -> 16925 vs 4230 optimizer steps over the same 8.87B tokens
+= 4x fewer weight updates = large-batch-at-unscaled-LR UNDERTRAINING (classic effect; almost certainly
+the bulk of 0.059). (2) SECONDARY = weight decay 0.1 (baseline) vs 0.01 (candidate) = less regularized,
+same direction. (3) MINOR = warmup 4.1% vs 1%. CONCLUSION: the confound is a RECIPE/config mismatch,
+NOT train_hf-code-is-worse -> FIXABLE at source. ROBUST FIX (better than a standing correction; de-risks
+Mamba/Mamba2 which share train_hf): standardize ALL Exp B on the baseline's converged recipe (global
+batch 524288 + wd 0.1 + warmup ~4%), re-run the 2 candidates via train_hf at 512k (~same GPU-h: same
+tokens/FLOPs, 4x more steps) -> existing train_old baselines become valid denominators, NO 6-baseline
+re-derivation. DEFINITIVE ISOLATION (optional, 1 run): GPT-2 @ b135 via train_hf at 512k/wd0.1 -> hits
+~1.2616 => train_hf==train_old, confound = 100% batch/wd (dissolves); still ~1.32 => residual is
+train_hf code. b160 harness (running) still adds the 2nd offset point + Pythia 2M-denominator, useful
+under either decision. COST FLAG (user): if b160 offset != b135 offset, the vs-2M-pipeline correction is
+size-dependent => all SIX baselines re-derived via train_hf (~$30-50), not two — but the batch-match fix
+avoids that path entirely (reuses train_old baselines).
 B1 BUILD STATUS (2026-08-08, fork): harness=train_hf/train_hf_ceg.py; BPB-over-
 HF-tokenizer instrument=eval/bpb_hf.py; Gate-2 check=scripts/gate2_bpb_check.py;
 prepare.py HF-tokenizer path added; Pythia-160M cfg=configs/hf/pythia_160m.json.
