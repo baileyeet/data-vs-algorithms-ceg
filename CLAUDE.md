@@ -378,6 +378,20 @@ r512k_pythia160m tail-mean 1.333728 -> Pythia deficit +0.0819 (CONVERGED, like-f
 real deficit for Pythia-160M. LARGER than the 2M-regime +0.047 -> see compression note. NOTE b160 denom
 train_hf 1.2518 came out BELOW train_old 1.2668 = the train_hf-vs-train_old gap FLIPPED SIGN (+0.0105 b135,
 -0.0150 b160) = EMPIRICAL confirmation the +0.0105 residual is NOISE, not a systematic. SmolLM2 arm running.
+**B1 SMALL-SCALE COMPLETE (2026-08-14, converged 512k like-for-like, pre-registered rule applied).**
+Denoms (GPT-2 train_hf @512k): b135=1.272076 (confirmatory), b160=1.251829. Candidates:
+  SmolLM2-135M 1.280267 vs b135 1.272076 -> Delta=+0.0082 (<1sigma) = PARITY within noise (one seed final;
+    matches 2M estimate +0.008 -> robust).
+  Pythia-160M 1.333728 vs b160 1.251829 -> Delta=+0.0819 (>2sigma) = REAL DEFICIT (significant).
+Internal SmolLM2(1.280)<Pythia(1.334) = 2024 Llama beats 2023 GPTNeoX, consistent. HEADLINE: neither small
+modern transformer shows an algo advantage over a matched well-trained GPT-2 at 135-160M — SmolLM2 parity,
+Pythia significantly worse. (Contrast: completed-study current-arch/ScaleUp had 13.7x/2.9x algo advantage at
+124M — DIFFERENT arches.) Compression corroborated: SmolLM2 (already parity) unchanged 2M->512k; Pythia
+(real deficit) grew 0.047->0.082 on convergence. All 3 arms' ckpts+metrics local (~/Desktop/era_ladder_backup/
+b1_cand/, 645/649/538MB). GPUs idle. NEXT = B1 MID candidates (360/410M) — GATED, needs user go (paid):
+each needs its matched GPT-2 train_hf @512k denominator (b360, b410) + the candidate (Pythia-410M owt_neox,
+SmolLM2-360M owt_smollm2) = ~4 runs. Same 512k pipeline + pre-registered rule apply. Then LARGE (1.4/1.7B),
+then Gate B1->B2 (user review) before Mamba/Mamba2.
 **METHODOLOGY NOTE #1 — UNDERTRAINING BIASES TOWARD PARITY (not just adds noise).** The 2M-batch regime
 (4x fewer updates) systematically COMPRESSED candidates toward their GPT-2 denominators: Pythia deficit
 0.047 (2M) -> 0.082 (converged 512k). Undertraining pulls BOTH arch and baseline toward each other, biasing
