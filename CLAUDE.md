@@ -352,6 +352,27 @@ GPT-2-via-train_hf@512k as THE Exp B denominator at each size. IMMEDIATE (3 runs
 b410/b1400/b1700 = 4 more runs. TOTAL train_hf denominators = 6 (b135 done, 5 to go), REPLACING the role of
 the 6 train_old baselines (which stay as a cross-check, differing by the ~0.0105 residual). This IS the
 all-six-denominators cost the user asked be visible — now justified by the residual, not assumed.**
+**RESIDUAL +0.0105 DIAGNOSED via code inspection (2026-08-14, user-requested — no fixable one-liner).**
+Compared common/model_gpt2.py (train_old GPT) vs HF GPT2LMHeadModel: attention BOTH sdpa (F.scaled_dot_
+product_attention is_causal); init BOTH std 0.02 + residual x1/sqrt(2L); optimizer BOTH AdamW betas
+0.9/0.95 eps 1e-8 (only diff = train_old fused=True vs train_hf fused=False = negligible ~1e-6 numerics);
+LR schedule IDENTICAL formula (linear warmup + 0.5(1+cos) to min-ratio); biases + LayerNorm eps 1e-5 +
+gelu_new activation all MATCH. Param-count gap (136.2M HF vs 135.6M train_old) = REPORTING ARTIFACT
+(model_gpt2 line 106 excludes wpe from its printed count; identical model). => NO identifiable
+architectural/optimizer/schedule cause. Residual is most consistent with DATA-LOADER ORDERING (train_hf
+EpochShuffledLoader vs train_old loader read the SAME owt_gpt2 tokens in different order -> different SGD
+trajectory) and is 1.05x the study ±0.01 same-seed NOISE FLOOR. REPORT SENTENCE: "residual +0.0105
+investigated — arch/init/schedule/optimizer verified matched; at same-seed noise floor, attributed to
+loader ordering, not a systematic defect; cancels under like-for-like anyway." Not chased with paid runs
+(a different-seed re-run would prove noise vs ~1sigma systematic, but like-for-like cancels it). 
+**512k CHAIN LAUNCHED (2026-08-14).** Driver /root/ceg/b1_512k_chain.sh (setsid, chain-abort), monitor
+/root/monitor_512k.sh -> monitor_512k.log, divcheck /root/divcheck_512k.py, status b1_512k_chain.status,
+backup scratchpad chain512k_backup.sh -> ~/Desktop/era_ladder_backup/b1_cand/. 3 arms @ 512k/16919 steps,
+budget 8.870B, union eval, only global batch held fixed (524288) each arch keeps documented recipe:
+r512k_gpt2b160 (GPT-2 denom, gpt2_b160.json, owt_gpt2, wd0.1/warmup0.0414/6e-4 cosine) -> r512k_pythia160m
+(pythia_160m.json, owt_neox, 6e-4 cosine/warmup0.01/wd0.01) -> r512k_smollm2 (smollm2_135m_v2.json,
+owt_smollm2, 3e-3 WSD 0.20/min-lr0/warmup0.01/wd0.01). ~9h. On finish: b160 denom = Pythia's threshold;
+compare SmolLM2 vs r512k_gpt2b160 denom (=1.2721 have it) + Pythia vs r512k_gpt2b160; tail-mean each.
 B1 BUILD STATUS (2026-08-08, fork): harness=train_hf/train_hf_ceg.py; BPB-over-
 HF-tokenizer instrument=eval/bpb_hf.py; Gate-2 check=scripts/gate2_bpb_check.py;
 prepare.py HF-tokenizer path added; Pythia-160M cfg=configs/hf/pythia_160m.json.
