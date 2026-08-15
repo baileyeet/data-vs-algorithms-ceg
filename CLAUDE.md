@@ -405,6 +405,27 @@ on it -> appended last, 8-GPU consistency kept vs a GPU-split). Configs configs/
 pythia_410m,smollm2_360m}.json committed 662fcf3. ~15h. ON FINISH apply pre-registered rule: SmolLM2-360M vs
 r512k_gpt2b360, Pythia-410M vs r512k_gpt2b410; replicate: 2-seed SmolLM2-135M mean vs 1.2721 (2-seed sig at
 |mean|>=0.018). Then LARGE (b1400/b1700 + Pythia-1.4B/SmolLM2-1.7B), then Gate B1->B2.
+**B1 MID COMPLETE + SmolLM2 DIVERGENCE FLAG (2026-08-15).** All 5 arms exit 0, ckpts+metrics local. Denoms
+(GPT-2 train_hf @512k tail-mean): b360=1.240024, b410=1.238212 (+ b135=1.272076). RESULTS (pre-registered
+rule):
+  Pythia-410M 1.261889 vs b410 -> Delta=+0.0237 = no advantage (slight deficit, 1-2sigma); CLEAN run
+    (neutral rise-from-min +0.003). Pythia deficit SHRINKS w/ scale: 160M +0.082 -> 410M +0.024.
+  SmolLM2-360M 1.293791 vs b360 -> Delta=+0.0538 = DEFICIT (>2sigma). **FLAG: DIVERGENCE SIGNATURE** —
+    own-val keeps dropping (0.98->0.91) while neutral BPB plateaus then RISES (min 1.2795 -> last 1.2977,
+    rise +0.018); model overfits OWT as neutral generalization stalls. divcheck didn't alarm (<0.05 thresh)
+    but signature clear. Deficit ROBUST to handling (min-based Delta=+0.040 still >2sigma) so verdict holds,
+    but the magnitude is confounded.
+  SmolLM2-135M REPLICATE: seed1 1.280267, seed2(2024) 1.281817 (agree to 0.0015!), 2-seed mean 1.281042 vs
+    b135 -> Delta=+0.0090 < 0.018 = PARITY CONFIRMED (not lucky-landing). seed2 fully clean (rise +0.000),
+    seed1 mild (+0.009).
+DIVERGENCE SCALES WITH SmolLM2 SIZE: 135M-seed2 +0.000, 135M-seed1 +0.009, 360M +0.018 -> SmolLM2's
+documented LR 3e-3 does NOT transfer to the re-anchored 8.87B/512k setting; progressive OWT-overfitting as
+capacity grows. Pythia (LR 3e-4) CLEAN throughout. HEADLINE ROBUST: NO architecture beats matched GPT-2
+anywhere in 135-410M (SmolLM2 135M parity else deficit; Pythia deficit shrinking w/ scale) — holds even on
+best/min neutral BPB. But SmolLM2's precise deficits are confounded by the recipe-transfer divergence, and
+**SmolLM2-1.7B (large) would likely diverge WORSE** (no-invented-recipe rule forbids just lowering its LR).
+DECISION PENDING (user) before LARGE tier: how to handle SmolLM2 recipe-transfer/divergence at 1.7B. All
+metrics+5 ckpts local ~/Desktop/era_ladder_backup/b1_cand/. GPUs idle.
 **METHODOLOGY NOTE #1 — UNDERTRAINING BIASES TOWARD PARITY (not just adds noise).** The 2M-batch regime
 (4x fewer updates) systematically COMPRESSED candidates toward their GPT-2 denominators: Pythia deficit
 0.047 (2M) -> 0.082 (converged 512k). Undertraining pulls BOTH arch and baseline toward each other, biasing
