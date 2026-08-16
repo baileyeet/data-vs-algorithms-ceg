@@ -1,0 +1,1 @@
+{"arch":"gpt2","label":"gpt2-b1400-denom","config":{"vocab_size":50304,"n_positions":1024,"n_embd":1728,"n_layer":37,"n_head":27,"resid_pdrop":0.0,"embd_pdrop":0.0,"attn_pdrop":0.0,"layer_norm_epsilon":1e-5,"tie_word_embeddings":true}}

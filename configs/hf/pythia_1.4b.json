@@ -1,0 +1,1 @@
+{"arch":"gptneox","label":"pythia-1.4B","note":"Pythia-1.4B dims; LR 2e-4 documented.","config":{"vocab_size":50304,"hidden_size":2048,"num_hidden_layers":24,"num_attention_heads":16,"intermediate_size":8192,"max_position_embeddings":2048,"rotary_pct":0.25,"rotary_emb_base":10000,"use_parallel_residual":true,"layer_norm_eps":1e-5,"hidden_act":"gelu","tie_word_embeddings":false}}
