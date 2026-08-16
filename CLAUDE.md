@@ -441,6 +441,13 @@ lr5e-4 wsd0.10/min0/warmup0.01/wd0.01 (rope 130000). Configs committed 8a7fd30. 
 @5e-4 STILL shows the own-val-down/neutral-up signature -> stop + disclose the 1.7B gap. ETA multi-day (1.4-1.7B
 @ 8.87B ~15-20 GPU-h/arm x4 ~= 2.5-3.5 days). ON FINISH apply pre-registered rule: Pythia-1.4B vs r512k_gpt2b1400,
 SmolLM2-1.7B vs r512k_gpt2b1700. Then B1 COMPLETE (small+mid+large) -> Gate B1->B2 (user review) before Mamba/Mamba2.
+**LARGE ARM1 OOM + FIX (2026-08-16).** First large launch CHAIN_ABORTed: r512k_gpt2b1400 OOM'd at db8
+(77.94/79.18GB used, needed +1.5GB). CAUSE: I fit-smoked Pythia-1.4B/SmolLM2-1.7B (both 24L) but NOT the
+GPT-2 denoms b1400(37L)/b1700(42L) — DEEPER => higher activation mem => OOM at db8. FIX: per-arm device-batch
+in b1_512k_large.sh — deep GPT-2 denoms db4 (accum16, re-smoked @db4 OK), Pythia/SmolLM2 db8 (accum8);
+global batch 524288 preserved (numerically identical, just more accum). Relaunched clean (driver 103070,
+GPUs 100%, arm1 db4/accum16/16919 steps training). Monitor 103144 + backup relaunched. LESSON: smoke EVERY
+distinct config shape (depth matters for mem, not just param count).
 **METHODOLOGY NOTE #1 — UNDERTRAINING BIASES TOWARD PARITY (not just adds noise).** The 2M-batch regime
 (4x fewer updates) systematically COMPRESSED candidates toward their GPT-2 denominators: Pythia deficit
 0.047 (2M) -> 0.082 (converged 512k). Undertraining pulls BOTH arch and baseline toward each other, biasing
