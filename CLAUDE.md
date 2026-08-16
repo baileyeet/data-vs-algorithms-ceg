@@ -426,6 +426,21 @@ best/min neutral BPB. But SmolLM2's precise deficits are confounded by the recip
 **SmolLM2-1.7B (large) would likely diverge WORSE** (no-invented-recipe rule forbids just lowering its LR).
 DECISION PENDING (user) before LARGE tier: how to handle SmolLM2 recipe-transfer/divergence at 1.7B. All
 metrics+5 ckpts local ~/Desktop/era_ladder_backup/b1_cand/. GPUs idle.
+**LARGE TIER: SmolLM2-1.7B RECIPE CHECK + LAUNCHED (2026-08-16).** User pre-condition check RESOLVED: the
+SmolLM2-1.7B documented recipe (nanotron config_smollm2_1B.yaml = 1.7B: hidden 2048/24L/32H MHA/interm 8192)
+uses learning_rate 5e-4 (6x LOWER than the 3e-3 that diverged at 135M/360M!) + WSD 10% decay + min-lr 0. So
+the LR-transfer/divergence issue likely does NOT apply at 1.7B on its OWN documented recipe -> the disclosed
+gap does NOT stand; run SmolLM2-1.7B @5e-4 (NOT invented — its real recipe). User approved FULL large tier.
+Driver /root/ceg/b1_512k_large.sh (setsid, chain-abort), monitor /root/monitor_512k_large.sh (TIGHTENED
+SmolLM2-1.7B watch: alerts if neutral rise-from-min >= +0.02, below coarse 0.05, + logs own-val trend),
+status b1_512k_large.status, backup scratchpad large512k_backup.sh. 4 arms @512k/16919 steps/8.870B/db8,
+param-matched: Pythia-1.4B 1.415B<->b1400 1.415B; SmolLM2-1.7B 1.711B<->b1700 1.711B. Both fit-smoked @db8 OK.
+Order (SmolLM2 LAST so a fallback does not touch others): (1) r512k_gpt2b1400 lr2e-4/wd0.1/warmup0.0414;
+(2) r512k_gpt2b1700 same; (3) r512k_pythia1_4b lr2e-4 cosine/warmup0.01/min0.1/wd0.01; (4) r512k_smollm2_1_7b
+lr5e-4 wsd0.10/min0/warmup0.01/wd0.01 (rope 130000). Configs committed 8a7fd30. FALLBACK: if SmolLM2-1.7B
+@5e-4 STILL shows the own-val-down/neutral-up signature -> stop + disclose the 1.7B gap. ETA multi-day (1.4-1.7B
+@ 8.87B ~15-20 GPU-h/arm x4 ~= 2.5-3.5 days). ON FINISH apply pre-registered rule: Pythia-1.4B vs r512k_gpt2b1400,
+SmolLM2-1.7B vs r512k_gpt2b1700. Then B1 COMPLETE (small+mid+large) -> Gate B1->B2 (user review) before Mamba/Mamba2.
 **METHODOLOGY NOTE #1 — UNDERTRAINING BIASES TOWARD PARITY (not just adds noise).** The 2M-batch regime
 (4x fewer updates) systematically COMPRESSED candidates toward their GPT-2 denominators: Pythia deficit
 0.047 (2M) -> 0.082 (converged 512k). Undertraining pulls BOTH arch and baseline toward each other, biasing
