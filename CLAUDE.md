@@ -448,6 +448,12 @@ in b1_512k_large.sh — deep GPT-2 denoms db4 (accum16, re-smoked @db4 OK), Pyth
 global batch 524288 preserved (numerically identical, just more accum). Relaunched clean (driver 103070,
 GPUs 100%, arm1 db4/accum16/16919 steps training). Monitor 103144 + backup relaunched. LESSON: smoke EVERY
 distinct config shape (depth matters for mem, not just param count).
+**LARGE RESULTS (3/4 in, 2026-08-17).** Denoms (GPT-2 train_hf @512k tail-mean): b1400=1.178475,
+b1700=1.183664 (1.4/1.7B within 0.005 = noise-flat). Pythia-1.4B 1.208745 vs b1400 -> Delta=+0.0303 =
+DEFICIT (>2sigma). PYTHIA FULL CURVE (all deficits, none cross): 160M +0.082 -> 410M +0.024 -> 1.4B +0.030
+= deficit shrinks then STABILIZES at ~0.02-0.03; NO algo advantage at any scale. r512k_smollm2_1_7b RUNNING
+(final arm, @documented 5e-4, tightened divergence watch; threshold b1700=1.1837: adv<=1.158 parity 1.171-1.197
+deficit>=1.210). Denominator trend monotonic-ish w/ scale: 1.272/1.252/1.240/1.238/1.178/1.184.
 **METHODOLOGY NOTE #1 — UNDERTRAINING BIASES TOWARD PARITY (not just adds noise).** The 2M-batch regime
 (4x fewer updates) systematically COMPRESSED candidates toward their GPT-2 denominators: Pythia deficit
 0.047 (2M) -> 0.082 (converged 512k). Undertraining pulls BOTH arch and baseline toward each other, biasing
