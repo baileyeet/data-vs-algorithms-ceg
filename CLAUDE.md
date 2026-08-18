@@ -830,7 +830,15 @@ explicit correction, not silently. v1/v2 agreement is within the measured
 - Pod SSH: direct TCP only for automation (ssh.runpod.io proxy is
   interactive-only). RunPod API key never worked (401) — pod lifecycle is
   manual via user's console.
-- HF repo: **MIRIBerkeley/data-vs-algorithms-ceg** (private; MOVED 2026-07-28
+- **HF ACTUAL STATE (verified 2026-08-18 via API): 25 files / 10.8 GB, model repo only,
+  ONLY current-arch-124M/ + current-arch-355M/ (8 A-arm ckpts + metrics + configs). NO
+  dataset repo; scaleup-124M/scaleup-1.5B/eval_corpus/era datasets NOT on HF (gone —
+  contradicts the 54-file/37.7GB record below; the ~36GB era datasets that hit the 403
+  cap are no longer present, so repo is NOT full). These 8 finals were HF-ONLY (no local
+  copy) -> pulled local + byte-verified to ~/Desktop/era_ladder_backup/hf_current_arch_finals/
+  (25/25 files, 8/8 ckpts). NOTHING deleted from HF. B1 upload (~40GB) likely fits at
+  10.8+40=~51GB; attempt when V2 done, confirm, delete current-arch finals only if it 403s.**
+- HF repo (HISTORICAL record, superseded by the verified state above): **MIRIBerkeley/data-vs-algorithms-ceg** (private; MOVED 2026-07-28
   from baileymachihirota/… which now redirects). 54 files / 37.7 GB: full 2x2
   matrix finals (4 arms each) + eval_corpus. **Folders REORGANIZED 2026-07-28 to
   an explicit-flat scheme** naming curve + scale (server-side path move, no
