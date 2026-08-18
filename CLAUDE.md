@@ -454,6 +454,25 @@ DEFICIT (>2sigma). PYTHIA FULL CURVE (all deficits, none cross): 160M +0.082 -> 
 = deficit shrinks then STABILIZES at ~0.02-0.03; NO algo advantage at any scale. r512k_smollm2_1_7b RUNNING
 (final arm, @documented 5e-4, tightened divergence watch; threshold b1700=1.1837: adv<=1.158 parity 1.171-1.197
 deficit>=1.210). Denominator trend monotonic-ish w/ scale: 1.272/1.252/1.240/1.238/1.178/1.184.
+**B1 COMPLETE (2026-08-18). SmolLM2-1.7B DIVERGED EVEN AT 5e-4.** tail-mean 1.303774 min 1.256001 vs b1700
+1.183664 -> Delta(tail)=+0.120 / Delta(min)=+0.072 = DEFICIT either way. DIVERGENCE +0.0423 rise-from-min
+(own-val 2.80->0.84 while neutral 1.256->1.298); watch fired 36 alerts. KEY: lower documented LR did NOT
+prevent divergence at 1.7B — it is WORSE than 360M (+0.042 vs +0.018). So SmolLM2's divergence is a
+big-model + limited-budget (8.87B) OWT-overfitting problem, NOT just the 3e-3 LR; present even at each size's
+documented LR, scaling with size (135M ~0 -> 360M +0.018 -> 1.7B +0.042). Run completed (monitor alerts, no
+auto-kill); result USED with divergence caveat (deficit robust to min/tail).
+=== FULL B1 RESULT (converged 512k, like-for-like train_hf GPT-2 denominators, pre-registered rule) ===
+PYTHIA (GPTNeoX 2023): 160M +0.082 DEF | 410M +0.024 no-adv | 1.4B +0.030 DEF -> never crosses; deficit
+  shrinks then stabilizes ~0.03; CLEAN runs throughout.
+SmolLM2 (Llama 2024): 135M +0.009 PARITY (2-seed confirmed, clean) | 360M +0.054 DEF (div +0.018) | 1.7B
+  +0.072min/+0.120tail DEF (div +0.042) -> best=135M parity; deficits grow w/ size, CONFOUNDED by divergence.
+HEADLINE: NEITHER modern Transformer-lineage arch beats a matched well-trained GPT-2 anywhere 135M-1.7B
+  (best = SmolLM2-135M parity; all else deficit). Contrast completed study's current-arch/ScaleUp = 13.7x/2.9x
+  algo advantage @124M. All 6 denom + 6 candidate + 2 replicate metrics/ckpts local. GPUs idle.
+=== GATE B1->B2 (user review REQUIRED before building Mamba/Mamba2) ===
+NEXT: user reviews B1, then confirm -> B2 = build+smoke Mamba/Mamba2 in shared train_hf harness (deps
+mamba-ssm/causal-conv1d/Triton-SSD; reuses owt_neox + gpt-neox-20b tok; matched GPT-2 denoms b1XX already
+exist as train_hf @512k). SmolLM2 divergence lesson: watch SSM candidates for the same OWT-overfitting.
 **METHODOLOGY NOTE #1 — UNDERTRAINING BIASES TOWARD PARITY (not just adds noise).** The 2M-batch regime
 (4x fewer updates) systematically COMPRESSED candidates toward their GPT-2 denominators: Pythia deficit
 0.047 (2M) -> 0.082 (converged 512k). Undertraining pulls BOTH arch and baseline toward each other, biasing
