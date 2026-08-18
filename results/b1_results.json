@@ -8,7 +8,7 @@
   "pipeline_residual_train_hf_minus_train_old": {"b135": 0.0105, "b160": -0.0150, "b360": -0.0048, "b410": -0.0055, "b1400": -0.0111, "b1700": 0.0045},
   "pythia": {
     "160M": {"params": 162322944, "bpb": 1.333728, "denom": 1.251829, "delta": 0.0819, "confounded": false, "verdict": "deficit"},
-    "410M": {"params": 405334016, "bpb": 1.261889, "denom": 1.238212, "delta": 0.0237, "confounded": false, "verdict": "no advantage", "note": "single-seed; replicate (seed 2024) in progress"},
+    "410M": {"params": 405334016, "bpb": 1.257828, "denom": 1.238212, "delta": 0.0196, "confounded": false, "verdict": "deficit (2-seed, marginal-significant)", "note": "2-seed mean (seeds 1234=1.261889, 2024=1.253766)"},
     "1.4B": {"params": 1414647808, "bpb": 1.208745, "denom": 1.178475, "delta": 0.0303, "confounded": false, "verdict": "deficit"}
   },
   "smollm2": {
