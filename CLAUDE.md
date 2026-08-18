@@ -838,8 +838,19 @@ explicit correction, not silently. v1/v2 agreement is within the measured
   pythia-410M-seed2 = 19.6GB) 403'd on the cap. ALL 14 B1 ckpts safe LOCAL (no durability risk).
   DURABILITY GAPS: current-arch finals pulled local + verified (hf_current_arch_finals/, 25/25);
   scaleup finals were HF-ONLY -> pulling local now (hf_scaleup_finals/, 24 files/26.8GB, size-verified).
-  PLAN (user-chosen): after scaleup backed up, DELETE scaleup-1.5B ckpts from HF (24.9GB, now local)
-  to free room, RETRY the 4 B1 uploads, VERIFY all 14. Keeps current-arch + scaleup-124M on HF.**
+  PLAN (superseded — see PUBLIC-REPO resolution below).**
+- **HF PRIVATE OVER-LIMIT (2026-08-18): "Private repository storage limit reached for MIRIBerkeley" —
+  now blocks READS+writes to ALL private repos. My B1 upload (10 ckpts ~15GB) tipped it over ~88GB.
+  scaleup finals (HF-ONLY, ~27GB) are currently UN-downloadable (limit blocks reads) -> scaleup
+  durability gap REMAINS OPEN until private quota resolved OR private space freed. Nothing auto-deleted.**
+- **RESOLUTION = PUBLIC REPO (user-authorized 2026-08-18 "public is fine"): B1 ckpts -> NEW PUBLIC repo
+  MIRIBerkeley/data-vs-algorithms-ceg-expB (public storage 8.7TB, SEPARATE from the exhausted private
+  quota -> no deletion needed). B1 ckpts are OWT-trained (owt_gpt2/neox/smollm2), NO DCLM/gated data ->
+  clean to be public. Uploading all 14 (6 denom + 6 candidate + 2 replicate) to exp-b-b1/<label>/.
+  Private repo data-vs-algorithms-ceg UNTOUCHED (study finals incl DCLM-trained arms stay private).
+  The 10 B1 ckpts I put in the PRIVATE repo earlier are now redundant (also going public) -> deleting
+  them from private would free ~15GB + likely restore private read access to back up scaleup (OPTIONAL
+  follow-up). scripts/hf_upload_b1 (scratchpad) parameterized by REPO.**
 - HF repo (HISTORICAL record, superseded by the verified state above): **MIRIBerkeley/data-vs-algorithms-ceg** (private; MOVED 2026-07-28
   from baileymachihirota/… which now redirects). 54 files / 37.7 GB: full 2x2
   matrix finals (4 arms each) + eval_corpus. **Folders REORGANIZED 2026-07-28 to
