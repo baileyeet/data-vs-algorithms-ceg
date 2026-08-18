@@ -830,14 +830,16 @@ explicit correction, not silently. v1/v2 agreement is within the measured
 - Pod SSH: direct TCP only for automation (ssh.runpod.io proxy is
   interactive-only). RunPod API key never worked (401) — pod lifecycle is
   manual via user's console.
-- **HF ACTUAL STATE (verified 2026-08-18 via API): 25 files / 10.8 GB, model repo only,
-  ONLY current-arch-124M/ + current-arch-355M/ (8 A-arm ckpts + metrics + configs). NO
-  dataset repo; scaleup-124M/scaleup-1.5B/eval_corpus/era datasets NOT on HF (gone —
-  contradicts the 54-file/37.7GB record below; the ~36GB era datasets that hit the 403
-  cap are no longer present, so repo is NOT full). These 8 finals were HF-ONLY (no local
-  copy) -> pulled local + byte-verified to ~/Desktop/era_ladder_backup/hf_current_arch_finals/
-  (25/25 files, 8/8 ckpts). NOTHING deleted from HF. B1 upload (~40GB) likely fits at
-  10.8+40=~51GB; attempt when V2 done, confirm, delete current-arch finals only if it 403s.**
+- **HF ACTUAL STATE (CORRECTED 2026-08-18 via huggingface_hub repo_info — the raw tree API
+  gave a BUGGY PARTIAL read that wrongly showed only 10.8GB/no-scaleup; ignore that):
+  86 files / ~88.2 GB, NEAR CAP. Holds the FULL completed study: current-arch-124M/ +
+  current-arch-355M/ + scaleup-124M/ + scaleup-1.5B/ (four 6.2GB ckpts). B1 UPLOAD (2026-08-18):
+  10/14 exp-b-b1/ ckpts uploaded+VERIFIED; 4 largest (b1700-denom, pythia-1.4B, smollm2-1.7B,
+  pythia-410M-seed2 = 19.6GB) 403'd on the cap. ALL 14 B1 ckpts safe LOCAL (no durability risk).
+  DURABILITY GAPS: current-arch finals pulled local + verified (hf_current_arch_finals/, 25/25);
+  scaleup finals were HF-ONLY -> pulling local now (hf_scaleup_finals/, 24 files/26.8GB, size-verified).
+  PLAN (user-chosen): after scaleup backed up, DELETE scaleup-1.5B ckpts from HF (24.9GB, now local)
+  to free room, RETRY the 4 B1 uploads, VERIFY all 14. Keeps current-arch + scaleup-124M on HF.**
 - HF repo (HISTORICAL record, superseded by the verified state above): **MIRIBerkeley/data-vs-algorithms-ceg** (private; MOVED 2026-07-28
   from baileymachihirota/… which now redirects). 54 files / 37.7 GB: full 2x2
   matrix finals (4 arms each) + eval_corpus. **Folders REORGANIZED 2026-07-28 to
