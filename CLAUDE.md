@@ -473,6 +473,23 @@ HEADLINE: NEITHER modern Transformer-lineage arch beats a matched well-trained G
 NEXT: user reviews B1, then confirm -> B2 = build+smoke Mamba/Mamba2 in shared train_hf harness (deps
 mamba-ssm/causal-conv1d/Triton-SSD; reuses owt_neox + gpt-neox-20b tok; matched GPT-2 denoms b1XX already
 exist as train_hf @512k). SmolLM2 divergence lesson: watch SSM candidates for the same OWT-overfitting.
+**B1 FINALIZATION (user-required before final, 2026-08-18). NARRATIVE (report, explicit not just table):
+this is the direct empirical test of Peter's Exp-B question — does current-arch's small-scale speedrun
+advantage GENERALIZE beyond small-scale-optimized tricks? Answer = NO (no published lineage beats matched
+GPT-2 135M-1.7B). FIGURE DONE: results/b1_cross_scale.png (analysis/plot_b1.py, results/b1_results.json,
+commit cf62239) — Delta-vs-scale per lineage; FILLED=clean, OPEN+best->tail bar=divergence-confounded
+(SmolLM2 360M/1.7B); parity line + ±1sigma band + 'advantage region (nothing observed)'; Peter narrative in
+caption. V1 CLOSED (pipeline equivalence at LARGE scale): train_hf denoms vs the existing train_old baselines
+are both GPT-2 @512k at every size -> residual profile b135..b1700 = +0.011/-0.015/-0.005/-0.006/-0.011/
++0.005 = all within ±0.015, SIGN-VARYING, incl 1.4B(-0.011)/1.7B(+0.005) -> residual is noise at ALL scales,
+Pythia's clean large numbers trustworthy (not extrapolated). NO new compute (existing data). V2 RUNNING:
+Pythia-410M replicate seed 2024 (r512k_pythia410m_seed2, driver+monitor launched; ~5h) to confirm the
+near-noise +0.024. AFTER V2: (1) update figure 410M to 2-seed mean; (2) UPLOAD everything to git (configs +
+metrics.csv + plot_b1.py + figure) AND HF private repo (final ckpts: 6 candidates + 6 denoms + replicates),
+CONFIRM each upload (do not assume). **HF CAVEAT: private repo MIRIBerkeley/data-vs-algorithms-ceg hit its
+storage CAP earlier (403 on new writes; decision was keep-local-until-quota-resolved). 12 large ckpts ~40GB
+will likely 403 -> attempt + report honestly, may be blocked pending quota fix.** B2 (Mamba/Mamba2) HELD
+until V2 closes.
 **METHODOLOGY NOTE #1 — UNDERTRAINING BIASES TOWARD PARITY (not just adds noise).** The 2M-batch regime
 (4x fewer updates) systematically COMPRESSED candidates toward their GPT-2 denominators: Pythia deficit
 0.047 (2M) -> 0.082 (converged 512k). Undertraining pulls BOTH arch and baseline toward each other, biasing
