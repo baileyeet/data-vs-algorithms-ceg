@@ -851,6 +851,17 @@ explicit correction, not silently. v1/v2 agreement is within the measured
   The 10 B1 ckpts I put in the PRIVATE repo earlier are now redundant (also going public) -> deleting
   them from private would free ~15GB + likely restore private read access to back up scaleup (OPTIONAL
   follow-up). scripts/hf_upload_b1 (scratchpad) parameterized by REPO.**
+- **B1 PUBLIC UPLOAD COMPLETE (2026-08-19): all 14 B1 ckpts VERIFIED on PUBLIC repo
+  MIRIBerkeley/data-vs-algorithms-ceg-expB (exp-b-b1/<label>/, byte-exact, 35.7GB). Took 3 upload
+  passes (network transients killed the big files mid-transfer; pythia-1.4B needed a retry-loop).
+  Then deleted the 24 redundant exp-b-b1 files from the PRIVATE repo (88->73.5GB). BUT private STILL
+  over-limit at 73.5GB (limit < 73.5GB) -> reads STILL blocked -> SCALEUP BACKUP STILL BLOCKED.
+  Only safely-deletable item left = current-arch (10.8GB, backed up local) -> ~62.7GB, MAY still be
+  over. scaleup (~25GB, the big freeable chunk) CANNOT be safely deleted (can't download to back up
+  while blocked). RESOLUTION NEEDS USER: (a) upgrade MIRIBerkeley HF plan (restores access, no deletion,
+  cleanest) OR (b) delete current-arch (backed up) to TRY restoring access (uncertain it frees enough)
+  OR (c) leave scaleup HF-only-inaccessible until quota resolved. B1 MAIN GOAL (public durable copy)
+  DONE regardless. All 14 B1 ckpts+metrics local + public + git.**
 - HF repo (HISTORICAL record, superseded by the verified state above): **MIRIBerkeley/data-vs-algorithms-ceg** (private; MOVED 2026-07-28
   from baileymachihirota/… which now redirects). 54 files / 37.7 GB: full 2x2
   matrix finals (4 arms each) + eval_corpus. **Folders REORGANIZED 2026-07-28 to
