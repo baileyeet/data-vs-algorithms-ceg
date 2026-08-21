@@ -862,6 +862,20 @@ explicit correction, not silently. v1/v2 agreement is within the measured
   cleanest) OR (b) delete current-arch (backed up) to TRY restoring access (uncertain it frees enough)
   OR (c) leave scaleup HF-only-inaccessible until quota resolved. B1 MAIN GOAL (public durable copy)
   DONE regardless. All 14 B1 ckpts+metrics local + public + git.**
+- **POD LOST (2026-08-20, ran out of funds — terminated). LOSS AUDIT = NOTHING CRITICAL LOST:**
+  B1 ckpts 14/14 local (~/Desktop/era_ladder_backup/b1_cand/checkpoints) + PUBLIC HF + (metrics) git;
+  owt_neox 17GB + owt_smollm2 17GB local (~/Desktop/era_ladder_backup/b1_datasets/); wiki_eval_union in
+  eval_sets.tgz; code (train_hf_ceg.py incl gpt2 arch, plot_b1.py, configs, prepare.py) in git.
+  owt_gpt2 NOT backed up but REPRODUCIBLE (prepare.py, gpt2 BPE, seed 1234, deterministic). scaleup
+  finals unaffected (they live on private HF, not the pod). B1 COMPLETE + safe. Only cost = need a NEW
+  paid pod to resume (B2). **B2 RESUME STEPS: (1) new 8xH100 pod + funds; (2) re-bootstrap: git archive
+  repo, pip datasets/tiktoken/numpy/transformers + torch 2.10.0+cu128 + mamba-ssm + causal-conv1d +
+  Triton(SSD); (3) re-seed: scp owt_neox (local) to pod, extract wiki_eval_union from eval_sets.tgz,
+  re-tokenize owt_gpt2 if GPT-2 denoms at Mamba sizes needed; (4) build+smoke Mamba/Mamba2 (train_hf
+  registry ALREADY lazy-imports MambaConfig/Mamba2Config — just need the classes installed); (5) matched
+  GPT-2 denoms at Mamba sizes (130M/370M/1.3-1.4B) + Mamba/Mamba2 candidates, SAME 512k pipeline +
+  pre-registered rule + DIVERGENCE WATCH (SmolLM2 lesson: SSMs may overfit OWT too).** SCALEUP: safe on
+  private HF (blocked, not lost); resolve via HF plan upgrade at leisure — low priority, not urgent.
 - HF repo (HISTORICAL record, superseded by the verified state above): **MIRIBerkeley/data-vs-algorithms-ceg** (private; MOVED 2026-07-28
   from baileymachihirota/… which now redirects). 54 files / 37.7 GB: full 2x2
   matrix finals (4 arms each) + eval_corpus. **Folders REORGANIZED 2026-07-28 to
