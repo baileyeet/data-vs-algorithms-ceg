@@ -63,6 +63,8 @@ The 16 arms distilled to compute-equivalent-gain multipliers for both lineages a
 
 So the single-margin ScaleUp numbers bound a full Shapley from opposite sides on the two axes. (Multipliers are within-hardware GPU-hour ratios — current-arch 8-GPU, ScaleUp 5-GPU — so the count overhead cancels in each ratio.)
 
+The figure's algorithm panel also carries a THIRD estimator — the Exp B architecture lineages (Pythia, SmolLM2) as open ▽ at 1× — which are algorithm-CEG vs a matched GPT-2 (data fixed, no data-panel entry) and are all censored (≤1×, none cross). See the Exp B section below.
+
 ## Curve 1 — current-arch (124M, 355M)
 
 The SOTA modded-nanoGPT speedrun as A1. Direct test of whether the data/algorithm split is scale-invariant for this algorithm:
@@ -88,6 +90,46 @@ The ScaleUp algorithm's advantage on new data **declines mildly with scale (2.90
 NOTE (hardware): the ScaleUp A1 arms and their GPT-2 A0 baseline were all measured on 5xH100 (the A0-124M baseline was re-run on 5 GPUs for this — an 8-vs-5 mix had distorted the 124M algo multiplier to 2.35x; the consistent value is 2.90x). GPU-hours is NOT cleanly count-invariant here (the forced batch/accum change cost ~22%).
 
 Reading of the two curves together: **both algorithms' advantages shrink with scale, but the more aggressively small-scale-tuned current speedrun decays far faster (from a much higher base) than the older, more fundamental ScaleUp (Muon + rotary).** **355M is a disclosed gap** for the ScaleUp lineage (no documented era-appropriate recipe; no hand-derived LR).
+
+## Exp A — data-era ladder (@124M)
+
+Follow-on to the 2x2 study: hold the algorithm axis and sweep the DATA corpus across release-years — OWT (2019), C4 (2020), RefinedWeb (2023), DCLM (2024) — to see how data-quality and algorithm contributions move with dataset vintage. Wikipedia (union-decontam) is the neutral eval, never a train corpus; CEG is GPU-hours-to-threshold vs the old-algo-OWT baseline. @124M = matched DIMENSIONS (12L/12H/768d), NOT param count (old-algo 123,689,472; current-arch 498,773,000 — the value-embed/U-net additions ARE the algorithm being measured).
+
+Corrected 2x2 (union eval, all arms torch 2.10): threshold **1.2760 BPB**; **data 2.39×, algorithm 16.10×, total 38.49×** (vs published 2.23/13.69/30.5× — the shift is union-eval + same-seed variance, no torch component; both are torch 2.10).
+
+| Dataset (year) | old-algo CEG | current-arch CEG | algorithm CEG at that corpus |
+|--|--|--|--|
+| OWT (2019) | 1.0× | 23.8× | 23.8× |
+| C4 (2020) | censored | censored | censored |
+| RefinedWeb (2023) | 3.3× | 37.9× | 11.6× |
+| DCLM (2024) | 3.5× | 38.5× | 10.9× |
+
+Data-quality is **NON-monotonic in release year**: C4 (2020) is CENSORED under BOTH algorithms (never reaches the OWT threshold — a WORSE training corpus than 2019 OWT), while RefinedWeb (2023) and DCLM (2024) do improve. So 'newer dataset' ≠ 'better data'. The algorithm CEG stays large across corpora (see the OWT/RefinedWeb/DCLM column).
+
+![Exp A: CEG vs dataset release-year](era_ladder.png)
+
+## Exp B — architecture landscape (Transformer lineages vs matched GPT-2)
+
+The completed study found a large small-scale *algorithm* CEG for the current-arch speedrun (13.7× @124M). Exp B is the direct test of whether that generalizes beyond a small-scale-optimized speedrun: it trains PUBLISHED open-model lineages — **Pythia (GPT-NeoX, 2023)** and **SmolLM2 (Llama, 2024)** — from scratch on fixed data (OpenWebText), each against a size-matched GPT-2 baseline through the identical harness, and asks whether any reaches (crosses) the GPT-2 baseline's neutral-BPB threshold. Data is held fixed → no data/algorithm 2×2; this is algorithm-CEG only.
+
+**Result: no lineage crosses at any scale (135M–1.7B) → algorithm-CEG ≤1× everywhere (no measurable gain over a matched, properly-tuned GPT-2).** Best case is SmolLM2-135M, whose gap is within same-seed noise of parity (still not a crossing). A direct empirical 'no' to whether the current-arch small-scale advantage generalizes to these lineages. Exp B is the censored (open ▽ at 1×) markers on the algorithm panel of `multipliers_vs_scale.png` above.
+
+Pre-registered verdict rule: |delta| within ±0.013 neutral BPB of the matched GPT-2 = parity-within-noise; ≥0.026 (2σ) = significant deficit. delta = arch tail-mean neutral BPB − its matched GPT-2 (both @512k); >0 = worse.
+
+| Lineage | size | Δ BPB vs matched GPT-2 | algorithm-CEG |
+|--|--|--|--|
+| pythia | 160M | +0.082 | ≤1× (censored, no crossing) |
+| pythia | 410M | +0.020 | ≤1× (censored, no crossing) |
+| pythia | 1.4B | +0.030 | ≤1× (censored, no crossing) |
+| smollm2 | 135M | +0.009 | ≤1× (censored, no crossing) |
+| smollm2 | 360M | +0.054 *(divergence-confounded)* | ≤1× (censored, no crossing) |
+| smollm2 | 1.7B | +0.120 *(divergence-confounded)* | ≤1× (censored, no crossing) |
+
+Pythia is clean at every scale (deficit shrinks 160M→410M then stabilizes ~0.02–0.03). SmolLM2-135M is parity-within-noise (confirmed with a 2nd seed). SmolLM2-360M/1.7B are deficits but **divergence-confounded**: even at each size's documented LR they overfit OWT under the fixed ~8.87B budget (neutral BPB rises off its own minimum while own-val keeps falling), an effect that grows with size — the deficit verdict is robust (holds on the best/min BPB too) but the exact magnitude is inflated.
+
+Methodology: like-for-like train_hf denominators at every size (a matched GPT-2 through the SAME harness — verified equivalent to the study's train_old GPT-2 to within the ±0.013 same-seed noise floor at ALL scales incl 1.4B); the undertraining regime biases toward parity (not just noise), so all arms are compared at convergence.
+
+**LIMITATION / tracked TODO — CORE-by-task not yet run for Exp B.** This BPB/CEG finding needs downstream-task corroboration (the study's CORE gate, arms-by-task). It requires the CORE eval on the 14 Exp B checkpoints (public HF `MIRIBerkeley/data-vs-algorithms-ceg-expB`) on GPUs — **DEFERRED to the next pod** (part of the Mamba/B2 bring-up). Until then Exp B is BPB/CEG-only.
 
 ## CORE-subset (secondary, validity-gated)
 

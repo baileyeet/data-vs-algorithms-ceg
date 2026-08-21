@@ -223,13 +223,21 @@ def all_configs_curves(root: Path, out_path):
     plt.close(fig)
 
 
-def multipliers_vs_scale(curves: dict, out_path):
-    """Summary figure: BOTH cross-scale curves' CEG multipliers across scale.
+def multipliers_vs_scale(curves: dict, out_path, censored: dict = None):
+    """Summary figure: cross-scale CEG multipliers across scale, ALL lineages.
 
-    curves[name] = {scales:[M params], algo:[x], data:[x]}. Two panels
-    (algorithm | data multiplier) share the model-size axis; each line is one
-    lineage. This AGGREGATES the 16 arms into the Shapley multipliers — see
-    all_configs_curves for the per-arm detail. Gaps are simply absent points.
+    curves[name] = {scales:[M params], algo:[x], data:[x]} — numeric multiplier
+    lineages (current-arch, ScaleUp). Two panels (algorithm | data) share the
+    model-size axis. AGGREGATES the 16 arms into Shapley multipliers.
+
+    censored[name] = {label, color, scales:[M params], annot:{size:txt}} — Exp B
+    architecture lineages (Pythia, SmolLM2, later Mamba/Mamba2). These are a THIRD
+    estimator: algorithm-CEG vs a MATCHED GPT-2 baseline, data held fixed (OWT) so
+    NO data-panel entry. Every Exp B arm is CENSORED (its converged neutral BPB
+    stays above the matched-GPT-2 threshold -> never crosses -> algorithm-CEG <=1x),
+    so it carries no numeric multiplier; drawn as a hollow down-triangle at the 1x
+    parity line on the ALGORITHM panel only. SmolLM2-135M is annotated as within
+    same-seed noise of parity (still censored, not a crossing).
     """
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11.2, 4.8), dpi=150,
                                    sharex=True)
@@ -248,23 +256,40 @@ def multipliers_vs_scale(curves: dict, out_path):
                 ax.annotate(f"{y:.1f}×", xy=(x, y), xytext=(0, 9),
                             textcoords="offset points", fontsize=8.5,
                             color=INK, ha="center")
+        # Exp B censored lineages: algorithm panel only, hollow v at 1x parity line
+        if censored and ax is ax1:
+            ax.axhline(1.0, color=GRID, lw=1.2, ls=(0, (4, 3)), zorder=1)
+            ax.annotate("1× = parity with matched GPT-2 (no algorithm gain)",
+                        xy=(600, 1.0), xytext=(0, 5), textcoords="offset points",
+                        ha="center", va="bottom", fontsize=7.3, color=INK2)
+            for lname, e in censored.items():
+                ax.scatter(e["scales"], [1.0] * len(e["scales"]), marker="v",
+                           s=85, facecolors="none", edgecolors=e["color"],
+                           linewidths=1.8, zorder=4, label=e["label"])
+                for x, txt in e.get("annot", {}).items():
+                    ax.annotate(txt, xy=(x, 1.0), xytext=(-6, 12),
+                                textcoords="offset points", ha="right", va="bottom",
+                                fontsize=6.8, color=e["color"],
+                                arrowprops=dict(arrowstyle="-", color=e["color"], lw=0.7))
         ax.set_xscale("log"); ax.set_yscale("log")
         ax.set_xticks([124, 355, 1536])
         ax.set_xticklabels(["124M", "355M", "1.5B"])
         ax.set_xlabel("Model size")
         ax.set_title(ttl, fontsize=11, loc="left")
         _style(ax)
-        ax.set_ylim(0.9, max(20, ax.get_ylim()[1]))
+        ax.set_ylim(0.82, max(20, ax.get_ylim()[1]))
     ax1.set_ylabel("Compute-reduction multiplier")
-    ax1.legend(frameon=False, fontsize=8, labelcolor=INK2, loc="upper right")
+    ax1.legend(frameon=False, fontsize=7.4, labelcolor=INK2, loc="upper right")
     fig.suptitle("Compute-equivalent-gain multipliers vs model scale",
                  fontsize=12.5, x=0.012, ha="left", color=INK)
     note = ("Different estimators — NOT directly comparable.  current-arch "
-            "(solid, filled) = true 2-ordering Shapley; ScaleUp (dashed, open) = "
-            "a single censored margin (A1D0 never crosses), whose bias vs a full "
-            "Shapley differs BY AXIS — see the report's multiplier notes.")
-    fig.text(0.012, 0.02, note, fontsize=7.6, color=INK2, va="bottom", wrap=True)
-    fig.tight_layout(rect=(0, 0.10, 1, 0.94))
+            "(solid, filled) = true 2-ordering Shapley;  ScaleUp (dashed, open sq.) "
+            "= single censored margin (A1D0 never crosses).  Exp B (open ▽ at 1×) = "
+            "algorithm-CEG vs a MATCHED GPT-2, data fixed (no data panel); every arm "
+            "is censored (converged BPB stays above the GPT-2 threshold → ≤1×, no algo "
+            "gain).  SmolLM2 360M/1.7B are additionally divergence-confounded.")
+    fig.text(0.012, 0.02, note, fontsize=7.2, color=INK2, va="bottom", wrap=True)
+    fig.tight_layout(rect=(0, 0.12, 1, 0.94))
     fig.savefig(out_path, facecolor=SURFACE)
     plt.close(fig)
 
@@ -287,6 +312,34 @@ def _assemble_all_configs(root: Path):
             "data": [su["shapley"]["data_A0row_x"], xl["shapley_pieces"]["data_A0row_x"]],
         },
     }
+
+
+def _assemble_expb(root: Path):
+    """Exp B architecture lineages for the algorithm panel of multipliers_vs_scale.
+    All arms are CENSORED (never cross their matched-GPT-2 threshold -> algorithm-CEG
+    <=1x), so no numeric multiplier — we return sizes (M params) + the
+    within-noise-of-parity annotation. Returns None if b1_results.json is absent."""
+    p = root / "b1_results.json"
+    if not p.exists():
+        return None
+    R = json.loads(p.read_text())
+    sigma = R.get("noise_sigma", 0.013)
+    spec = {"pythia": ("Pythia (GPT-NeoX) — vs matched GPT-2 (all censored ≤1×)", "#1baf7a"),
+            "smollm2": ("SmolLM2 (Llama) — vs matched GPT-2 (all censored ≤1×)", "#8e44ad")}
+    out = {}
+    for key, (label, color) in spec.items():
+        if key not in R:
+            continue
+        entries = R[key]
+        order = sorted(entries, key=lambda s: entries[s]["params"])
+        scales, annot = [], {}
+        for s in order:
+            pm = entries[s]["params"] / 1e6
+            scales.append(pm)
+            if abs(entries[s].get("delta", 1)) < sigma:
+                annot[pm] = "within noise\nof parity"
+        out[key] = {"label": label, "color": color, "scales": scales, "annot": annot}
+    return out
 
 
 # the 6 CORE tasks usable at some size; fixed distinct hues (lines are also
@@ -487,7 +540,8 @@ if __name__ == "__main__":
     elif a.kind == "all_configs":
         all_configs_curves(Path("results"), a.out)
     elif a.kind == "multipliers":
-        multipliers_vs_scale(_assemble_all_configs(Path("results")), a.out)
+        multipliers_vs_scale(_assemble_all_configs(Path("results")), a.out,
+                             censored=_assemble_expb(Path("results")))
     elif a.kind == "core_vs_scale":
         core_vs_scale(Path("results"), a.out)
     elif a.kind == "core_arms_by_task":

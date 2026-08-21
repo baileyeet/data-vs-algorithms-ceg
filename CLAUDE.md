@@ -876,6 +876,21 @@ explicit correction, not silently. v1/v2 agreement is within the measured
   GPT-2 denoms at Mamba sizes (130M/370M/1.3-1.4B) + Mamba/Mamba2 candidates, SAME 512k pipeline +
   pre-registered rule + DIVERGENCE WATCH (SmolLM2 lesson: SSMs may overfit OWT too).** SCALEUP: safe on
   private HF (blocked, not lost); resolve via HF plan upgrade at leisure — low priority, not urgent.
+- **EXP B PRESENTATION = MATCH STUDY CONVENTIONS (user-ratified 2026-08-20; my bespoke Δ-BPB figure
+  b1_cross_scale.png was WRONG/non-comparable — to be replaced):** (1) METRIC = algorithm-CEG MULTIPLIER
+  (GPU-hours-to-threshold ratio vs matched GPT-2), same axis as current-arch/ScaleUp — NOT raw BPB. (2)
+  ALL Exp B arches are CENSORED (final BPB > their matched-GPT-2 threshold -> never cross -> CEG <=1x /
+  no-crossing marker), INCLUDING SmolLM2-135M (Delta +0.009 is positive = also didn't cross; render
+  censored WITH annotation "within noise of parity", NOT a clean crossing). (3) NO 2x2/Shapley for Exp B
+  (data held fixed = OWT, nothing to decompose) -> algorithm-CEG only. (4) FIGURE = EXTEND the existing
+  cross-scale multipliers figure (results/multipliers_vs_scale.png or equiv, per plots.py cross_scale) to
+  ADD Pythia/SmolLM2 (later Mamba/Mamba2) as new arch curves/censored markers — do NOT build a separate
+  Exp-B figure. b1_cross_scale.png + its bespoke framing to be removed/replaced.
+- **TRACKED TODO — CORE-by-task for Exp B (deferred, NEEDS GPU/pod):** run the CORE downstream-task eval
+  (eval/lm_eval adapters, same as the completed study's CORE sweep) on the 14 B1 checkpoints (public HF
+  exp-b-b1/) and present arms-by-task like the study's CORE section. HIGH VALUE: the "no arch beats GPT-2"
+  BPB finding needs downstream-task corroboration. BLOCKED on: a funded pod (part of B2 bring-up). Put
+  this in the report's limitations/next-steps too when the report is updated.
 - HF repo (HISTORICAL record, superseded by the verified state above): **MIRIBerkeley/data-vs-algorithms-ceg** (private; MOVED 2026-07-28
   from baileymachihirota/… which now redirects). 54 files / 37.7 GB: full 2x2
   matrix finals (4 arms each) + eval_corpus. **Folders REORGANIZED 2026-07-28 to

@@ -1,19 +1,20 @@
 {
   "experiment": "Exp B B1 — Transformer-lineage architectures vs matched GPT-2 (converged 512k, like-for-like train_hf denominators)",
   "date": "2026-08-18",
-  "metric": "delta = candidate tail-mean neutral BPB - matched GPT-2 train_hf denominator (both @512k). >0 = deficit, <0 = algo advantage.",
+  "headline_metric": "algorithm-CEG = GPU-hours for the arch to reach its matched GPT-2 baseline's neutral-BPB threshold, relative to the baseline (same axis as the completed study's algorithm multiplier). Data held fixed (OWT) so NO data/Shapley decomposition.",
+  "ceg_framing": "EVERY Exp B arm is CENSORED: its converged neutral BPB stays ABOVE the matched GPT-2 threshold (delta > 0), so it never crosses -> algorithm-CEG <= 1x (no measurable algorithm gain). No finite <1x multiplier exists for a never-crossing arm; rendered as a censored marker at the 1x parity line on results/multipliers_vs_scale.png. 'delta' (neutral-BPB gap vs the matched GPT-2, >0=worse) is the underlying measurement.",
   "noise_sigma": 0.013,
   "sig_2sigma": 0.026,
   "denominators_train_hf_512k": {"b135": 1.272076, "b160": 1.251829, "b360": 1.240024, "b410": 1.238212, "b1400": 1.178475, "b1700": 1.183664},
   "pipeline_residual_train_hf_minus_train_old": {"b135": 0.0105, "b160": -0.0150, "b360": -0.0048, "b410": -0.0055, "b1400": -0.0111, "b1700": 0.0045},
   "pythia": {
-    "160M": {"params": 162322944, "bpb": 1.333728, "denom": 1.251829, "delta": 0.0819, "confounded": false, "verdict": "deficit"},
-    "410M": {"params": 405334016, "bpb": 1.257828, "denom": 1.238212, "delta": 0.0196, "confounded": false, "verdict": "deficit (2-seed, marginal-significant)", "note": "2-seed mean (seeds 1234=1.261889, 2024=1.253766)"},
-    "1.4B": {"params": 1414647808, "bpb": 1.208745, "denom": 1.178475, "delta": 0.0303, "confounded": false, "verdict": "deficit"}
+    "160M": {"params": 162322944, "bpb": 1.333728, "denom": 1.251829, "delta": 0.0819, "confounded": false, "algorithm_ceg": "censored_le_1x", "verdict": "no crossing -> algo-CEG <=1x (deficit +0.082)"},
+    "410M": {"params": 405334016, "bpb": 1.257828, "denom": 1.238212, "delta": 0.0196, "confounded": false, "algorithm_ceg": "censored_le_1x", "verdict": "no crossing -> algo-CEG <=1x (deficit +0.020, 2-seed, marginal-significant)", "note": "2-seed mean (seeds 1234=1.261889, 2024=1.253766)"},
+    "1.4B": {"params": 1414647808, "bpb": 1.208745, "denom": 1.178475, "delta": 0.0303, "confounded": false, "algorithm_ceg": "censored_le_1x", "verdict": "no crossing -> algo-CEG <=1x (deficit +0.030)"}
   },
   "smollm2": {
-    "135M": {"params": 134515008, "bpb": 1.281042, "denom": 1.272076, "delta": 0.0090, "confounded": false, "verdict": "parity", "note": "2-seed mean (1234, 2024)"},
-    "360M": {"params": 361821120, "bpb": 1.293791, "denom": 1.240024, "delta": 0.0538, "delta_min": 0.0395, "confounded": true, "verdict": "deficit (divergence-confounded, rise +0.018)"},
-    "1.7B": {"params": 1711376384, "bpb": 1.303774, "denom": 1.183664, "delta": 0.1201, "delta_min": 0.0723, "confounded": true, "verdict": "deficit (divergence-confounded, rise +0.042)"}
+    "135M": {"params": 134515008, "bpb": 1.281042, "denom": 1.272076, "delta": 0.0090, "confounded": false, "algorithm_ceg": "censored_le_1x", "verdict": "no crossing -> algo-CEG <=1x; delta +0.009 is WITHIN NOISE of parity (not a clean crossing)", "note": "2-seed mean (1234, 2024)"},
+    "360M": {"params": 361821120, "bpb": 1.293791, "denom": 1.240024, "delta": 0.0538, "delta_min": 0.0395, "confounded": true, "algorithm_ceg": "censored_le_1x", "verdict": "no crossing -> algo-CEG <=1x (deficit +0.054; divergence-confounded, rise +0.018)"},
+    "1.7B": {"params": 1711376384, "bpb": 1.303774, "denom": 1.183664, "delta": 0.1201, "delta_min": 0.0723, "confounded": true, "algorithm_ceg": "censored_le_1x", "verdict": "no crossing -> algo-CEG <=1x (deficit +0.120; divergence-confounded, rise +0.042)"}
   }
 }

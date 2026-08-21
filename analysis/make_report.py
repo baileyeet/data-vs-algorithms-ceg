@@ -113,6 +113,109 @@ def _scaleup_section(root):
     return out
 
 
+def _era_ladder_section(root):
+    """Exp A: data-era ladder @124M. CEG (vs old-algo-OWT baseline) as a function of
+    dataset release-year, for both old-algo and current-arch, plus the corrected
+    OWT×DCLM 2x2. Reads era_correction_2x2.json + era_ladder_results.json."""
+    cp = root / "era_correction_2x2.json"
+    lp = root / "era_ladder_results.json"
+    if not (cp.exists() and lp.exists()):
+        return []
+    C = json.loads(cp.read_text())
+    L = json.loads(lp.read_text())
+    m = C["cells_2x2"]["multipliers"]
+    pub = C["comparison_to_published"]["published_124M"]
+    pc = C["param_counts"]
+    out = ["## Exp A — data-era ladder (@124M)", "",
+           "Follow-on to the 2x2 study: hold the algorithm axis and sweep the DATA "
+           "corpus across release-years — OWT (2019), C4 (2020), RefinedWeb (2023), "
+           "DCLM (2024) — to see how data-quality and algorithm contributions move with "
+           "dataset vintage. Wikipedia (union-decontam) is the neutral eval, never a "
+           "train corpus; CEG is GPU-hours-to-threshold vs the old-algo-OWT baseline. "
+           f"@124M = matched DIMENSIONS (12L/12H/768d), NOT param count (old-algo "
+           f"{pc['old_algo']:,}; current-arch {pc['current_arch']:,} — the "
+           "value-embed/U-net additions ARE the algorithm being measured).", "",
+           f"Corrected 2x2 (union eval, all arms torch 2.10): threshold "
+           f"**{C['corrected_threshold_neutral_bpb']:.4f} BPB**; **data {m['data']:.2f}×, "
+           f"algorithm {m['algorithm']:.2f}×, total {m['total']:.2f}×** "
+           f"(vs published {pub['data']}/{pub['algorithm']}/{pub['total']}× — the shift is "
+           "union-eval + same-seed variance, no torch component; both are torch 2.10).", "",
+           "| Dataset (year) | old-algo CEG | current-arch CEG | algorithm CEG at that corpus |",
+           "|--|--|--|--|"]
+
+    def fx(v):
+        return "censored" if v is None else f"{v:.1f}×"
+    for ds, e in sorted(L["datasets"].items(), key=lambda kv: kv[1]["release_year"]):
+        out.append(f"| {ds} ({e['release_year']}) | {fx(e['old_algo']['ceg_vs_a0d0'])} | "
+                   f"{fx(e['current_arch']['ceg_vs_a0d0'])} | {fx(e['algo_ceg_at_dataset'])} |")
+    out += ["",
+            "Data-quality is **NON-monotonic in release year**: C4 (2020) is CENSORED "
+            "under BOTH algorithms (never reaches the OWT threshold — a WORSE training "
+            "corpus than 2019 OWT), while RefinedWeb (2023) and DCLM (2024) do improve. "
+            "So 'newer dataset' ≠ 'better data'. The algorithm CEG stays large across "
+            "corpora (see the OWT/RefinedWeb/DCLM column).", ""]
+    if (root / "era_ladder.png").exists():
+        out += ["![Exp A: CEG vs dataset release-year](era_ladder.png)", ""]
+    return out
+
+
+def _expb_section(root):
+    """Exp B: architecture landscape. Published Transformer lineages (Pythia, SmolLM2)
+    vs a size-matched GPT-2, data fixed (OWT), algorithm-CEG only (no 2x2). Reads
+    b1_results.json. Exp B also appears as censored markers on multipliers_vs_scale.png."""
+    p = root / "b1_results.json"
+    if not p.exists():
+        return []
+    R = json.loads(p.read_text())
+    out = ["## Exp B — architecture landscape (Transformer lineages vs matched GPT-2)", "",
+           "The completed study found a large small-scale *algorithm* CEG for the "
+           "current-arch speedrun (13.7× @124M). Exp B is the direct test of whether that "
+           "generalizes beyond a small-scale-optimized speedrun: it trains PUBLISHED "
+           "open-model lineages — **Pythia (GPT-NeoX, 2023)** and **SmolLM2 (Llama, 2024)** "
+           "— from scratch on fixed data (OpenWebText), each against a size-matched GPT-2 "
+           "baseline through the identical harness, and asks whether any reaches (crosses) "
+           "the GPT-2 baseline's neutral-BPB threshold. Data is held fixed → no "
+           "data/algorithm 2×2; this is algorithm-CEG only.", "",
+           "**Result: no lineage crosses at any scale (135M–1.7B) → algorithm-CEG ≤1× "
+           "everywhere (no measurable gain over a matched, properly-tuned GPT-2).** Best "
+           "case is SmolLM2-135M, whose gap is within same-seed noise of parity (still not "
+           "a crossing). A direct empirical 'no' to whether the current-arch small-scale "
+           "advantage generalizes to these lineages. Exp B is the censored (open ▽ at 1×) "
+           "markers on the algorithm panel of `multipliers_vs_scale.png` above.", "",
+           f"Pre-registered verdict rule: |delta| within ±{R['noise_sigma']} neutral BPB of "
+           f"the matched GPT-2 = parity-within-noise; ≥{R['sig_2sigma']} (2σ) = significant "
+           "deficit. delta = arch tail-mean neutral BPB − its matched GPT-2 (both @512k); "
+           ">0 = worse.", "",
+           "| Lineage | size | Δ BPB vs matched GPT-2 | algorithm-CEG |",
+           "|--|--|--|--|"]
+    for lin in ("pythia", "smollm2"):
+        if lin not in R:
+            continue
+        for s in sorted(R[lin], key=lambda k: R[lin][k]["params"]):
+            e = R[lin][s]
+            conf = " *(divergence-confounded)*" if e.get("confounded") else ""
+            out.append(f"| {lin} | {s} | +{e['delta']:.3f}{conf} | ≤1× (censored, no crossing) |")
+    out += ["",
+            "Pythia is clean at every scale (deficit shrinks 160M→410M then stabilizes "
+            "~0.02–0.03). SmolLM2-135M is parity-within-noise (confirmed with a 2nd seed). "
+            "SmolLM2-360M/1.7B are deficits but **divergence-confounded**: even at each "
+            "size's documented LR they overfit OWT under the fixed ~8.87B budget (neutral "
+            "BPB rises off its own minimum while own-val keeps falling), an effect that "
+            "grows with size — the deficit verdict is robust (holds on the best/min BPB too) "
+            "but the exact magnitude is inflated.", "",
+            "Methodology: like-for-like train_hf denominators at every size (a matched GPT-2 "
+            "through the SAME harness — verified equivalent to the study's train_old GPT-2 "
+            "to within the ±0.013 same-seed noise floor at ALL scales incl 1.4B); the "
+            "undertraining regime biases toward parity (not just noise), so all arms are "
+            "compared at convergence.", "",
+            "**LIMITATION / tracked TODO — CORE-by-task not yet run for Exp B.** This "
+            "BPB/CEG finding needs downstream-task corroboration (the study's CORE gate, "
+            "arms-by-task). It requires the CORE eval on the 14 Exp B checkpoints (public HF "
+            "`MIRIBerkeley/data-vs-algorithms-ceg-expB`) on GPUs — **DEFERRED to the next "
+            "pod** (part of the Mamba/B2 bring-up). Until then Exp B is BPB/CEG-only.", ""]
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--results-dir", default="results")
@@ -192,7 +295,11 @@ def main():
                   "So the single-margin ScaleUp numbers bound a full Shapley from "
                   "opposite sides on the two axes. (Multipliers are within-"
                   "hardware GPU-hour ratios — current-arch 8-GPU, ScaleUp 5-GPU — "
-                  "so the count overhead cancels in each ratio.)", ""]
+                  "so the count overhead cancels in each ratio.)", "",
+                  "The figure's algorithm panel also carries a THIRD estimator — the "
+                  "Exp B architecture lineages (Pythia, SmolLM2) as open ▽ at 1× — which "
+                  "are algorithm-CEG vs a matched GPT-2 (data fixed, no data-panel entry) "
+                  "and are all censored (≤1×, none cross). See the Exp B section below.", ""]
     lines += ["## Curve 1 — current-arch (124M, 355M)", "",
               "The SOTA modded-nanoGPT speedrun as A1. Direct test of whether the "
               "data/algorithm split is scale-invariant for this algorithm:", ""]
@@ -210,6 +317,8 @@ def main():
                   "skip topology) with no reference and no way to validate them.",
                   ""]
     lines += _scaleup_section(root)
+    lines += _era_ladder_section(root)
+    lines += _expb_section(root)
     # CORE-subset validity gate (secondary metric), if present
     gate_p = root / "core_gate_v2.json"
     if gate_p.exists():
