@@ -1,0 +1,17 @@
+{
+  "arch": "gpt2",
+  "label": "gpt2-b160-denom",
+  "note": "GPT-2 at b160 dims (21L/704/11H, vocab 50304) via train_hf. Denominator for Pythia-160M + 2nd offset point vs train_old b160=1.2668. Dropouts zeroed.",
+  "config": {
+    "vocab_size": 50304,
+    "n_positions": 1024,
+    "n_embd": 704,
+    "n_layer": 21,
+    "n_head": 11,
+    "resid_pdrop": 0.0,
+    "embd_pdrop": 0.0,
+    "attn_pdrop": 0.0,
+    "layer_norm_epsilon": 1e-5,
+    "tie_word_embeddings": true
+  }
+}
