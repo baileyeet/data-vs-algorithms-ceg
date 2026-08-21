@@ -886,6 +886,16 @@ explicit correction, not silently. v1/v2 agreement is within the measured
   cross-scale multipliers figure (results/multipliers_vs_scale.png or equiv, per plots.py cross_scale) to
   ADD Pythia/SmolLM2 (later Mamba/Mamba2) as new arch curves/censored markers — do NOT build a separate
   Exp-B figure. b1_cross_scale.png + its bespoke framing to be removed/replaced.
+- **TOP-PRIORITY TODO (P1, user 2026-08-20) — EXP B FULL DATA×ARCH GRID:** Exp B so far is
+  OWT-ONLY (ran to CONFIRM the new archs train sanely). EXTEND it to the full grid like the old
+  2 archs × 4 datasets: run each Exp B arch (Pythia, SmolLM2; + Mamba/Mamba2 in B2) across ALL 4
+  data-era corpora (OWT done, C4, RefinedWeb, DCLM) + matched GPT-2 denoms per dataset -> a DATA
+  multiplier per architecture (currently Exp B has algorithm-CEG only; NO data axis because only
+  OWT was run). PREREQS: funded pod (none now); tokenize C4/RW/DCLM in gpt-neox-20b + SmolLM2
+  tokenizers (only OWT is per-arch tokenized so far); decide size scope (Exp A did @124M-dims only
+  vs full 135M-1.7B ladder); define the data-axis CEG threshold/denominator; watch SmolLM2
+  OWT-overfitting-style divergence on the other corpora. This is the "complete picture" the user
+  expected. Task #15.
 - **TRACKED TODO — CORE-by-task for Exp B (deferred, NEEDS GPU/pod):** run the CORE downstream-task eval
   (eval/lm_eval adapters, same as the completed study's CORE sweep) on the 14 B1 checkpoints (public HF
   exp-b-b1/) and present arms-by-task like the study's CORE section. HIGH VALUE: the "no arch beats GPT-2"
