@@ -27,9 +27,25 @@ epochs. That was **abandoned**; each A1 (modded) arm now trains at 2× its size'
 upstream-native budget, **single-pass** (well under one epoch) — no epoch-repetition
 confound in any cell.
 
+## Status & completeness (what is / isn't measured)
+
+- **Core 2×2 study:** complete at 124M + 355M (current-arch) and 124M + 1.5B
+  (ScaleUp), with **BPB/CEG + Shapley + CORE**. Two disclosed gaps: current-arch
+  has **no 1.5B** (no reproducible recipe; scaling needs an unvalidated invented
+  arch) and ScaleUp has **no 355M** (no documented era-appropriate recipe).
+- **Exp A (era ladder):** complete on **BPB/CEG** (@124M). CORE **not run** (deferred).
+- **Exp B (architecture landscape):** complete on **BPB/CEG** at 135M–1.7B (all
+  censored ≤1×). **No data multiplier** — Exp B holds data fixed (OWT) and varies
+  only architecture, so there is no data axis to decompose (by design, not missing).
+  CORE **not run** (deferred).
+- **Deferred, needs a GPU pod (tracked in `report.md`):** CORE-by-task for Exp A
+  **and** Exp B (downstream-task corroboration of the BPB/CEG findings); and the
+  next architecture tier (Mamba / Mamba-2, "B2"). No pod is currently running.
+
 ## Layout
 
-- `configs/model_sizes.json` — the four size configs
+- `configs/model_sizes.json` — the GPT-2 size configs: the 4 study sizes
+  (124M/355M/770M/1.5B) plus 6 Exp B matched-baseline sizes (b135–b1700)
 - `common/` — GPT-2 model, BPB evaluator, log-spaced checkpoint schedule,
   epoch-aware data loader (shared by training + eval)
 - `data/prepare.py` — download/tokenize, parameterized by (dataset, tokenizer)
