@@ -1,66 +1,94 @@
-# Data vs. Algorithms: Compute-Equivalent Gain at Multiple Scales
+# Data vs. Algorithms: what drove language-model progress?
 
-Measures how much of GPT-2-era → 2024-era language-model progress comes from
-**data quality** vs. **algorithms/architecture**, by training models from scratch
-and comparing *compute-to-a-fixed-quality-bar* (timed GPU-hours to a neutral-corpus
-BPB threshold), with the savings Shapley-decomposed in log-compute space. The
-quality bar is BPB on a fixed, decontaminated Wikipedia slice — identical raw text
-across every run, so numbers are comparable across tokenizers, architectures, and scales.
+Language models improved enormously from GPT-2 (2019) to today. Two things changed
+at once: the **data** got better (cleaner, better-filtered web corpora) and the
+**algorithms/architectures** got better (new optimizers, attention variants, training
+recipes). This project asks how much of the progress each one is responsible for.
 
-The project now spans **three experiments** (full write-up in `report.md`; headline
-numbers and the "what's done / what's left" status are below):
+The trick is to put both on a common currency: **compute**. Instead of asking "how
+much better is the loss," we ask "**how much less compute do you need to reach the
+same quality?**" Concretely, we fix a quality bar — a target score on a held-out,
+decontaminated Wikipedia set — train each configuration from scratch, and record the
+GPU-hours it takes to reach that bar. Better data or a better algorithm shows up as
+*needing fewer GPU-hours*. We call that ratio a **compute-equivalent gain (CEG)**: a
+2× CEG means you reach the same quality in half the compute. Because the quality bar
+is measured in **bits-per-byte** (BPB) on identical raw text, the numbers are
+comparable across different tokenizers, architectures, and model sizes.
 
-- **Core 2×2 study — the foundation.** A grid of old/new **data** × old/new
-  **algorithm**, trained at GPT-2 sizes, decomposing progress into a data multiplier
-  and an algorithm multiplier at each scale. Two cross-scale curves (a current
-  modded-nanoGPT speedrun at 124M/355M; the 2024 "ScaleUp" lineage at 124M/1.5B),
-  kept separate because the "new algorithm" isn't one fixed thing across scales.
+A few terms used throughout:
+- **arm** — one training configuration (a specific data + algorithm combination).
+- **threshold** — the fixed quality bar (a BPB value); an arm's CEG is how quickly it
+  reaches that bar relative to a baseline.
+- **censored** — an arm that never reaches the threshold, so its CEG is only bounded
+  (≤1× if it can't even match the baseline). We report these honestly rather than
+  extrapolating a crossing that didn't happen.
 
-  | | Old data (OpenWebText) | New data (DCLM/Nemotron-CC) |
-  |---|---|---|
-  | **Old algorithm** (GPT-2 repro) | A0D0 | A0D1 |
-  | **New algorithm** (modded-nanoGPT) | A1D0 | A1D1 |
+## The three experiments
 
-- **Exp A — data-era ladder (@124M).** Holds the algorithm axis and sweeps the data
-  corpus by release-year (OWT 2019, C4 2020, RefinedWeb 2023, DCLM 2024). Finds
-  data-quality is NON-monotonic in vintage (C4 is *worse* than 2019 OWT — censored).
+**1. Core 2×2 study — the foundation.** Cross the two axes directly: old vs. new
+**data**, old vs. new **algorithm**, giving four arms. Training all four and comparing
+their compute-to-threshold lets us split the total progress into a *data multiplier*
+and an *algorithm multiplier* at each model size (a Shapley decomposition — it just
+averages the two possible orderings of "add better data first" vs. "add the better
+algorithm first"). We run this at GPT-2 sizes along two separate cross-scale curves,
+because the "new algorithm" isn't a single fixed thing across scales: a current
+modded-nanoGPT speedrun (124M, 355M) and the 2024 "ScaleUp" lineage (124M, 1.5B).
 
-- **Exp B — architecture landscape.** Trains published Transformer lineages
-  (Pythia 2023, SmolLM2 2024) from scratch vs a size-matched GPT-2 at 135M–1.7B, on
-  fixed data (OWT). **No lineage beats a matched, well-trained GPT-2 at any scale**
-  (all algorithm-CEG ≤1×) — a direct "no" to whether the current-arch speedrun's
-  small-scale advantage generalizes beyond small-scale-optimized tricks. Currently
-  architecture-only (OWT); the **data multiplier for these archs is the planned next
-  step** (see "Planned next" below).
+|  | Old data (OpenWebText) | New data (DCLM/Nemotron-CC) |
+|---|---|---|
+| **Old algorithm** (GPT-2 repro) | A0D0 | A0D1 |
+| **New algorithm** (modded-nanoGPT) | A1D0 | A1D1 |
 
-**Note on token budgets (CORRECTED — dated, see invariant #9):** the design ORIGINALLY
-fixed budgets across arms (old-algo 9B, new-algo 18B) with A1D0 repeating OWT for 2
-epochs. That was **abandoned**; each A1 (modded) arm now trains at 2× its size's
-upstream-native budget, **single-pass** (well under one epoch) — no epoch-repetition
-confound in any cell.
+**2. Exp A — does "newer data" mean "better data"?** Hold the algorithm fixed and
+walk the data corpus forward in time: OpenWebText (2019), C4 (2020), RefinedWeb
+(2023), DCLM (2024), all at 124M. The answer turns out to be no — data quality is
+*not* monotonic in release year (C4 in 2020 is actually worse than 2019 OpenWebText).
 
-## Status & completeness (what is / isn't measured)
+**3. Exp B — does the modern architecture advantage generalize?** The core study found
+a large algorithm advantage for the current speedrun at small scale. Is that a real
+architectural improvement, or just tricks tuned for small-scale speedrun benchmarks?
+To find out, we train published open-model lineages — Pythia (2023) and SmolLM2 (2024)
+— from scratch against a size-matched GPT-2, on fixed data, from 135M to 1.7B. The
+result is a clean "no": none of them beat a well-tuned GPT-2 at any scale. (This
+experiment currently varies only architecture; extending it across the data corpora —
+to get a data multiplier per architecture — is the planned next step.)
 
-- **Core 2×2 study:** complete at 124M + 355M (current-arch) and 124M + 1.5B
-  (ScaleUp), with **BPB/CEG + Shapley + CORE**. Two disclosed gaps: current-arch
-  has **no 1.5B** (no reproducible recipe; scaling needs an unvalidated invented
-  arch) and ScaleUp has **no 355M** (no documented era-appropriate recipe).
-- **Exp A (era ladder):** complete on **BPB/CEG** (@124M). CORE **not run** (deferred).
-- **Exp B (architecture landscape):** complete on **BPB/CEG** at 135M–1.7B (all
-  censored ≤1×). **No data multiplier** — Exp B holds data fixed (OWT) and varies
-  only architecture, so there is no data axis to decompose (by design, not missing).
-  CORE **not run** (deferred).
-- **Planned next (P1, needs a GPU pod):** extend Exp B to the **full data ladder** —
-  run the new architectures (Pythia, SmolLM2; + Mamba/Mamba-2) across all 4 corpora
-  (OWT done, C4, RefinedWeb, DCLM) so each gets a **data multiplier**, matching the
-  old two architectures' treatment. Locked to the **small size (~135–160M) only**
-  (the size that overlays Exp A's 124M ladder; the data multiplier is already
-  scale-stable; smallest avoids SmolLM2's size-worsening divergence). Reuses the
-  existing OWT GPT-2 thresholds (b135/b160) as the fixed denominator — no new
-  baselines per dataset, just tokenization + candidate training.
-- **Deferred, needs a GPU pod (tracked in `report.md`):** CORE-by-task for Exp A
-  **and** Exp B (downstream-task corroboration of the BPB/CEG findings); and the
-  next architecture tier (Mamba / Mamba-2, "B2"). No pod is currently running.
+Headline numbers for all three are in "Results so far" below; the full write-up,
+with figures and every caveat, is in `report.md`.
+
+## Status: what's measured, and what's still open
+
+The primary metric (compute-to-threshold, i.e. BPB/CEG) is complete for all three
+experiments. The secondary metric (CORE, a suite of downstream tasks — see the
+methodology notes) and the data axis of Exp B are the open items.
+
+Done:
+- **Core 2×2 study** — current-arch at 124M and 355M, ScaleUp at 124M and 1.5B, all
+  with the full BPB/CEG + Shapley decomposition and CORE scores. Two points are
+  honestly left out: current-arch at 1.5B (no reproducible recipe exists — scaling it
+  up would require inventing an unvalidated architecture) and ScaleUp at 355M (no
+  documented recipe for that size).
+- **Exp A** (data-era ladder) — complete at 124M.
+- **Exp B** (architecture landscape) — complete from 135M to 1.7B. It has no data
+  multiplier because it deliberately holds data fixed (OWT) to isolate architecture;
+  that's a design choice, not a missing measurement (the data axis is the planned
+  extension below).
+
+Open:
+- **Extend Exp B across the data corpora (the current priority).** Run the new
+  architectures on C4, RefinedWeb, and DCLM as well as OWT, so each architecture gets
+  a data multiplier — the same treatment the original two architectures received. This
+  is scoped to the small size only (~135–160M): it's the size that lines up with Exp
+  A's 124M ladder, the data multiplier has already proven roughly scale-stable, and
+  the small size avoids the training instability SmolLM2 develops at larger sizes. It
+  reuses the existing OWT GPT-2 thresholds as the baseline, so only tokenization and
+  the new training runs are needed — no new baselines per corpus.
+- **CORE for Exp A and Exp B.** The downstream-task eval that the core study has, run
+  on the era-ladder and architecture checkpoints, to corroborate the BPB findings.
+- **Next architecture tier (Mamba / Mamba-2).** Non-Transformer lineages, to extend
+  Exp B beyond attention-based models.
+
+All open items need GPUs.
 
 ## Results so far (headline numbers)
 
