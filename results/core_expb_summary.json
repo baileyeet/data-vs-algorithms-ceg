@@ -1,0 +1,396 @@
+{
+ "experiment": "Exp B CORE downstream-task eval (11-task subset, limit 500, acc_norm for MC / acc else)",
+ "metric": "mean per-task accuracy of candidate minus matched GPT-2 denominator; secondary to BPB, limit=500 noisy",
+ "pairs": {
+  "pythia-160M": {
+   "denom": "gpt2-denom-b160",
+   "mean_acc_cand": 0.4264,
+   "mean_delta": -0.0087,
+   "mean_delta_stderr": 0.0105,
+   "sigma": 0.83,
+   "wins_ties_losses": "4W/2T/5L",
+   "per_task": {
+    "arc_easy": {
+     "cand": 0.41,
+     "gpt2": 0.418,
+     "delta": -0.008
+    },
+    "arc_challenge": {
+     "cand": 0.232,
+     "gpt2": 0.242,
+     "delta": -0.01
+    },
+    "openbookqa": {
+     "cand": 0.272,
+     "gpt2": 0.27,
+     "delta": 0.002
+    },
+    "hellaswag": {
+     "cand": 0.396,
+     "gpt2": 0.396,
+     "delta": 0.0
+    },
+    "commonsense_qa": {
+     "cand": 0.194,
+     "gpt2": 0.188,
+     "delta": 0.006
+    },
+    "boolq": {
+     "cand": 0.608,
+     "gpt2": 0.6,
+     "delta": 0.008
+    },
+    "copa": {
+     "cand": 0.61,
+     "gpt2": 0.67,
+     "delta": -0.06
+    },
+    "piqa": {
+     "cand": 0.592,
+     "gpt2": 0.624,
+     "delta": -0.032
+    },
+    "winogrande": {
+     "cand": 0.51,
+     "gpt2": 0.502,
+     "delta": 0.008
+    },
+    "xwinograd_en": {
+     "cand": 0.588,
+     "gpt2": 0.552,
+     "delta": 0.036
+    },
+    "lambada_openai": {
+     "cand": 0.278,
+     "gpt2": 0.324,
+     "delta": -0.046
+    }
+   }
+  },
+  "pythia-410M": {
+   "denom": "gpt2-denom-b410",
+   "mean_acc_cand": 0.4329,
+   "mean_delta": -0.0133,
+   "mean_delta_stderr": 0.0105,
+   "sigma": 1.26,
+   "wins_ties_losses": "3W/3T/5L",
+   "per_task": {
+    "arc_easy": {
+     "cand": 0.422,
+     "gpt2": 0.396,
+     "delta": 0.026
+    },
+    "arc_challenge": {
+     "cand": 0.238,
+     "gpt2": 0.234,
+     "delta": 0.004
+    },
+    "openbookqa": {
+     "cand": 0.288,
+     "gpt2": 0.266,
+     "delta": 0.022
+    },
+    "hellaswag": {
+     "cand": 0.408,
+     "gpt2": 0.41,
+     "delta": -0.002
+    },
+    "commonsense_qa": {
+     "cand": 0.188,
+     "gpt2": 0.192,
+     "delta": -0.004
+    },
+    "boolq": {
+     "cand": 0.6,
+     "gpt2": 0.606,
+     "delta": -0.006
+    },
+    "copa": {
+     "cand": 0.62,
+     "gpt2": 0.7,
+     "delta": -0.08
+    },
+    "piqa": {
+     "cand": 0.612,
+     "gpt2": 0.63,
+     "delta": -0.018
+    },
+    "winogrande": {
+     "cand": 0.52,
+     "gpt2": 0.512,
+     "delta": 0.008
+    },
+    "xwinograd_en": {
+     "cand": 0.568,
+     "gpt2": 0.596,
+     "delta": -0.028
+    },
+    "lambada_openai": {
+     "cand": 0.298,
+     "gpt2": 0.366,
+     "delta": -0.068
+    }
+   }
+  },
+  "pythia-1.4B": {
+   "denom": "gpt2-denom-b1400",
+   "mean_acc_cand": 0.4353,
+   "mean_delta": -0.0224,
+   "mean_delta_stderr": 0.0105,
+   "sigma": 2.12,
+   "wins_ties_losses": "1W/1T/9L",
+   "per_task": {
+    "arc_easy": {
+     "cand": 0.418,
+     "gpt2": 0.448,
+     "delta": -0.03
+    },
+    "arc_challenge": {
+     "cand": 0.226,
+     "gpt2": 0.234,
+     "delta": -0.008
+    },
+    "openbookqa": {
+     "cand": 0.28,
+     "gpt2": 0.298,
+     "delta": -0.018
+    },
+    "hellaswag": {
+     "cand": 0.434,
+     "gpt2": 0.452,
+     "delta": -0.018
+    },
+    "commonsense_qa": {
+     "cand": 0.19,
+     "gpt2": 0.192,
+     "delta": -0.002
+    },
+    "boolq": {
+     "cand": 0.5,
+     "gpt2": 0.572,
+     "delta": -0.072
+    },
+    "copa": {
+     "cand": 0.64,
+     "gpt2": 0.67,
+     "delta": -0.03
+    },
+    "piqa": {
+     "cand": 0.652,
+     "gpt2": 0.67,
+     "delta": -0.018
+    },
+    "winogrande": {
+     "cand": 0.508,
+     "gpt2": 0.502,
+     "delta": 0.006
+    },
+    "xwinograd_en": {
+     "cand": 0.596,
+     "gpt2": 0.606,
+     "delta": -0.01
+    },
+    "lambada_openai": {
+     "cand": 0.344,
+     "gpt2": 0.39,
+     "delta": -0.046
+    }
+   }
+  },
+  "smollm2-135M": {
+   "denom": "gpt2-denom-b135",
+   "mean_acc_cand": 0.4418,
+   "mean_delta": 0.0173,
+   "mean_delta_stderr": 0.0104,
+   "sigma": 1.65,
+   "wins_ties_losses": "7W/2T/2L",
+   "per_task": {
+    "arc_easy": {
+     "cand": 0.424,
+     "gpt2": 0.384,
+     "delta": 0.04
+    },
+    "arc_challenge": {
+     "cand": 0.224,
+     "gpt2": 0.224,
+     "delta": 0.0
+    },
+    "openbookqa": {
+     "cand": 0.268,
+     "gpt2": 0.284,
+     "delta": -0.016
+    },
+    "hellaswag": {
+     "cand": 0.398,
+     "gpt2": 0.36,
+     "delta": 0.038
+    },
+    "commonsense_qa": {
+     "cand": 0.188,
+     "gpt2": 0.188,
+     "delta": 0.0
+    },
+    "boolq": {
+     "cand": 0.55,
+     "gpt2": 0.566,
+     "delta": -0.016
+    },
+    "copa": {
+     "cand": 0.69,
+     "gpt2": 0.66,
+     "delta": 0.03
+    },
+    "piqa": {
+     "cand": 0.648,
+     "gpt2": 0.624,
+     "delta": 0.024
+    },
+    "winogrande": {
+     "cand": 0.516,
+     "gpt2": 0.486,
+     "delta": 0.03
+    },
+    "xwinograd_en": {
+     "cand": 0.616,
+     "gpt2": 0.58,
+     "delta": 0.036
+    },
+    "lambada_openai": {
+     "cand": 0.338,
+     "gpt2": 0.314,
+     "delta": 0.024
+    }
+   }
+  },
+  "smollm2-360M": {
+   "denom": "gpt2-denom-b360",
+   "mean_acc_cand": 0.4615,
+   "mean_delta": 0.0185,
+   "mean_delta_stderr": 0.0104,
+   "sigma": 1.79,
+   "wins_ties_losses": "7W/3T/1L",
+   "per_task": {
+    "arc_easy": {
+     "cand": 0.424,
+     "gpt2": 0.412,
+     "delta": 0.012
+    },
+    "arc_challenge": {
+     "cand": 0.234,
+     "gpt2": 0.212,
+     "delta": 0.022
+    },
+    "openbookqa": {
+     "cand": 0.3,
+     "gpt2": 0.272,
+     "delta": 0.028
+    },
+    "hellaswag": {
+     "cand": 0.438,
+     "gpt2": 0.406,
+     "delta": 0.032
+    },
+    "commonsense_qa": {
+     "cand": 0.188,
+     "gpt2": 0.188,
+     "delta": 0.0
+    },
+    "boolq": {
+     "cand": 0.588,
+     "gpt2": 0.612,
+     "delta": -0.024
+    },
+    "copa": {
+     "cand": 0.71,
+     "gpt2": 0.7,
+     "delta": 0.01
+    },
+    "piqa": {
+     "cand": 0.65,
+     "gpt2": 0.646,
+     "delta": 0.004
+    },
+    "winogrande": {
+     "cand": 0.506,
+     "gpt2": 0.508,
+     "delta": -0.002
+    },
+    "xwinograd_en": {
+     "cand": 0.646,
+     "gpt2": 0.576,
+     "delta": 0.07
+    },
+    "lambada_openai": {
+     "cand": 0.392,
+     "gpt2": 0.34,
+     "delta": 0.052
+    }
+   }
+  },
+  "smollm2-1.7B": {
+   "denom": "gpt2-denom-b1700",
+   "mean_acc_cand": 0.4822,
+   "mean_delta": 0.0111,
+   "mean_delta_stderr": 0.0104,
+   "sigma": 1.07,
+   "wins_ties_losses": "5W/2T/4L",
+   "per_task": {
+    "arc_easy": {
+     "cand": 0.5,
+     "gpt2": 0.474,
+     "delta": 0.026
+    },
+    "arc_challenge": {
+     "cand": 0.224,
+     "gpt2": 0.244,
+     "delta": -0.02
+    },
+    "openbookqa": {
+     "cand": 0.304,
+     "gpt2": 0.314,
+     "delta": -0.01
+    },
+    "hellaswag": {
+     "cand": 0.502,
+     "gpt2": 0.444,
+     "delta": 0.058
+    },
+    "commonsense_qa": {
+     "cand": 0.186,
+     "gpt2": 0.19,
+     "delta": -0.004
+    },
+    "boolq": {
+     "cand": 0.566,
+     "gpt2": 0.6,
+     "delta": -0.034
+    },
+    "copa": {
+     "cand": 0.71,
+     "gpt2": 0.71,
+     "delta": 0.0
+    },
+    "piqa": {
+     "cand": 0.688,
+     "gpt2": 0.694,
+     "delta": -0.006
+    },
+    "winogrande": {
+     "cand": 0.5,
+     "gpt2": 0.494,
+     "delta": 0.006
+    },
+    "xwinograd_en": {
+     "cand": 0.648,
+     "gpt2": 0.63,
+     "delta": 0.018
+    },
+    "lambada_openai": {
+     "cand": 0.476,
+     "gpt2": 0.388,
+     "delta": 0.088
+    }
+   }
+  }
+ }
+}

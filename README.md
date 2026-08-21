@@ -69,10 +69,13 @@ Done:
   up would require inventing an unvalidated architecture) and ScaleUp at 355M (no
   documented recipe for that size).
 - **Exp A** (data-era ladder) — complete at 124M.
-- **Exp B** (architecture landscape) — complete from 135M to 1.7B. It has no data
-  multiplier because it deliberately holds data fixed (OWT) to isolate architecture;
-  that's a design choice, not a missing measurement (the data axis is the planned
-  extension below).
+- **Exp B** (architecture landscape) — complete from 135M to 1.7B, including CORE
+  downstream tasks. It has no data multiplier because it deliberately holds data fixed
+  (OWT) to isolate architecture; that's a design choice, not a missing measurement (the
+  data axis is the planned extension below). CORE adds a wrinkle: on downstream tasks
+  SmolLM2 sits modestly *above* its matched GPT-2 at every scale even though its BPB is
+  only parity-or-worse — a small architectural edge that the compute-efficiency metric
+  doesn't capture (Pythia stays at/below GPT-2 on both).
 
 Open:
 - **Extend Exp B across the data corpora (the current priority).** Run the new
@@ -83,8 +86,8 @@ Open:
   the small size avoids the training instability SmolLM2 develops at larger sizes. It
   reuses the existing OWT GPT-2 thresholds as the baseline, so only tokenization and
   the new training runs are needed — no new baselines per corpus.
-- **CORE for Exp A and Exp B.** The downstream-task eval that the core study has, run
-  on the era-ladder and architecture checkpoints, to corroborate the BPB findings.
+- **CORE for Exp A.** The downstream-task eval run on the era-ladder checkpoints, to
+  corroborate its BPB findings (Exp B's CORE is now done — see above).
 - **Next architecture tier (Mamba / Mamba-2).** Non-Transformer lineages, to extend
   Exp B beyond attention-based models.
 

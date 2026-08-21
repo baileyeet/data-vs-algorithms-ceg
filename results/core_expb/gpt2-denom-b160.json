@@ -1,0 +1,96 @@
+{
+ "label": "gpt2-denom-b160",
+ "tokenizer": "gpt2",
+ "limit": 500,
+ "results": {
+  "arc_easy": {
+   "name": "arc_easy",
+   "alias": "arc_easy",
+   "sample_len": 500,
+   "acc,none": 0.43,
+   "acc_stderr,none": 0.02216263442665284,
+   "acc_norm,none": 0.418,
+   "acc_norm_stderr,none": 0.022080014812228137
+  },
+  "arc_challenge": {
+   "name": "arc_challenge",
+   "alias": "arc_challenge",
+   "sample_len": 500,
+   "acc,none": 0.172,
+   "acc_stderr,none": 0.01689386887634748,
+   "acc_norm,none": 0.242,
+   "acc_norm_stderr,none": 0.019173085678337164
+  },
+  "openbookqa": {
+   "name": "openbookqa",
+   "alias": "openbookqa",
+   "sample_len": 500,
+   "acc,none": 0.156,
+   "acc_stderr,none": 0.01624363602839109,
+   "acc_norm,none": 0.27,
+   "acc_norm_stderr,none": 0.019874354831287484
+  },
+  "hellaswag": {
+   "name": "hellaswag",
+   "alias": "hellaswag",
+   "sample_len": 500,
+   "acc,none": 0.354,
+   "acc_stderr,none": 0.021407582047916447,
+   "acc_norm,none": 0.396,
+   "acc_norm_stderr,none": 0.02189352994166582
+  },
+  "commonsense_qa": {
+   "name": "commonsense_qa",
+   "alias": "commonsense_qa",
+   "sample_len": 500,
+   "acc,none": 0.188,
+   "acc_stderr,none": 0.017490678880346253
+  },
+  "boolq": {
+   "name": "boolq",
+   "alias": "boolq",
+   "sample_len": 500,
+   "acc,none": 0.6,
+   "acc_stderr,none": 0.021930844120728505
+  },
+  "copa": {
+   "name": "copa",
+   "alias": "copa",
+   "sample_len": 100,
+   "acc,none": 0.67,
+   "acc_stderr,none": 0.04725815626252605
+  },
+  "piqa": {
+   "name": "piqa",
+   "alias": "piqa",
+   "sample_len": 500,
+   "acc,none": 0.624,
+   "acc_stderr,none": 0.021683827539286115,
+   "acc_norm,none": 0.616,
+   "acc_norm_stderr,none": 0.021772369465547198
+  },
+  "winogrande": {
+   "name": "winogrande",
+   "alias": "winogrande",
+   "sample_len": 500,
+   "acc,none": 0.502,
+   "acc_stderr,none": 0.022382894986483524
+  },
+  "xwinograd_en": {
+   "name": "xwinograd_en",
+   "alias": "xwinograd_en",
+   "sample_len": 500,
+   "acc,none": 0.552,
+   "acc_stderr,none": 0.02226169729227013
+  },
+  "lambada_openai": {
+   "name": "lambada_openai",
+   "alias": "lambada_openai",
+   "sample_len": 500,
+   "perplexity,none": 47.430252044484604,
+   "perplexity_stderr,none": 6.185959590141455,
+   "acc,none": 0.324,
+   "acc_stderr,none": 0.020950557312477445
+  }
+ }
+}

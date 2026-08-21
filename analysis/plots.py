@@ -294,6 +294,50 @@ def multipliers_vs_scale(curves: dict, out_path, censored: dict = None):
     plt.close(fig)
 
 
+def core_expb_delta_vs_scale(root: Path, out_path):
+    """Exp B CORE (downstream tasks) as a pairwise gap vs scale — the downstream
+    analog of multipliers_vs_scale. y = mean CORE accuracy of the candidate MINUS
+    its matched GPT-2 (both through the same harness), x = model size; one line per
+    lineage. Parity line at 0. Unlike the core study (a 4-arm grid), Exp B is a
+    pairwise candidate-vs-baseline comparison, so we plot the GAP, not absolute acc.
+    Secondary to BPB; limit=500, ±1 stderr shown; reads results/core_expb_summary.json."""
+    S = json.loads((root / "core_expb_summary.json").read_text())["pairs"]
+    PARAMS = {"pythia-160M": 162, "pythia-410M": 405, "pythia-1.4B": 1415,
+              "smollm2-135M": 135, "smollm2-360M": 362, "smollm2-1.7B": 1711}
+    LIN = {"pythia": ("Pythia (GPT-NeoX, 2023)", "#1baf7a"),
+           "smollm2": ("SmolLM2 (Llama, 2024)", "#8e44ad")}
+    fig, ax = plt.subplots(figsize=(8.0, 5.0), dpi=150)
+    _style(ax); ax.set_xscale("log")
+    ax.axhline(0.0, color=INK2, lw=1.2, ls=(0, (4, 3)), zorder=1)
+    ax.annotate("parity with matched GPT-2", xy=(1550, 0.0), xytext=(0, 4),
+                textcoords="offset points", ha="right", va="bottom", fontsize=8, color=INK2)
+    for lname, (label, col) in LIN.items():
+        pts = sorted(((PARAMS[k], v) for k, v in S.items() if k.startswith(lname)))
+        xs = [p for p, _ in pts]; ys = [v["mean_delta"] for _, v in pts]
+        es = [v["mean_delta_stderr"] for _, v in pts]
+        ax.errorbar(xs, ys, yerr=es, color=col, lw=2, marker="o", ms=8,
+                    markerfacecolor=col, markeredgecolor=SURFACE, markeredgewidth=1.4,
+                    capsize=3, elinewidth=1.2, label=label, zorder=3)
+    ax.set_xticks([135, 400, 1500]); ax.set_xticklabels(["~135M", "~400M", "~1.5B"])
+    ax.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
+    ax.set_xlim(115, 2050)
+    ax.set_ylim(-0.035, 0.035)
+    ax.set_xlabel("Model size (log)")
+    ax.set_ylabel("CORE mean-accuracy gap vs matched GPT-2")
+    ax.set_title("Exp B — downstream-task (CORE) gap vs matched GPT-2, by scale",
+                 fontsize=11.5, loc="left")
+    ax.legend(frameon=False, fontsize=9, labelcolor=INK2, loc="upper left")
+    fig.text(0.012, 0.012,
+             "Mean accuracy over 11 CORE tasks (limit=500), candidate minus its size-matched "
+             "GPT-2 through the same harness. SECONDARY to BPB/CEG. Pythia is at/below parity "
+             "and falls with scale (corroborating its BPB deficit); SmolLM2 sits modestly ABOVE "
+             "parity at every scale (~1.7σ, 7/11 tasks at small size) — a downstream edge that "
+             "neutral BPB, where SmolLM2 is parity-or-worse, does not capture. Error bars ±1 stderr.",
+             fontsize=7.0, color=INK2, va="bottom", wrap=True)
+    fig.tight_layout(rect=(0, 0.075, 1, 1))
+    fig.savefig(out_path, facecolor=SURFACE); plt.close(fig)
+
+
 def _assemble_all_configs(root: Path):
     """Build the all_configs curves dict from the canonical CEG JSONs."""
     sm = json.loads((root / "small" / "ceg_newdef.json").read_text())
@@ -524,7 +568,8 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser(description="render one figure type")
     ap.add_argument("kind", choices=["curves", "cross_scale", "sensitivity",
                                      "all_configs", "multipliers",
-                                     "core_vs_scale", "core_arms_by_task"])
+                                     "core_vs_scale", "core_arms_by_task",
+                                     "core_expb"])
     ap.add_argument("--size-label", default="")
     ap.add_argument("--out", required=True)
     ap.add_argument("--threshold", type=float)
@@ -546,6 +591,8 @@ if __name__ == "__main__":
         core_vs_scale(Path("results"), a.out)
     elif a.kind == "core_arms_by_task":
         core_arms_by_task(Path("results"), a.out)
+    elif a.kind == "core_expb":
+        core_expb_delta_vs_scale(Path("results"), a.out)
     else:
         threshold_sensitivity(a.csv, a.size_label, a.out)
     print(f"wrote {a.out}")

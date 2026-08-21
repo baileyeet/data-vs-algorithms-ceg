@@ -1,0 +1,96 @@
+{
+ "label": "smollm2-135M-seed2",
+ "tokenizer": "HuggingFaceTB/SmolLM2-135M",
+ "limit": 500,
+ "results": {
+  "arc_easy": {
+   "name": "arc_easy",
+   "alias": "arc_easy",
+   "sample_len": 500,
+   "acc,none": 0.426,
+   "acc_stderr,none": 0.022136577335085637,
+   "acc_norm,none": 0.388,
+   "acc_norm_stderr,none": 0.021814300984787635
+  },
+  "arc_challenge": {
+   "name": "arc_challenge",
+   "alias": "arc_challenge",
+   "sample_len": 500,
+   "acc,none": 0.18,
+   "acc_stderr,none": 0.017198592476314264,
+   "acc_norm,none": 0.218,
+   "acc_norm_stderr,none": 0.018483378223178856
+  },
+  "openbookqa": {
+   "name": "openbookqa",
+   "alias": "openbookqa",
+   "sample_len": 500,
+   "acc,none": 0.164,
+   "acc_stderr,none": 0.016575811142446713,
+   "acc_norm,none": 0.276,
+   "acc_norm_stderr,none": 0.020011219298073556
+  },
+  "hellaswag": {
+   "name": "hellaswag",
+   "alias": "hellaswag",
+   "sample_len": 500,
+   "acc,none": 0.344,
+   "acc_stderr,none": 0.02126575803797874,
+   "acc_norm,none": 0.398,
+   "acc_norm_stderr,none": 0.02191237788577998
+  },
+  "commonsense_qa": {
+   "name": "commonsense_qa",
+   "alias": "commonsense_qa",
+   "sample_len": 500,
+   "acc,none": 0.188,
+   "acc_stderr,none": 0.017490678880346253
+  },
+  "boolq": {
+   "name": "boolq",
+   "alias": "boolq",
+   "sample_len": 500,
+   "acc,none": 0.582,
+   "acc_stderr,none": 0.02208001481222814
+  },
+  "copa": {
+   "name": "copa",
+   "alias": "copa",
+   "sample_len": 100,
+   "acc,none": 0.66,
+   "acc_stderr,none": 0.04760952285695238
+  },
+  "piqa": {
+   "name": "piqa",
+   "alias": "piqa",
+   "sample_len": 500,
+   "acc,none": 0.632,
+   "acc_stderr,none": 0.021588982568353544,
+   "acc_norm,none": 0.598,
+   "acc_norm_stderr,none": 0.02194892960993861
+  },
+  "winogrande": {
+   "name": "winogrande",
+   "alias": "winogrande",
+   "sample_len": 500,
+   "acc,none": 0.5,
+   "acc_stderr,none": 0.022383074051792257
+  },
+  "xwinograd_en": {
+   "name": "xwinograd_en",
+   "alias": "xwinograd_en",
+   "sample_len": 500,
+   "acc,none": 0.576,
+   "acc_stderr,none": 0.022122993778135404
+  },
+  "lambada_openai": {
+   "name": "lambada_openai",
+   "alias": "lambada_openai",
+   "sample_len": 500,
+   "perplexity,none": 39.89493077496942,
+   "perplexity_stderr,none": 4.883489691700552,
+   "acc,none": 0.344,
+   "acc_stderr,none": 0.02126575803797874
+  }
+ }
+}

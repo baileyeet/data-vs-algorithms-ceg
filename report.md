@@ -129,7 +129,22 @@ Pythia is clean at every scale (deficit shrinks 160M→410M then stabilizes ~0.0
 
 Methodology: like-for-like train_hf denominators at every size (a matched GPT-2 through the SAME harness — verified equivalent to the study's train_old GPT-2 to within the ±0.013 same-seed noise floor at ALL scales incl 1.4B); the undertraining regime biases toward parity (not just noise), so all arms are compared at convergence.
 
-**LIMITATION / tracked TODO — CORE-by-task not yet run for Exp B.** This BPB/CEG finding needs downstream-task corroboration (the study's CORE gate, arms-by-task). It requires the CORE eval on the 14 Exp B checkpoints (public HF `MIRIBerkeley/data-vs-algorithms-ceg-expB`) on GPUs — **DEFERRED to the next pod** (part of the Mamba/B2 bring-up). Until then Exp B is BPB/CEG-only.
+### Exp B — CORE downstream tasks (secondary)
+
+The BPB/CEG result above is compute-efficiency on a language-modeling bar. As a downstream-task check we ran the study's CORE suite (11 tasks, limit 500) on all 14 Exp B checkpoints and compared each architecture to its size-matched GPT-2 through the same harness. CORE is SECONDARY and noisy at limit=500; the gap is the mean per-task accuracy difference (candidate − matched GPT-2), ±1 stderr.
+
+| Lineage | size | CORE mean-acc gap vs GPT-2 | per-task (W/T/L of 11) |
+|--|--|--|--|
+| pythia | 160M | -0.009 ± 0.011 (0.83σ) | 4W/2T/5L |
+| pythia | 410M | -0.013 ± 0.011 (1.26σ) | 3W/3T/5L |
+| pythia | 1.4B | -0.022 ± 0.011 (2.12σ) | 1W/1T/9L |
+| smollm2 | 135M | +0.017 ± 0.010 (1.65σ) | 7W/2T/2L |
+| smollm2 | 360M | +0.018 ± 0.010 (1.79σ) | 7W/3T/1L |
+| smollm2 | 1.7B | +0.011 ± 0.010 (1.07σ) | 5W/2T/4L |
+
+Two things stand out. **Pythia at/below parity, falling with scale** (−0.009 → −0.022, significant at 1.4B: 9 of 11 tasks lost) — CORE corroborates its BPB deficit, and more cleanly (monotone in scale). **SmolLM2 modestly ABOVE parity at every scale** (+0.011 to +0.019, ~1.7σ, winning 7 of 11 tasks at 135M and 360M) — which DISAGREES with its BPB result (parity at 135M, divergence-confounded deficit at 360M/1.7B). The most likely reading: SmolLM2's BPB penalty at larger sizes is OWT-overfitting (own-val improves while neutral BPB rises), which need not hurt downstream tasks; and even at 135M (no divergence) the Llama-family design (SwiGLU/GQA/RoPE) buys a small downstream edge that neutral BPB does not register. This is a directional, secondary signal — limit=500 CORE is noisy — not a compute-efficiency claim (on BPB/CEG neither lineage beats GPT-2).
+
+![Exp B CORE gap vs matched GPT-2, by scale](core_expb_delta.png)
 
 ## CORE-subset (secondary, validity-gated)
 
