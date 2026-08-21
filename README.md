@@ -1,27 +1,39 @@
 # Data vs. Algorithms: Compute-Equivalent Gain at Multiple Scales
 
-Isolates how much of GPT-2-era → 2024-era capability progress comes from
-**data quality** vs. **algorithms/architecture**, via a 2x2 grid
-(old/new data x old/new algorithm) trained at three core GPT-2 sizes
-(124M, 355M, 1.5B), measuring compute-to-reference-BPB and
-Shapley-decomposing the savings in log-compute space.
+Measures how much of GPT-2-era → 2024-era language-model progress comes from
+**data quality** vs. **algorithms/architecture**, by training models from scratch
+and comparing *compute-to-a-fixed-quality-bar* (timed GPU-hours to a neutral-corpus
+BPB threshold), with the savings Shapley-decomposed in log-compute space. The
+quality bar is BPB on a fixed, decontaminated Wikipedia slice — identical raw text
+across every run, so numbers are comparable across tokenizers, architectures, and scales.
 
-| | Old data (OpenWebText) | New data (DCLM/Nemotron-CC) |
-|---|---|---|
-| **Old algorithm** (GPT-2 repro) | A0D0 | A0D1 |
-| **New algorithm** (modded-nanoGPT) | A1D0 | A1D1 |
+The project now spans **three experiments** (full write-up in `report.md`; headline
+numbers and the "what's done / what's left" status are below):
 
-**Two follow-on experiments extend the core 2x2 (both in `report.md`):**
-- **Exp A — data-era ladder (@124M):** holds the algorithm axis and sweeps the
-  data corpus by release-year (OWT 2019, C4 2020, RefinedWeb 2023, DCLM 2024);
-  finds data-quality is NON-monotonic in vintage (C4 is censored — worse than OWT).
-- **Exp B — architecture landscape:** trains published Transformer lineages
-  (Pythia 2023, SmolLM2 2024) from scratch on fixed data (OWT) vs a size-matched
-  GPT-2 at 135M–1.7B; **no lineage beats a matched GPT-2 at any scale** (all
-  algorithm-CEG ≤1×) — a direct "no" to whether current-arch's small-scale
-  advantage generalizes. Checkpoints: public HF `MIRIBerkeley/data-vs-algorithms-ceg-expB`.
+- **Core 2×2 study — the foundation.** A grid of old/new **data** × old/new
+  **algorithm**, trained at GPT-2 sizes, decomposing progress into a data multiplier
+  and an algorithm multiplier at each scale. Two cross-scale curves (a current
+  modded-nanoGPT speedrun at 124M/355M; the 2024 "ScaleUp" lineage at 124M/1.5B),
+  kept separate because the "new algorithm" isn't one fixed thing across scales.
 
-**Token budgets — CORRECTED (dated note, see invariant #9):** the design ORIGINALLY
+  | | Old data (OpenWebText) | New data (DCLM/Nemotron-CC) |
+  |---|---|---|
+  | **Old algorithm** (GPT-2 repro) | A0D0 | A0D1 |
+  | **New algorithm** (modded-nanoGPT) | A1D0 | A1D1 |
+
+- **Exp A — data-era ladder (@124M).** Holds the algorithm axis and sweeps the data
+  corpus by release-year (OWT 2019, C4 2020, RefinedWeb 2023, DCLM 2024). Finds
+  data-quality is NON-monotonic in vintage (C4 is *worse* than 2019 OWT — censored).
+
+- **Exp B — architecture landscape.** Trains published Transformer lineages
+  (Pythia 2023, SmolLM2 2024) from scratch vs a size-matched GPT-2 at 135M–1.7B, on
+  fixed data (OWT). **No lineage beats a matched, well-trained GPT-2 at any scale**
+  (all algorithm-CEG ≤1×) — a direct "no" to whether the current-arch speedrun's
+  small-scale advantage generalizes beyond small-scale-optimized tricks. Currently
+  architecture-only (OWT); the **data multiplier for these archs is the planned next
+  step** (see "Planned next" below).
+
+**Note on token budgets (CORRECTED — dated, see invariant #9):** the design ORIGINALLY
 fixed budgets across arms (old-algo 9B, new-algo 18B) with A1D0 repeating OWT for 2
 epochs. That was **abandoned**; each A1 (modded) arm now trains at 2× its size's
 upstream-native budget, **single-pass** (well under one epoch) — no epoch-repetition
