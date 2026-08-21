@@ -38,9 +38,73 @@ confound in any cell.
   censored ≤1×). **No data multiplier** — Exp B holds data fixed (OWT) and varies
   only architecture, so there is no data axis to decompose (by design, not missing).
   CORE **not run** (deferred).
+- **Planned next (P1, needs a GPU pod):** extend Exp B to the **full data ladder** —
+  run the new architectures (Pythia, SmolLM2; + Mamba/Mamba-2) across all 4 corpora
+  (OWT done, C4, RefinedWeb, DCLM) so each gets a **data multiplier**, matching the
+  old two architectures' treatment. Locked to the **small size (~135–160M) only**
+  (the size that overlays Exp A's 124M ladder; the data multiplier is already
+  scale-stable; smallest avoids SmolLM2's size-worsening divergence). Reuses the
+  existing OWT GPT-2 thresholds (b135/b160) as the fixed denominator — no new
+  baselines per dataset, just tokenization + candidate training.
 - **Deferred, needs a GPU pod (tracked in `report.md`):** CORE-by-task for Exp A
   **and** Exp B (downstream-task corroboration of the BPB/CEG findings); and the
   next architecture tier (Mamba / Mamba-2, "B2"). No pod is currently running.
+
+## Results so far (headline numbers)
+
+All multipliers are compute-reduction factors (GPU-hours-to-neutral-BPB-threshold
+ratios); "censored" = the arm never reaches the threshold (≤1×, no measurable gain).
+
+**Core 2×2 study — two cross-scale curves (kept separate; different A1 generations):**
+
+| Curve | Size | Data × | Algorithm × | Total × | Threshold (BPB) |
+|---|---|---|---|---|---|
+| current-arch | 124M | 2.23 | 13.7 | 30.5 | 1.2744 |
+| current-arch | 355M | 3.74 | 4.06 | 15.2 | 1.2287 |
+| ScaleUp | 124M | 3.25 | 2.9 (DCLM); OWT censored | — | 1.2800 |
+| ScaleUp | 1.5B | 3.43 | 2.34 (DCLM); OWT censored | — | 1.1879 |
+
+Algorithm advantage decays with scale (steeply for current-arch, gently for ScaleUp);
+data multiplier ~stable (~3×). Disclosed gaps: current-arch 1.5B, ScaleUp 355M.
+
+**Exp A — data-era ladder @124M** (CEG vs the OWT GPT-2 baseline; threshold 1.2760):
+
+| Dataset (year) | Algorithm CEG at that corpus | Data CEG (current-arch) |
+|---|---|---|
+| OWT (2019) | 23.8× | 1.0× (baseline) |
+| C4 (2020) | censored | censored |
+| RefinedWeb (2023) | 11.6× | 1.59× |
+| DCLM (2024) | 10.9× | 1.62× |
+
+Data-quality is NON-monotonic in release year — C4 (2020) is *worse* than 2019 OWT
+(censored under both algorithms). Corrected OWT×DCLM 2×2: data 2.39×, algo 16.1×, total 38.5×.
+
+**Exp B — architecture landscape** (algorithm-CEG vs a size-matched GPT-2, data fixed = OWT;
+Δ = arch neutral BPB − matched GPT-2, >0 = worse; all arms censored ≤1×):
+
+| Lineage | 135–160M | 360–410M | 1.4–1.7B |
+|---|---|---|---|
+| Pythia (GPT-NeoX, 2023) | +0.082 | +0.020 (2-seed) | +0.030 |
+| SmolLM2 (Llama, 2024) | +0.009 (parity within noise) | +0.054 *(div)* | +0.120 *(div)* |
+
+**No published Transformer lineage beats a matched, well-trained GPT-2 anywhere 135M–1.7B.**
+Best case = SmolLM2-135M parity. *(div)* = divergence-confounded (SmolLM2 overfits OWT at
+larger sizes, even at its documented LR). No data multiplier yet — see "Planned next".
+
+## Where the artifacts live (checkpoints & data)
+
+**Durable homes:** git (all code, metrics, results JSONs, figures, `report.md`);
+Hugging Face (model checkpoints); a local backup mirror at
+`~/Desktop/era_ladder_backup/`. Pod `/workspace` volumes are ephemeral working space.
+
+| Asset | Primary location | Backup / notes |
+|---|---|---|
+| **Core-study finals** (16 ckpts: current-arch 124M/355M + scaleup 124M/1.5B) | private HF `MIRIBerkeley/data-vs-algorithms-ceg` (73.5 GB) | current-arch mirrored local (`hf_current_arch_finals/`, 10 GB). **scaleup is HF-only** and the private repo is over quota → currently read-blocked (resolve by upgrading the HF plan). |
+| **Exp B checkpoints** (14: 6 GPT-2 denominators + 6 candidates + 2 replicate seeds) | public HF `MIRIBerkeley/data-vs-algorithms-ceg-expB` (35.7 GB) | local (`b1_cand/checkpoints/`, 36 GB); metrics.csv in git (`results/b1_metrics/`) |
+| **Exp B matched GPT-2 baselines** (6, train_old) | local (`b1_checkpoints/`, 16 GB) | thresholds in git (`results/b1_baseline_thresholds.json`) |
+| **Exp A era-ladder arms** | run metrics local (`prov/`, `run_metrics/`) + git results JSONs | final checkpoints on the pod volume only (weights not needed for the CEG result) |
+| **Tokenized datasets** | pod `/workspace/datasets/` (all 4 corpora × gpt2/nanogpt; OWT × neox/smollm2) | `owt_neox`/`owt_smollm2` mirrored local (`b1_datasets/`, 34 GB); `wiki_eval_union` in `eval_sets.tgz`. **C4/RW/DCLM in neox/smollm2 tokenizers NOT yet built** (the data-ladder prereq). |
+| **Metrics, results, figures, report, configs** | git (this repo) | — |
 
 ## Layout
 
