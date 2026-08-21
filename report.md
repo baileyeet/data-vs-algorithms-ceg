@@ -146,6 +146,10 @@ Two things stand out. **Pythia at/below parity, falling with scale** (−0.009 �
 
 ![Exp B CORE gap vs matched GPT-2, by scale](core_expb_delta.png)
 
+Per-task breakdown (each task is noisy at limit=500 — read the consistency across tasks, not any single panel):
+
+![Exp B CORE gap per task](core_expb_by_task.png)
+
 ## CORE-subset (secondary, validity-gated)
 
 DCLM CORE is a secondary check; BPB is primary. A task is used only where the A0D0 reference clears chance by >=2 sigma at its final checkpoint. `lambada_openai` is open-vocabulary (no fixed chance) so it never enters the quantitative gate at any scale; separately, the current-arch (modded) A1 loader has no logits path so its lambada is invalid by construction, whereas the ScaleUp-arch A1 arms (1.5B, ScaleUp-124M) use a plain-causal adapter with a real logits path and a valid lambada accuracy (reported as a diagnostic only). All A1 CORE is from the v2 sweep.

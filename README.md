@@ -6,55 +6,79 @@ at once: the **data** got better (cleaner, better-filtered web corpora) and the
 recipes). This project asks how much of the progress each one is responsible for.
 
 The trick is to put both on a common currency: **compute**. Instead of asking "how
-much better is the loss," we ask "**how much less compute do you need to reach the
-same quality?**" Concretely, we fix a quality bar — a target score on a held-out,
+much better is the loss," we ask "how much *less compute* do you need to reach the same
+quality?" Concretely, we fix a quality bar — a target score on a held-out,
 decontaminated Wikipedia set — train each configuration from scratch, and record the
 GPU-hours it takes to reach that bar. Better data or a better algorithm shows up as
-*needing fewer GPU-hours*. We call that ratio a **compute-equivalent gain (CEG)**: a
-2× CEG means you reach the same quality in half the compute. Because the quality bar
-is measured in **bits-per-byte** (BPB) on identical raw text, the numbers are
-comparable across different tokenizers, architectures, and model sizes.
+needing fewer GPU-hours. We call that ratio a **compute-equivalent gain (CEG)**: a 2×
+CEG means you reach the same quality in half the compute. The quality bar is measured
+in bits-per-byte on the same raw text for every run, so the comparison is fair across
+different tokenizers, architectures, and model sizes.
 
-A few terms used throughout:
-- **arm** — one training configuration (a specific data + algorithm combination).
-- **threshold** — the fixed quality bar (a BPB value); an arm's CEG is how quickly it
-  reaches that bar relative to a baseline.
-- **censored** — an arm that never reaches the threshold, so its CEG is only bounded
-  (≤1× if it can't even match the baseline). We report these honestly rather than
-  extrapolating a crossing that didn't happen.
+Two things to know about how to read the numbers. First, every comparison is against a
+**GPT-2 baseline of the same parameter count** — when we say an architecture is
+compared to "a matched GPT-2," we mean a GPT-2 with the same dimensions/parameters,
+trained through the same pipeline, so the only thing that differs is the thing being
+tested. Second, some configurations **never reach the quality bar** within the training
+budget; we call those *censored* and report them as a bound (e.g. "≤1×, no measurable
+gain") rather than inventing a crossing that didn't happen.
 
 ## The three experiments
 
-**1. Core 2×2 study — the foundation.** Cross the two axes directly: old vs. new
-**data**, old vs. new **algorithm**, giving four arms. Training all four and comparing
-their compute-to-threshold lets us split the total progress into a *data multiplier*
-and an *algorithm multiplier* at each model size (a Shapley decomposition — it just
-averages the two possible orderings of "add better data first" vs. "add the better
-algorithm first"). We run this at GPT-2 sizes along two separate cross-scale curves,
-because the "new algorithm" isn't a single fixed thing across scales: a current
-modded-nanoGPT speedrun (124M, 355M) and the 2024 "ScaleUp" lineage (124M, 1.5B).
+### 1. Core 2×2 study — the foundation
 
-|  | Old data (OpenWebText) | New data (DCLM/Nemotron-CC) |
+Cross the two axes directly: old vs. new **data**, old vs. new **algorithm**, giving
+four training runs ("arms"). Comparing their compute-to-quality lets us split the total
+progress into a *data multiplier* and an *algorithm multiplier* at each model size (a
+Shapley decomposition — it averages the two orderings of "add the better data first"
+vs. "add the better algorithm first"). We run this at several GPT-2 sizes, along two
+separate curves, because the "new algorithm" isn't one fixed thing across scales: a
+current modded-nanoGPT speedrun (small sizes) and the older 2024 "ScaleUp" recipe
+(which has a documented large-scale configuration).
+
+The four arms, and the sizes each curve was run at:
+
+|  | Old data (OpenWebText) | New data (DCLM) | Sizes run |
+|---|---|---|---|
+| **Old algorithm** (GPT-2) | A0D0 | A0D1 | 124M, 355M, 1.5B |
+| **New algorithm — current speedrun** | A1D0 | A1D1 | 124M, 355M |
+| **New algorithm — 2024 ScaleUp** | A1D0 | A1D1 | 124M, 1.5B |
+
+### 2. Exp A — does "newer data" mean "better data"?
+
+Hold the algorithm fixed and walk the data corpus forward in time, all at 124M. Here
+"worse data" has a concrete meaning: a model of the same size, trained on that corpus
+for the same compute, reaches the quality bar more slowly — or not at all. The finding
+is that data quality is *not* monotonic in release year.
+
+| Data corpus | Release year | Runs (each = one 124M model) |
 |---|---|---|
-| **Old algorithm** (GPT-2 repro) | A0D0 | A0D1 |
-| **New algorithm** (modded-nanoGPT) | A1D0 | A1D1 |
+| OpenWebText | 2019 | old-algo (the baseline) + current-arch |
+| C4 | 2020 | old-algo + current-arch |
+| RefinedWeb | 2023 | old-algo + current-arch |
+| DCLM | 2024 | old-algo + current-arch |
 
-**2. Exp A — does "newer data" mean "better data"?** Hold the algorithm fixed and
-walk the data corpus forward in time: OpenWebText (2019), C4 (2020), RefinedWeb
-(2023), DCLM (2024), all at 124M. The answer turns out to be no — data quality is
-*not* monotonic in release year (C4 in 2020 is actually worse than 2019 OpenWebText).
+### 3. Exp B — does the modern architecture advantage generalize?
 
-**3. Exp B — does the modern architecture advantage generalize?** The core study found
-a large algorithm advantage for the current speedrun at small scale. Is that a real
-architectural improvement, or just tricks tuned for small-scale speedrun benchmarks?
-To find out, we train published open-model lineages — Pythia (2023) and SmolLM2 (2024)
-— from scratch against a size-matched GPT-2, on fixed data, from 135M to 1.7B. The
-result is a clean "no": none of them beat a well-tuned GPT-2 at any scale. (This
-experiment currently varies only architecture; extending it across the data corpora —
-to get a data multiplier per architecture — is the planned next step.)
+The core study found a large algorithm advantage for the current speedrun at small
+scale. Is that a genuine architectural improvement, or tricks tuned for small-scale
+speedrun benchmarks? To find out, we take two *published* open-model lineages — Pythia
+(2023) and SmolLM2 (2024) — and train them from scratch against a same-size GPT-2, on
+fixed data (OpenWebText), across a range of sizes. The result is a clean "no": neither
+beats a well-tuned GPT-2 at any scale.
 
-Headline numbers for all three are in "Results so far" below; the full write-up,
-with figures and every caveat, is in `report.md`.
+| Architecture | Sizes run | Baseline (same-size GPT-2) |
+|---|---|---|
+| GPT-2 (matched baseline) | 135M, 160M, 360M, 410M, 1.4B, 1.7B | — (it is the baseline) |
+| Pythia (GPT-NeoX, 2023) | 160M, 410M, 1.4B | 160M / 410M / 1.4B GPT-2 |
+| SmolLM2 (Llama, 2024) | 135M, 360M, 1.7B | 135M / 360M / 1.7B GPT-2 |
+
+This experiment varies only the architecture (data is held fixed at OpenWebText), so it
+produces an *algorithm* comparison but not yet a data multiplier for these new
+architectures — extending it across the four corpora is the planned next step.
+
+Headline numbers for all three are in "Results so far" below; the full write-up, with
+figures and every caveat, is in `report.md`.
 
 ## Status: what's measured, and what's still open
 
@@ -122,17 +146,30 @@ data multiplier ~stable (~3×). Disclosed gaps: current-arch 1.5B, ScaleUp 355M.
 Data-quality is NON-monotonic in release year — C4 (2020) is *worse* than 2019 OWT
 (censored under both algorithms). Corrected OWT×DCLM 2×2: data 2.39×, algo 16.1×, total 38.5×.
 
-**Exp B — architecture landscape** (algorithm-CEG vs a size-matched GPT-2, data fixed = OWT;
-Δ = arch neutral BPB − matched GPT-2, >0 = worse; all arms censored ≤1×):
+**Exp B — architecture landscape.** Every architecture is compared to a same-size
+GPT-2. None of them reach the GPT-2 quality bar faster (all are censored, i.e. algorithm
+CEG ≤ 1×), so the informative number is how far *short* of the bar each one lands. The
+table shows the gap in bits-per-byte between the architecture and its matched GPT-2 at
+convergence — 0 means a tie, positive means the architecture is worse:
 
-| Lineage | 135–160M | 360–410M | 1.4–1.7B |
+| Architecture | ~135–160M | ~360–410M | ~1.4–1.7B |
 |---|---|---|---|
-| Pythia (GPT-NeoX, 2023) | +0.082 | +0.020 (2-seed) | +0.030 |
-| SmolLM2 (Llama, 2024) | +0.009 (parity within noise) | +0.054 *(div)* | +0.120 *(div)* |
+| Pythia (GPT-NeoX, 2023) | +0.082 (worse) | +0.020 (2-seed) | +0.030 (worse) |
+| SmolLM2 (Llama, 2024) | +0.009 (tie, within noise) | +0.054 † | +0.120 † |
 
-**No published Transformer lineage beats a matched, well-trained GPT-2 anywhere 135M–1.7B.**
-Best case = SmolLM2-135M parity. *(div)* = divergence-confounded (SmolLM2 overfits OWT at
-larger sizes, even at its documented LR). No data multiplier yet — see "Planned next".
+**No published Transformer lineage beats a matched, well-trained GPT-2 anywhere from
+135M to 1.7B** — the best any of them manages is a tie (SmolLM2 at 135M). † SmolLM2's
+larger models overfit OpenWebText even at their documented learning rate, which inflates
+those two gaps (the deficit is real, but the exact size is confounded). This is the
+central Exp B result and the reason we conclude the current speedrun's small-scale
+advantage does *not* come from a generally-better architecture.
+
+Downstream tasks (CORE — secondary, `results/core_expb_delta.png` and
+`core_expb_by_task.png`) add a wrinkle worth noting: on the task suite, Pythia stays
+at-or-below its matched GPT-2 (consistent with the gap above), but **SmolLM2 lands
+slightly *above* its matched GPT-2 at every size** despite the bits-per-byte tie/deficit
+— a small architectural edge on downstream accuracy that the compute-efficiency metric
+doesn't capture. It's a modest, noisy signal (limit=500), not a compute-efficiency claim.
 
 ## Where the artifacts live (checkpoints & data)
 
@@ -146,7 +183,7 @@ Hugging Face (model checkpoints); a local backup mirror at
 | **Exp B checkpoints** (14: 6 GPT-2 denominators + 6 candidates + 2 replicate seeds) | public HF `MIRIBerkeley/data-vs-algorithms-ceg-expB` (35.7 GB) | local (`b1_cand/checkpoints/`, 36 GB); metrics.csv in git (`results/b1_metrics/`) |
 | **Exp B matched GPT-2 baselines** (6, train_old) | local (`b1_checkpoints/`, 16 GB) | thresholds in git (`results/b1_baseline_thresholds.json`) |
 | **Exp A era-ladder arms** | run metrics local (`prov/`, `run_metrics/`) + git results JSONs | final checkpoints on the pod volume only (weights not needed for the CEG result) |
-| **Tokenized datasets** | pod `/workspace/datasets/` (all 4 corpora × gpt2/nanogpt; OWT × neox/smollm2) | `owt_neox`/`owt_smollm2` mirrored local (`b1_datasets/`, 34 GB); `wiki_eval_union` in `eval_sets.tgz`. **C4/RW/DCLM in neox/smollm2 tokenizers NOT yet built** (the data-ladder prereq). |
+| **Tokenized datasets** | pod `/workspace/datasets/` (all 4 corpora × gpt2/nanogpt; OWT × neox/smollm2) | `owt_neox`/`owt_smollm2` mirrored local (`b1_datasets/`, 34 GB); `wiki_eval_union` in `eval_sets.tgz`. C4/RefinedWeb/DCLM in the neox/smollm2 tokenizers (the data-ladder prereq) are being built now. |
 | **Metrics, results, figures, report, configs** | git (this repo) | — |
 
 ## Layout
@@ -180,32 +217,40 @@ Hugging Face (model checkpoints); a local backup mirror at
   ScaleUp-arch) kept separate, plus the Exp A (era-ladder) and Exp B
   (architecture landscape) sections, with all disclosed gaps
 
-## Methodology invariants (do not "improve")
+## How we measure (methodology)
 
-1. **BPB everywhere**, never cross-arm per-token CE (tokenizers differ in kind).
-2. Reference threshold = BPB on a **fixed decontaminated Wikipedia slice**,
-   identical raw text across all runs; per-dataset val BPB is logged but
-   labeled same-distribution-only. (Canonical definition = mean neutral BPB
-   over A0D0's final-10%-by-tokens checkpoints, `analysis/threshold.py::final_tail_threshold`.)
-3. CORE is secondary, gated by an above-chance validity check at small sizes.
-4. Compute = **timed GPU-hours** excluding warmup/compile and eval time; no
-   cross-arm raw-FLOP comparisons.
-5. Hyperparameters are fixed per (algorithm, size) row — never re-tuned per
-   data arm.
-6. Log-spaced checkpoints + log-compute interpolation for threshold crossing.
-7. Shapley decomposition in log-compute space, reported as multipliers.
-8. Tokenizer belongs to "algorithm": 4 tokenized corpus variants total.
-9. ~~A1D0 = exactly 2 epochs of OpenWebText, reshuffled between epochs, called
-   out in the writeup as that cell's extra confound.~~
-   **CORRECTED (dated note, 2026-07):** the original design fixed token budgets
-   across arms (old-algo 9B, new-algo 18B), which forced A1D0 to repeat OWT for
-   exactly 2 epochs. This was **abandoned** after the modded recipe collapsed
-   under the ~50× schedule stretch a fixed 18B budget implied at small sizes.
-   Final design: each A1 (modded) arm trains at **2× its size's upstream-native
-   budget, single-pass** (well under one epoch of its ~9B+ corpus) — so there is
-   **no epoch-repetition confound in any cell**. Recorded here as an explicit
-   correction (not a silent rewrite), same as every other correction in this
-   project; see `report.md` methodology notes.
+A handful of choices make the compute comparisons fair; they are fixed for every run so
+that a difference in the result reflects a difference in data or architecture, not in
+how we measured it.
 
-Session procedures, pipeline smoke test, and the cost ledger live in
-`RUNBOOK.md`; the final write-up is `report.md`.
+- **Quality is bits-per-byte, not per-token loss.** Different tokenizers split text
+  differently, so per-token cross-entropy isn't comparable across them; bits-per-byte
+  is. We never compare per-token loss across architectures.
+- **One fixed quality bar for everything.** The bar is bits-per-byte on a fixed,
+  decontaminated slice of Wikipedia — the same raw text for every run, at every size.
+  The exact bar at each size is the fully-trained GPT-2 baseline's score (averaged over
+  the final 10% of its training; `analysis/threshold.py`).
+- **Compute is timed GPU-hours**, excluding warmup/compile and evaluation time. We do
+  not compare raw FLOPs across architectures (their numerical precision differs, so
+  FLOPs aren't comparable).
+- **Hyperparameters are fixed per (architecture, size).** They are never re-tuned
+  between the data conditions, so the data comparison isn't contaminated by tuning.
+- **The tokenizer counts as part of the "algorithm."** Each corpus is tokenized once
+  per tokenizer; switching tokenizer is an algorithm change, not a data change.
+- **Downstream tasks (CORE) are a secondary check**, not the headline. They are noisy
+  at small scale, so we gate each task on clearing chance by a margin before using it,
+  and we never make a compute-efficiency claim from them.
+- **Crossings are interpolated in log-compute** between checkpoints, never snapped to
+  the nearest one; the data/algorithm split is a Shapley decomposition in log-compute
+  space, reported as multipliers.
+
+One design point changed mid-project and is worth stating plainly. The original plan
+fixed the token budget across arms (old-algorithm 9B, new-algorithm 18B), which forced
+the new-algorithm/old-data cell to train two epochs on OpenWebText. That was abandoned
+after the modded recipe broke down under the very long schedule a fixed 18B budget
+implied at small sizes. In the final design each modded arm trains at twice its size's
+native budget in a single pass (well under one epoch), so no cell repeats data. (Noted
+here as an explicit correction rather than a silent edit; see `report.md`.)
+
+Session procedures, the pipeline smoke test, and the cost ledger are in `RUNBOOK.md`;
+the full write-up is `report.md`.

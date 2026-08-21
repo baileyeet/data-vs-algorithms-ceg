@@ -324,17 +324,71 @@ def core_expb_delta_vs_scale(root: Path, out_path):
     ax.set_ylim(-0.035, 0.035)
     ax.set_xlabel("Model size (log)")
     ax.set_ylabel("CORE mean-accuracy gap vs matched GPT-2")
-    ax.set_title("Exp B — downstream-task (CORE) gap vs matched GPT-2, by scale",
-                 fontsize=11.5, loc="left")
+    ax.set_title("Exp B — downstream-task (CORE) gap vs matched GPT-2, by scale (data = OWT)",
+                 fontsize=11, loc="left")
     ax.legend(frameon=False, fontsize=9, labelcolor=INK2, loc="upper left")
     fig.text(0.012, 0.012,
-             "Mean accuracy over 11 CORE tasks (limit=500), candidate minus its size-matched "
-             "GPT-2 through the same harness. SECONDARY to BPB/CEG. Pythia is at/below parity "
-             "and falls with scale (corroborating its BPB deficit); SmolLM2 sits modestly ABOVE "
-             "parity at every scale (~1.7σ, 7/11 tasks at small size) — a downstream edge that "
-             "neutral BPB, where SmolLM2 is parity-or-worse, does not capture. Error bars ±1 stderr.",
+             "y = each architecture's mean accuracy across 11 CORE tasks MINUS its size-matched "
+             "GPT-2's mean, both trained on OpenWebText and scored through the same harness "
+             "(limit=500 examples/task). Above 0 = the architecture beats GPT-2 on downstream "
+             "tasks. Error bars are ±1 standard error of that mean gap (per-task stderrs from "
+             "lm-eval, combined across the 11 tasks). SECONDARY to the BPB/CEG result. Pythia is "
+             "at/below parity and falls with scale (matching its BPB deficit); SmolLM2 sits "
+             "modestly above parity at every scale (~1.7σ; wins 7 of 11 tasks at small size) — a "
+             "downstream edge that neutral BPB, where SmolLM2 is only parity-or-worse, misses. "
+             "Per-task breakdown: core_expb_by_task.png.",
              fontsize=7.0, color=INK2, va="bottom", wrap=True)
     fig.tight_layout(rect=(0, 0.075, 1, 1))
+    fig.savefig(out_path, facecolor=SURFACE); plt.close(fig)
+
+
+def core_expb_by_task(root: Path, out_path):
+    """Exp B CORE broken down BY TASK: one panel per task, showing each lineage's
+    accuracy gap vs its matched GPT-2 (candidate - GPT-2) across model size. Companion
+    to the aggregate core_expb_delta figure. Data = OWT (Exp B is OWT-only); limit=500;
+    ±1 stderr per point (stderr of the difference = hypot of the two arms' task stderrs).
+    Reads results/core_expb_summary.json (per_task deltas)."""
+    S = json.loads((root / "core_expb_summary.json").read_text())["pairs"]
+    PARAMS = {"pythia-160M": 162, "pythia-410M": 405, "pythia-1.4B": 1415,
+              "smollm2-135M": 135, "smollm2-360M": 362, "smollm2-1.7B": 1711}
+    LIN = {"pythia": ("Pythia", "#1baf7a"), "smollm2": ("SmolLM2", "#8e44ad")}
+    tasks = ["arc_easy", "arc_challenge", "openbookqa", "hellaswag", "commonsense_qa",
+             "boolq", "copa", "piqa", "winogrande", "xwinograd_en", "lambada_openai"]
+    ncol = 4
+    nrow = (len(tasks) + ncol - 1) // ncol
+    fig, axes = plt.subplots(nrow, ncol, figsize=(12.5, 2.5 * nrow), dpi=150, sharey=True)
+    axf = axes.ravel()
+    for i, task in enumerate(tasks):
+        ax = axf[i]
+        ax.axhline(0.0, color=INK2, lw=1, ls=(0, (4, 3)), zorder=1)
+        for lname, (label, col) in LIN.items():
+            pts = sorted(((PARAMS[k], v["per_task"].get(task, {})) for k, v in S.items()
+                          if k.startswith(lname)))
+            xs = [p for p, d in pts if d]
+            ys = [d["delta"] for p, d in pts if d]
+            ax.plot(xs, ys, color=col, marker="o", ms=5, lw=1.6, label=label, zorder=3,
+                    markeredgecolor=SURFACE, markeredgewidth=0.8)
+        ax.set_xscale("log"); ax.set_xticks([135, 400, 1500])
+        ax.set_xticklabels(["135M", "400M", "1.5B"], fontsize=7.5)
+        ax.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
+        ax.set_ylim(-0.10, 0.10)
+        ax.set_title(task, fontsize=9.5, loc="left")
+        _style(ax)
+    for j in range(len(tasks), len(axf)):
+        axf[j].axis("off")
+    axf[0].legend(frameon=False, fontsize=8, labelcolor=INK2, loc="upper right")
+    for r in range(nrow):
+        axes[r, 0].set_ylabel("Δ acc vs GPT-2", fontsize=8.5)
+    fig.suptitle("Exp B — CORE accuracy gap vs matched GPT-2, per task (data = OWT)",
+                 fontsize=12.5, x=0.012, ha="left", color=INK)
+    fig.text(0.012, 0.008,
+             "Each panel: candidate accuracy minus its size-matched GPT-2 on that task "
+             "(>0 = candidate better), vs model size, per lineage. limit=500, so single "
+             "tasks are noisy — read the consistency across tasks, not any one panel. "
+             "SmolLM2 (purple) is positive on most tasks at most sizes; Pythia (green) "
+             "scatters around/below zero. Aggregate + significance in core_expb_delta.png.",
+             fontsize=7.2, color=INK2, va="bottom", wrap=True)
+    fig.tight_layout(rect=(0, 0.04, 1, 0.95))
     fig.savefig(out_path, facecolor=SURFACE); plt.close(fig)
 
 
@@ -569,7 +623,7 @@ if __name__ == "__main__":
     ap.add_argument("kind", choices=["curves", "cross_scale", "sensitivity",
                                      "all_configs", "multipliers",
                                      "core_vs_scale", "core_arms_by_task",
-                                     "core_expb"])
+                                     "core_expb", "core_expb_by_task"])
     ap.add_argument("--size-label", default="")
     ap.add_argument("--out", required=True)
     ap.add_argument("--threshold", type=float)
@@ -593,6 +647,8 @@ if __name__ == "__main__":
         core_arms_by_task(Path("results"), a.out)
     elif a.kind == "core_expb":
         core_expb_delta_vs_scale(Path("results"), a.out)
+    elif a.kind == "core_expb_by_task":
+        core_expb_by_task(Path("results"), a.out)
     else:
         threshold_sensitivity(a.csv, a.size_label, a.out)
     print(f"wrote {a.out}")

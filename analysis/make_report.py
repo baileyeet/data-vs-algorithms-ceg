@@ -250,6 +250,10 @@ def _expb_core_section(root):
             "is noisy — not a compute-efficiency claim (on BPB/CEG neither lineage beats GPT-2).", ""]
     if (root / "core_expb_delta.png").exists():
         out += ["![Exp B CORE gap vs matched GPT-2, by scale](core_expb_delta.png)", ""]
+    if (root / "core_expb_by_task.png").exists():
+        out += ["Per-task breakdown (each task is noisy at limit=500 — read the "
+                "consistency across tasks, not any single panel):", "",
+                "![Exp B CORE gap per task](core_expb_by_task.png)", ""]
     return out
 
 
