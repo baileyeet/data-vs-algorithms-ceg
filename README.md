@@ -73,9 +73,10 @@ beats a well-tuned GPT-2 at any scale.
 | Pythia (GPT-NeoX, 2023) | 160M, 410M, 1.4B | 160M / 410M / 1.4B GPT-2 |
 | SmolLM2 (Llama, 2024) | 135M, 360M, 1.7B | 135M / 360M / 1.7B GPT-2 |
 
-This experiment varies only the architecture (data is held fixed at OpenWebText), so it
-produces an *algorithm* comparison but not yet a data multiplier for these new
-architectures — extending it across the four corpora is the planned next step.
+The architecture comparison above holds data fixed at OpenWebText. We then extended Exp B
+along the *data* axis too — training the two new architectures (at small size) on all four
+corpora — so they get a data multiplier like the original two architectures. That closes
+the data × architecture grid; results are below.
 
 Headline numbers for all three are in "Results so far" below; the full write-up, with
 figures and every caveat, is in `report.md`.
@@ -93,23 +94,16 @@ Done:
   up would require inventing an unvalidated architecture) and ScaleUp at 355M (no
   documented recipe for that size).
 - **Exp A** (data-era ladder) — complete at 124M.
-- **Exp B** (architecture landscape) — complete from 135M to 1.7B, including CORE
-  downstream tasks. It has no data multiplier because it deliberately holds data fixed
-  (OWT) to isolate architecture; that's a design choice, not a missing measurement (the
-  data axis is the planned extension below). CORE adds a wrinkle: on downstream tasks
-  SmolLM2 sits modestly *above* its matched GPT-2 at every scale even though its BPB is
-  only parity-or-worse — a small architectural edge that the compute-efficiency metric
-  doesn't capture (Pythia stays at/below GPT-2 on both).
+- **Exp B** (architecture landscape) — complete. The architecture axis runs 135M–1.7B
+  (no new architecture beats a matched GPT-2 on OWT at any size); the data axis runs both
+  new architectures across all four corpora at small size (better data flips them from
+  losing to *beating* a matched GPT-2); and CORE downstream tasks are scored for all B1
+  checkpoints. CORE adds a wrinkle: SmolLM2 sits modestly *above* its matched GPT-2 on the
+  task suite at every size even though its bits-per-byte is only parity-or-worse — a small
+  architectural edge the compute-efficiency metric doesn't capture (Pythia stays at/below
+  GPT-2 on both).
 
 Open:
-- **Extend Exp B across the data corpora (the current priority).** Run the new
-  architectures on C4, RefinedWeb, and DCLM as well as OWT, so each architecture gets
-  a data multiplier — the same treatment the original two architectures received. This
-  is scoped to the small size only (~135–160M): it's the size that lines up with Exp
-  A's 124M ladder, the data multiplier has already proven roughly scale-stable, and
-  the small size avoids the training instability SmolLM2 develops at larger sizes. It
-  reuses the existing OWT GPT-2 thresholds as the baseline, so only tokenization and
-  the new training runs are needed — no new baselines per corpus.
 - **CORE for Exp A.** The downstream-task eval run on the era-ladder checkpoints, to
   corroborate its BPB findings (Exp B's CORE is now done — see above).
 - **Next architecture tier (Mamba / Mamba-2).** Non-Transformer lineages, to extend
@@ -170,6 +164,23 @@ at-or-below its matched GPT-2 (consistent with the gap above), but **SmolLM2 lan
 slightly *above* its matched GPT-2 at every size** despite the bits-per-byte tie/deficit
 — a small architectural edge on downstream accuracy that the compute-efficiency metric
 doesn't capture. It's a modest, noisy signal (limit=500), not a compute-efficiency claim.
+
+**Exp B data axis** (`results/data_ladder_expB.png`) — Pythia-160M and SmolLM2-135M
+trained on all four corpora, each measured against the same external bar (its size-matched
+GPT-2 trained on OWT):
+
+| Architecture | OWT (2019) | C4 (2020) | RefinedWeb (2023) | DCLM (2024) |
+|---|---|---|---|---|
+| Pythia-160M | censored | censored | crosses, 4.6× | crosses, 5.4× |
+| SmolLM2-135M | censored | censored | crosses, 5.4× | crosses, 6.4× |
+
+The headline the fixed external bar makes visible: **better data flips both architectures
+from losing to a matched GPT-2 (OWT/C4) to beating it (RefinedWeb/DCLM), at 4.6–6.4× less
+compute** — a far bigger lever than any architecture change (in B1 no new architecture beat
+GPT-2 on OWT at all). And **C4 is worse than OWT for both architectures independently** —
+a direct cross-validation of Exp A's non-monotonic-in-release-year finding, now reproduced
+on two further architectures (GPT-NeoX and Llama lineages), so the effect is a property of
+the data, not of a particular algorithm.
 
 ## Where the artifacts live (checkpoints & data)
 
