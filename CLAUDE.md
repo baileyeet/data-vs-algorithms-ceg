@@ -896,7 +896,24 @@ explicit correction, not silently. v1/v2 agreement is within the measured
   vs full 135M-1.7B ladder); define the data-axis CEG threshold/denominator; watch SmolLM2
   OWT-overfitting-style divergence on the other corpora. This is the "complete picture" the user
   expected. Task #15.
-- **TRACKED TODO — CORE-by-task for Exp B (deferred, NEEDS GPU/pod):** run the CORE downstream-task eval
+  **DATA-LADDER PREP DONE (2026-08-21, GPU pod 103.207.149.153:13302, 7xH100/1.6TB RAM).** SIZE LOCKED
+  small-only = Pythia-160M + SmolLM2-135M, each on C4/RefinedWeb/DCLM (OWT done) = 6 candidate runs;
+  baselines REUSED (b135/b160, no new baseline training). TOKENIZATION COMPLETE + VERIFIED: all 6 variants
+  {c4,refinedweb,dclm}_{neox,smollm2} = ~9.1B train tokens + 5M val each (matched owt_neox: shuffle_buffer 0,
+  seed 1234), in /workspace/datasets/. Pool path (workers=24) works with real RAM (the 512MB cgroup cap was
+  the prior-pod blocker). BACKED UP to PUBLIC HF data-vs-algorithms-ceg-expB under data-ladder/<variant>/
+  (6x18.2GB verified). torch 2.10.0+cu128 on pod (torchvision removed for transformers 5.x). NEXT (paid,
+  NEEDS ESTIMATE+CONFIRM): train 6 candidate arms @512k pipeline same as B1 (Pythia 6e-4 cosine / SmolLM2
+  3e-3 WSD, 8.87B budget, union eval, divergence watch); then data-axis CEG of each (arch,corpus) vs the
+  OWT-GPT-2 threshold (Exp-A ceg_vs_a0d0 style) -> data multiplier per arch. Est ~10-20 GPU-h/arm x6.
+- **CORE-for-Exp-A BLOCKED (2026-08-21): era-ladder checkpoints GONE** (only metrics backed up local+git;
+  weights were pod-volume-only, reclaimed). CORE-for-Exp-A needs those 124M era arms RE-TRAINED. Exp B CORE
+  ran fine because its ckpts were on HF. Durability lesson recorded.
+- **CORE-by-task for Exp B DONE (2026-08-21):** all 14 B1 ckpts scored on the 11-task CORE subset (limit
+  500) via train_hf model reconstruct + lm-eval HFLM. Results results/core_expb/ + summary + figures
+  (core_expb_delta.png, core_expb_by_task.png) + report section. FINDING: Pythia at/below matched GPT-2
+  (corroborates BPB); SmolLM2 modest downstream EDGE (+0.011..+0.019, ~1.7sigma, 7/11 wins) that BPB misses.
+  (superseded) TRACKED TODO — CORE-by-task for Exp B (deferred, NEEDS GPU/pod): run the CORE downstream-task eval
   (eval/lm_eval adapters, same as the completed study's CORE sweep) on the 14 B1 checkpoints (public HF
   exp-b-b1/) and present arms-by-task like the study's CORE section. HIGH VALUE: the "no arch beats GPT-2"
   BPB finding needs downstream-task corroboration. BLOCKED on: a funded pod (part of B2 bring-up). Put
