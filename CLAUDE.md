@@ -7,6 +7,16 @@ only with explicit user confirmation, per tier. Commits: one line, never
 mention Claude/Anthropic. Long jobs: persistent state-change monitors until
 completion.
 
+**DURABILITY RULE (MANDATORY, added 2026-08-22 after Exp A checkpoints were LOST — pod-volume-only,
+reclaimed).** For EVERY training arm, the moment it finishes, durably save to BOTH (a) Hugging Face and
+(b) local ~/Desktop/era_ladder_backup/: the FINAL checkpoint + metrics.csv + run_config.json. Verify each
+upload (do not assume). This is non-negotiable and is what B1 + the data ladder did (they survived); Exp A
+saved ONLY metrics (weights were pod-volume-only) -> when the volume was reclaimed the weights were gone,
+blocking CORE-for-Exp-A and forcing a retrain. INTERMEDIATE checkpoints: keep on the pod during the run
+(dense-tail, keep-3) for divergence recovery ONLY; they are prunable and NOT durably archived (huge ~40GB/
+arm; analysis reads metrics.csv, not intermediate weights; CORE needs only the final). So: FINAL weights =
+always durably saved + verified; intermediates = transient pod-side only.
+
 ## NEW EXPERIMENTS A + B (IN PROGRESS, launched 2026-08-08)
 
 Two follow-on experiments on the completed 124M/355M/1.5B study. Ground rules
