@@ -906,6 +906,16 @@ explicit correction, not silently. v1/v2 agreement is within the measured
   NEEDS ESTIMATE+CONFIRM): train 6 candidate arms @512k pipeline same as B1 (Pythia 6e-4 cosine / SmolLM2
   3e-3 WSD, 8.87B budget, union eval, divergence watch); then data-axis CEG of each (arch,corpus) vs the
   OWT-GPT-2 threshold (Exp-A ceg_vs_a0d0 style) -> data multiplier per arch. Est ~10-20 GPU-h/arm x6.
+  **DATA-LADDER COMPLETE (2026-08-22, 8-GPU pod 103.207.149.135:17455).** All 6 arms done + backed up to
+  public HF (data-ladder-runs/<arm>/): Pythia-160M + SmolLM2-135M x {C4,RefinedWeb,DCLM}, exact B1 8-GPU
+  config, no divergence. RESULT (results/data_ladder_results.json, data_ladder_expB.png, report Exp B data
+  section; commit ea8e346): shared external bar = size-matched GPT-2-OWT threshold (b160=1.2518 pythia,
+  b135=1.2721 smollm2). data-CEG: OWT + C4 = CENSORED for both archs; RefinedWeb crosses (pythia 4.6x /
+  smollm2 5.4x); DCLM crosses (pythia 5.4x / smollm2 6.4x). HEADLINE: better data flips both new archs from
+  LOSING to a matched GPT-2 (OWT/C4) to BEATING it (RefinedWeb/DCLM) — data lever >> arch lever. C4<OWT for
+  BOTH archs independently = cross-validation of Exp A non-monotonic-release-year finding. SmolLM2 trained
+  CLEAN on RefinedWeb/DCLM (no divergence) unlike OWT -> the OWT-overfitting was partly a data artifact.
+  Metrics local results/data_ladder_metrics/. Task #15 DONE.
 - **CORE-for-Exp-A BLOCKED (2026-08-21): era-ladder checkpoints GONE** (only metrics backed up local+git;
   weights were pod-volume-only, reclaimed). CORE-for-Exp-A needs those 124M era arms RE-TRAINED. Exp B CORE
   ran fine because its ckpts were on HF. Durability lesson recorded.
