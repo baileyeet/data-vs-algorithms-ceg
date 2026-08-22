@@ -1,0 +1,24 @@
+{
+  "experiment": "Exp B data ladder — data multiplier per architecture (Pythia-160M, SmolLM2-135M) across OWT/C4/RefinedWeb/DCLM, small size only",
+  "date": "2026-08-22",
+  "method": "Each architecture trained from scratch on each corpus at the exact B1 8-GPU config (global batch 524288, 8.87B tokens, union neutral eval). Data multiplier = GPU-hours for the arch to reach its OWN OWT-converged neutral-BPB (its best on old data), on OWT vs on the newer corpus (log-hours interpolation, study method). >1 = newer data reaches old-data quality with less compute.",
+  "note": "Also reported: each arm's converged neutral BPB vs its matched GPT-2 threshold (b160=1.2518 pythia, b135=1.2721 smollm2) — shows the arch CROSSES the GPT-2 bar on RefinedWeb/DCLM though it was censored on OWT/C4.",
+  "pythia_160m": {
+    "owt_quality_bar_bpb": 1.3337, "matched_gpt2_threshold": 1.2518,
+    "corpora": {
+      "OWT":        {"year": 2019, "bpb": 1.3337, "data_mult": 1.00, "crosses_gpt2": false},
+      "C4":         {"year": 2020, "bpb": 1.3279, "data_mult": 0.83, "crosses_gpt2": false},
+      "RefinedWeb": {"year": 2023, "bpb": 1.1928, "data_mult": 4.11, "crosses_gpt2": true},
+      "DCLM":       {"year": 2024, "bpb": 1.1788, "data_mult": 4.59, "crosses_gpt2": true}
+    }
+  },
+  "smollm2_135m": {
+    "owt_quality_bar_bpb": 1.2803, "matched_gpt2_threshold": 1.2721,
+    "corpora": {
+      "OWT":        {"year": 2019, "bpb": 1.2803, "data_mult": 1.00, "crosses_gpt2": false},
+      "C4":         {"year": 2020, "bpb": 1.2817, "data_mult": 0.94, "crosses_gpt2": false},
+      "RefinedWeb": {"year": 2023, "bpb": 1.1318, "data_mult": 6.17, "crosses_gpt2": true},
+      "DCLM":       {"year": 2024, "bpb": 1.1283, "data_mult": 7.28, "crosses_gpt2": true}
+    }
+  }
+}
