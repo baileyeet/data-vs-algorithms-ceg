@@ -1,0 +1,63 @@
+{
+ "experiment": "Exp A CORE ladder @124M \u2014 downstream tasks across data eras (OWT/C4/RefinedWeb/DCLM x old/new algo)",
+ "date": "2026-08-23",
+ "note": "OWT+DCLM CORE from the completed 2x2 study 124M arms; C4+RefinedWeb from the 2026-08-23 retrain (era checkpoints were lost; retrained faithfully, +-0.008 BPB). Gate = old-algo(baseline) clears chance by 2sigma. limit=500 (noisy at 124M) -> qualitative sanity check, NOT a quantitative CEG claim (consistent with the study's CORE handling).",
+ "corpora": {
+  "OWT": {
+   "year": 2019,
+   "usable_tasks": [
+    "arc_easy",
+    "hellaswag",
+    "copa",
+    "piqa",
+    "xwinograd_en"
+   ],
+   "old_algo_mean_acc": 0.528,
+   "new_algo_mean_acc": 0.5188,
+   "delta_new_minus_old": -0.0092
+  },
+  "C4": {
+   "year": 2020,
+   "usable_tasks": [
+    "arc_easy",
+    "openbookqa",
+    "hellaswag",
+    "boolq",
+    "copa",
+    "piqa",
+    "xwinograd_en"
+   ],
+   "old_algo_mean_acc": 0.5034,
+   "new_algo_mean_acc": 0.5111,
+   "delta_new_minus_old": 0.0077
+  },
+  "RefinedWeb": {
+   "year": 2023,
+   "usable_tasks": [
+    "arc_easy",
+    "hellaswag",
+    "boolq",
+    "copa",
+    "piqa",
+    "xwinograd_en"
+   ],
+   "old_algo_mean_acc": 0.5543,
+   "new_algo_mean_acc": 0.5357,
+   "delta_new_minus_old": -0.0187
+  },
+  "DCLM": {
+   "year": 2024,
+   "usable_tasks": [
+    "arc_easy",
+    "hellaswag",
+    "boolq",
+    "copa",
+    "piqa",
+    "xwinograd_en"
+   ],
+   "old_algo_mean_acc": 0.5317,
+   "new_algo_mean_acc": 0.553,
+   "delta_new_minus_old": 0.0213
+  }
+ }
+}
