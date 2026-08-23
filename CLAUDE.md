@@ -926,6 +926,17 @@ explicit correction, not silently. v1/v2 agreement is within the measured
   BOTH archs independently = cross-validation of Exp A non-monotonic-release-year finding. SmolLM2 trained
   CLEAN on RefinedWeb/DCLM (no divergence) unlike OWT -> the OWT-overfitting was partly a data artifact.
   Metrics local results/data_ladder_metrics/. Task #15 DONE.
+- **CORE-for-Exp-A RETRAIN SCOPED DOWN (2026-08-22): only C4 + RefinedWeb need retraining (4 arms, NOT 8).**
+  Exp A = data-era ladder @124M ONLY (single size, by design — data multiplier is scale-stable; NOT run across
+  GPT-2 sizes; scaling questions live in the 2x2 study 124M/355M/1.5B + Exp B arch axis 135M-1.7B). The era
+  ladder's OWT + DCLM points ARE the completed-2x2-study 124M arms (A0D0/A1D0=OWT, A0D1/A1D1=DCLM) — those
+  ckpts ARE saved (local hf_current_arch_finals/current-arch-124M/ + HF) AND already have CORE
+  (results/core_finals/small_a0d0..a1d1). So Exp A CORE only needs C4 (era_a0_c4/era_a1_c4) + RefinedWeb
+  (era_a0_refinedweb/era_a1_refinedweb) RE-TRAINED = 4 arms: 2 old-algo (~7.7 GPU-h each) + 2 current-arch
+  modded (~0.35 GPU-h each) ~= 16 GPU-h. Prereqs: re-tokenize c4_gpt2+refinedweb_gpt2 (GPT-2 BPE, seed 1234,
+  shuffle_buffer 60000 — deterministic reproduction; IN PROGRESS on 8-GPU pod 103.207.149.135); modded stack
+  bring-up (triton_kernels.py local + pip kernels + torch 2.10) for the current-arch arms. Save FINALS per the
+  new DURABILITY RULE. Then CORE the 4 -> combine with existing OWT/DCLM CORE for the full Exp A CORE ladder.
 - **CORE-for-Exp-A BLOCKED (2026-08-21): era-ladder checkpoints GONE** (only metrics backed up local+git;
   weights were pod-volume-only, reclaimed). CORE-for-Exp-A needs those 124M era arms RE-TRAINED. Exp B CORE
   ran fine because its ckpts were on HF. Durability lesson recorded.
