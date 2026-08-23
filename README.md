@@ -93,7 +93,9 @@ Done:
   honestly left out: current-arch at 1.5B (no reproducible recipe exists — scaling it
   up would require inventing an unvalidated architecture) and ScaleUp at 355M (no
   documented recipe for that size).
-- **Exp A** (data-era ladder) — complete at 124M.
+- **Exp A** (data-era ladder) — complete at 124M, including CORE downstream tasks
+  across all four corpora. (C4 and RefinedWeb were retrained to recover checkpoints
+  that had been lost; the retrain reproduced the original BPB to within ±0.008.)
 - **Exp B** (architecture landscape) — complete. The architecture axis runs 135M–1.7B
   (no new architecture beats a matched GPT-2 on OWT at any size); the data axis runs both
   new architectures across all four corpora at small size (better data flips them from
@@ -104,12 +106,11 @@ Done:
   GPT-2 on both).
 
 Open:
-- **CORE for Exp A.** The downstream-task eval run on the era-ladder checkpoints, to
-  corroborate its BPB findings (Exp B's CORE is now done — see above).
 - **Next architecture tier (Mamba / Mamba-2).** Non-Transformer lineages, to extend
-  Exp B beyond attention-based models.
+  Exp B beyond attention-based models. Needs GPUs.
 
-All open items need GPUs.
+Everything else — all three experiments' BPB/CEG results, plus CORE downstream tasks
+for all three — is complete.
 
 ## Results so far (headline numbers)
 
@@ -139,6 +140,11 @@ data multiplier ~stable (~3×). Disclosed gaps: current-arch 1.5B, ScaleUp 355M.
 
 Data-quality is NON-monotonic in release year — C4 (2020) is *worse* than 2019 OWT
 (censored under both algorithms). Corrected OWT×DCLM 2×2: data 2.39×, algo 16.1×, total 38.5×.
+
+CORE downstream tasks for Exp A (`results/core_era_ladder.png`) are a secondary check:
+at 124M / limit-500 the old-vs-new-algorithm gap is within ±0.02 (≈ stderr) at every
+corpus, so CORE is a sanity check here, not a quantitative claim — the data-quality signal
+lives in the BPB/CEG numbers above.
 
 **Exp B — architecture landscape.** Every architecture is compared to a same-size
 GPT-2. None of them reach the GPT-2 quality bar faster (all are censored, i.e. algorithm
@@ -193,7 +199,7 @@ Hugging Face (model checkpoints); a local backup mirror at
 | **Core-study finals** (16 ckpts: current-arch 124M/355M + scaleup 124M/1.5B) | private HF `MIRIBerkeley/data-vs-algorithms-ceg` (73.5 GB) | current-arch mirrored local (`hf_current_arch_finals/`, 10 GB). **scaleup is HF-only** and the private repo is over quota → currently read-blocked (resolve by upgrading the HF plan). |
 | **Exp B checkpoints** (14: 6 GPT-2 denominators + 6 candidates + 2 replicate seeds) | public HF `MIRIBerkeley/data-vs-algorithms-ceg-expB` (35.7 GB) | local (`b1_cand/checkpoints/`, 36 GB); metrics.csv in git (`results/b1_metrics/`) |
 | **Exp B matched GPT-2 baselines** (6, train_old) | local (`b1_checkpoints/`, 16 GB) | thresholds in git (`results/b1_baseline_thresholds.json`) |
-| **Exp A era-ladder arms** | run metrics local (`prov/`, `run_metrics/`) + git results JSONs | final checkpoints on the pod volume only (weights not needed for the CEG result) |
+| **Exp A era-ladder arms** | OWT/DCLM = the 2×2 study's 124M finals (HF + local); C4/RefinedWeb finals on public HF `…-expB` under `exp-a-core-retrain/` + local | (the original C4/RW checkpoints were lost — pod-volume-only — and retrained; all era finals are now durably saved) |
 | **Tokenized datasets** | pod `/workspace/datasets/` (all 4 corpora × gpt2/nanogpt; OWT × neox/smollm2) | `owt_neox`/`owt_smollm2` mirrored local (`b1_datasets/`, 34 GB); `wiki_eval_union` in `eval_sets.tgz`. C4/RefinedWeb/DCLM in the neox/smollm2 tokenizers (the data-ladder prereq) are being built now. |
 | **Metrics, results, figures, report, configs** | git (this repo) | — |
 

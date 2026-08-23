@@ -108,6 +108,21 @@ Data-quality is **NON-monotonic in release year**: C4 (2020) is CENSORED under B
 
 ![Exp A: CEG vs dataset release-year](era_ladder.png)
 
+### Exp A — CORE downstream tasks (secondary)
+
+The CEG result above is on bits-per-byte. As a downstream check we score all four era corpora on the study's CORE task subset (limit 500) at 124M — old-algorithm vs new-algorithm. (OWT and DCLM reuse the completed 2×2 study's 124M CORE; C4 and RefinedWeb come from a faithful retrain, since those era checkpoints had been lost.)
+
+| Corpus (year) | usable tasks | old-algo mean acc | new-algo mean acc | Δ (new−old) |
+|--|--|--|--|--|
+| OWT (2019) | 5 | 0.528 | 0.519 | -0.009 |
+| C4 (2020) | 7 | 0.503 | 0.511 | +0.008 |
+| RefinedWeb (2023) | 6 | 0.554 | 0.536 | -0.019 |
+| DCLM (2024) | 6 | 0.532 | 0.553 | +0.021 |
+
+At 124M and limit=500 the old-vs-new gap is within ±0.02 (≈ stderr) at every corpus, so CORE here is a qualitative sanity check, not a quantitative CEG claim — consistent with how the core study treats CORE. The data-quality signal lives in BPB/CEG (where RefinedWeb and DCLM clearly help); downstream tasks at this scale don't resolve the algorithm difference.
+
+![Exp A CORE downstream accuracy across data eras](core_era_ladder.png)
+
 ## Exp B — architecture landscape (Transformer lineages vs matched GPT-2)
 
 The completed study found a large small-scale *algorithm* CEG for the current-arch speedrun (13.7× @124M). Exp B is the direct test of whether that generalizes beyond a small-scale-optimized speedrun: it trains PUBLISHED open-model lineages — **Pythia (GPT-NeoX, 2023)** and **SmolLM2 (Llama, 2024)** — from scratch on fixed data (OpenWebText), each against a size-matched GPT-2 baseline through the identical harness, and asks whether any reaches (crosses) the GPT-2 baseline's neutral-BPB threshold. Data is held fixed → no data/algorithm 2×2; this is algorithm-CEG only.

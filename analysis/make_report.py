@@ -156,6 +156,35 @@ def _era_ladder_section(root):
             "corpora (see the OWT/RefinedWeb/DCLM column).", ""]
     if (root / "era_ladder.png").exists():
         out += ["![Exp A: CEG vs dataset release-year](era_ladder.png)", ""]
+    out += _era_core_section(root)
+    return out
+
+
+def _era_core_section(root):
+    """Exp A CORE ladder (secondary): downstream accuracy across the 4 corpora, old vs
+    new algorithm, at 124M. Reads results/core_era_ladder.json."""
+    p = root / "core_era_ladder.json"
+    if not p.exists():
+        return []
+    R = json.loads(p.read_text())["corpora"]
+    out = ["### Exp A — CORE downstream tasks (secondary)", "",
+           "The CEG result above is on bits-per-byte. As a downstream check we score all four "
+           "era corpora on the study's CORE task subset (limit 500) at 124M — old-algorithm vs "
+           "new-algorithm. (OWT and DCLM reuse the completed 2×2 study's 124M CORE; C4 and "
+           "RefinedWeb come from a faithful retrain, since those era checkpoints had been lost.)", "",
+           "| Corpus (year) | usable tasks | old-algo mean acc | new-algo mean acc | Δ (new−old) |",
+           "|--|--|--|--|--|"]
+    for c in sorted(R, key=lambda k: R[k]["year"]):
+        e = R[c]
+        out.append(f"| {c} ({e['year']}) | {len(e['usable_tasks'])} | {e['old_algo_mean_acc']:.3f} "
+                   f"| {e['new_algo_mean_acc']:.3f} | {e['delta_new_minus_old']:+.3f} |")
+    out += ["",
+            "At 124M and limit=500 the old-vs-new gap is within ±0.02 (≈ stderr) at every corpus, so "
+            "CORE here is a qualitative sanity check, not a quantitative CEG claim — consistent with how "
+            "the core study treats CORE. The data-quality signal lives in BPB/CEG (where RefinedWeb and "
+            "DCLM clearly help); downstream tasks at this scale don't resolve the algorithm difference.", ""]
+    if (root / "core_era_ladder.png").exists():
+        out += ["![Exp A CORE downstream accuracy across data eras](core_era_ladder.png)", ""]
     return out
 
 
