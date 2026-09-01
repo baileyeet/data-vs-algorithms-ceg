@@ -366,44 +366,61 @@ def core_expb_by_task(root: Path, out_path):
 
 
 def core_expb_by_task_abs(root: Path, out_path):
-    """Exp B CORE per task in ABSOLUTE accuracy (each candidate architecture vs its
-    size-matched GPT-2), directly comparable to Exp A's core_era_by_task and the 2x2
-    study's core_arms_by_task. One panel per task; x = model size; a candidate line +
-    its matched-GPT-2 line per lineage. Reads results/core_expb_summary.json."""
-    S = json.loads((root / "core_expb_summary.json").read_text())["pairs"]
-    PARAMS = {"pythia-160M": 162, "pythia-410M": 405, "pythia-1.4B": 1415,
-              "smollm2-135M": 135, "smollm2-360M": 362, "smollm2-1.7B": 1711}
-    LIN = {"pythia": ("Pythia", "#1baf7a"), "smollm2": ("SmolLM2", "#8e44ad")}
-    GPT = "#2a78d6"
+    """Exp B CORE per task in ABSOLUTE accuracy — three lines (matched GPT-2, Pythia,
+    SmolLM2) across model size, ±1 stderr. Comparable to Exp A's core_era_by_task and the
+    2x2 study's core_arms_by_task. Reads the raw lm-eval JSONs in results/core_expb/ (for
+    per-task accuracy AND stderr). GPT-2 is one baseline line across all six sizes; the two
+    lineages are overlaid at their own sizes. 11-task CORE subset (lambada valid here —
+    real logits — and more tasks clear the gate at these sizes than at the study's 124M)."""
+    RAW = root / "core_expb"
+
+    def load(name):
+        d = json.loads((RAW / f"{name}.json").read_text())
+        return d.get("results", d)
+
+    def acc_se(res, t):
+        v = res.get(t, {})
+        key = "acc_norm,none" if (t in ("arc_easy", "arc_challenge", "hellaswag",
+                                        "openbookqa") and "acc_norm,none" in v) else "acc,none"
+        se = "acc_norm_stderr,none" if "norm" in key else "acc_stderr,none"
+        return v.get(key), v.get(se)
+
+    GPT2 = {136: "gpt2-denom-b135", 161: "gpt2-denom-b160", 362: "gpt2-denom-b360",
+            405: "gpt2-denom-b410", 1415: "gpt2-denom-b1400", 1711: "gpt2-denom-b1700"}
+    PY = {162: "pythia-160M", 405: "pythia-410M", 1415: "pythia-1.4B"}
+    SM = {135: "smollm2-135M", 362: "smollm2-360M", 1711: "smollm2-1.7B"}
+    tracks = [("matched GPT-2", GPT2, "#2a78d6", "s", (0, (3, 2))),
+              ("Pythia (GPT-NeoX)", PY, "#1baf7a", "o", "-"),
+              ("SmolLM2 (Llama)", SM, "#8e44ad", "o", "-")]
+    loaded = {n: load(n) for grp in (GPT2, PY, SM) for n in grp.values()}
     tasks = ["arc_easy", "arc_challenge", "openbookqa", "hellaswag", "commonsense_qa",
              "boolq", "copa", "piqa", "winogrande", "xwinograd_en", "lambada_openai"]
     ncol = 4
     nrow = (len(tasks) + ncol - 1) // ncol
-    fig, axes = plt.subplots(nrow, ncol, figsize=(12.5, 2.5 * nrow), dpi=150, sharex=True)
+    fig, axes = plt.subplots(nrow, ncol, figsize=(13, 2.6 * nrow), dpi=150, sharex=True)
     axf = axes.ravel()
     for i, task in enumerate(tasks):
         ax = axf[i]
-        for lname, (label, col) in LIN.items():
-            pts = sorted(((PARAMS[k], v["per_task"].get(task, {})) for k, v in S.items()
-                          if k.startswith(lname)))
-            xs = [p for p, d in pts if d]
-            ax.plot(xs, [d["cand"] for p, d in pts if d], color=col, marker="o", ms=5,
-                    lw=1.6, label=label, zorder=3, markeredgecolor=SURFACE, markeredgewidth=0.8)
-            ax.plot(xs, [d["gpt2"] for p, d in pts if d], color=GPT, marker="s", ms=4,
-                    lw=1.2, ls=(0, (3, 2)), zorder=2, alpha=0.8,
-                    label="matched GPT-2" if lname == "pythia" else None)
-        ax.set_xscale("log"); ax.set_xticks([135, 400, 1500])
-        ax.set_xticklabels(["135M", "400M", "1.5B"], fontsize=7.5)
+        for label, grp, col, mk, ls in tracks:
+            sizes = sorted(grp)
+            ys = [acc_se(loaded[grp[s]], task)[0] for s in sizes]
+            es = [acc_se(loaded[grp[s]], task)[1] or 0 for s in sizes]
+            ax.errorbar(sizes, ys, yerr=es, color=col, marker=mk, ms=5, lw=1.5, ls=ls,
+                        capsize=2, elinewidth=0.9, label=label, zorder=3,
+                        markeredgecolor=SURFACE, markeredgewidth=0.7)
+        ax.set_xscale("log"); ax.set_xlim(110, 2100)
+        ax.set_xticks([150, 500, 1500])
+        ax.set_xticklabels(["0.15B", "0.5B", "1.5B"], fontsize=8)
         ax.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
         ax.set_title(task, fontsize=9.5, loc="left")
         _style(ax)
     for j in range(len(tasks), len(axf)):
         axf[j].axis("off")
-    axf[0].legend(frameon=False, fontsize=7.5, labelcolor=INK2, loc="best")
+    axf[0].legend(frameon=False, fontsize=8, labelcolor=INK2, loc="best")
     for r in range(nrow):
         axes[r, 0].set_ylabel("accuracy", fontsize=8.5)
-    fig.suptitle("Exp B — CORE accuracy per task: each architecture vs its matched GPT-2 (data = OWT)",
-                 fontsize=12.5, x=0.012, ha="left", color=INK)
+    fig.suptitle("Exp B — CORE accuracy per task (11-task subset, ±1 stderr): each architecture vs GPT-2, data = OWT",
+                 fontsize=12, x=0.012, ha="left", color=INK)
     fig.tight_layout(rect=(0, 0, 1, 0.95))
     fig.savefig(out_path, facecolor=SURFACE); plt.close(fig)
 

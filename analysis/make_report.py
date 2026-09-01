@@ -345,9 +345,12 @@ def _expb_core_section(root):
         out += ["![Exp B CORE gap vs matched GPT-2, by scale](core_expb_delta.png)", ""]
     if (root / "core_expb_by_task.png").exists():
         out += ["Per-task breakdown (each task is noisy at limit=500 — read the "
-                "consistency across tasks, not any single panel). First as the gap vs "
-                "matched GPT-2, then in absolute accuracy (comparable to the Exp A / 2×2 "
-                "CORE figures):", "",
+                "consistency across tasks, not any single panel). Exp B shows all 11 "
+                "evaluated CORE-subset tasks (lambada is valid here — these are real-logits "
+                "HF models — and at 135M–1.7B more tasks clear the validity gate than at the "
+                "study's 124M, where the CORE figures gate down to 6). First as the gap vs "
+                "matched GPT-2, then in absolute accuracy (same 3-line format as the Exp A / "
+                "2×2 CORE figures):", "",
                 "![Exp B CORE gap per task](core_expb_by_task.png)", ""]
     if (root / "core_expb_by_task_abs.png").exists():
         out += ["![Exp B CORE absolute accuracy per task](core_expb_by_task_abs.png)", ""]
