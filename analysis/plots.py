@@ -256,40 +256,31 @@ def multipliers_vs_scale(curves: dict, out_path, censored: dict = None):
                 ax.annotate(f"{y:.1f}×", xy=(x, y), xytext=(0, 9),
                             textcoords="offset points", fontsize=8.5,
                             color=INK, ha="center")
-        # Exp B censored lineages: algorithm panel only, hollow v at 1x parity line
+        # Exp B censored lineages: algorithm panel only, hollow v at the 1x parity line
         if censored and ax is ax1:
             ax.axhline(1.0, color=GRID, lw=1.2, ls=(0, (4, 3)), zorder=1)
-            ax.annotate("1× = parity with matched GPT-2 (no algorithm gain)",
-                        xy=(600, 1.0), xytext=(0, 5), textcoords="offset points",
-                        ha="center", va="bottom", fontsize=7.3, color=INK2)
+            ax.annotate("1× (parity with matched GPT-2)", xy=(1, 1.0),
+                        xycoords=("axes fraction", "data"), xytext=(-4, 4),
+                        textcoords="offset points", ha="right", va="bottom",
+                        fontsize=8, color=INK2)
             for lname, e in censored.items():
                 ax.scatter(e["scales"], [1.0] * len(e["scales"]), marker="v",
                            s=85, facecolors="none", edgecolors=e["color"],
                            linewidths=1.8, zorder=4, label=e["label"])
-                for x, txt in e.get("annot", {}).items():
-                    ax.annotate(txt, xy=(x, 1.0), xytext=(-6, 12),
-                                textcoords="offset points", ha="right", va="bottom",
-                                fontsize=6.8, color=e["color"],
-                                arrowprops=dict(arrowstyle="-", color=e["color"], lw=0.7))
         ax.set_xscale("log"); ax.set_yscale("log")
         ax.set_xticks([124, 355, 1536])
         ax.set_xticklabels(["124M", "355M", "1.5B"])
-        ax.set_xlabel("Model size")
+        ax.set_xlabel("Model size (parameters)")
         ax.set_title(ttl, fontsize=11, loc="left")
         _style(ax)
         ax.set_ylim(0.82, max(20, ax.get_ylim()[1]))
-    ax1.set_ylabel("Compute-reduction multiplier")
-    ax1.legend(frameon=False, fontsize=7.4, labelcolor=INK2, loc="upper right")
+    ax1.set_ylabel("Compute-reduction multiplier  (×, log)")
+    handles, labels = ax1.get_legend_handles_labels()
+    fig.legend(handles, labels, frameon=False, fontsize=8, labelcolor=INK2,
+               loc="upper center", ncol=2, bbox_to_anchor=(0.5, 0.94))
     fig.suptitle("Compute-equivalent-gain multipliers vs model scale",
-                 fontsize=12.5, x=0.012, ha="left", color=INK)
-    note = ("Different estimators — NOT directly comparable.  current-arch "
-            "(solid, filled) = true 2-ordering Shapley;  ScaleUp (dashed, open sq.) "
-            "= single censored margin (A1D0 never crosses).  Exp B (open ▽ at 1×) = "
-            "algorithm-CEG vs a MATCHED GPT-2, data fixed (no data panel); every arm "
-            "is censored (converged BPB stays above the GPT-2 threshold → ≤1×, no algo "
-            "gain).  SmolLM2 360M/1.7B are additionally divergence-confounded.")
-    fig.text(0.012, 0.02, note, fontsize=7.2, color=INK2, va="bottom", wrap=True)
-    fig.tight_layout(rect=(0, 0.12, 1, 0.94))
+                 fontsize=12.5, x=0.012, ha="left", color=INK, y=0.995)
+    fig.tight_layout(rect=(0, 0, 1, 0.82))
     fig.savefig(out_path, facecolor=SURFACE)
     plt.close(fig)
 
@@ -322,23 +313,12 @@ def core_expb_delta_vs_scale(root: Path, out_path):
     ax.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
     ax.set_xlim(115, 2050)
     ax.set_ylim(-0.035, 0.035)
-    ax.set_xlabel("Model size (log)")
-    ax.set_ylabel("CORE mean-accuracy gap vs matched GPT-2")
+    ax.set_xlabel("Model size (parameters, log)")
+    ax.set_ylabel("CORE mean-accuracy gap vs matched GPT-2\n(11 tasks, +ve = beats GPT-2)")
     ax.set_title("Exp B — downstream-task (CORE) gap vs matched GPT-2, by scale (data = OWT)",
                  fontsize=11, loc="left")
     ax.legend(frameon=False, fontsize=9, labelcolor=INK2, loc="upper left")
-    fig.text(0.012, 0.012,
-             "y = each architecture's mean accuracy across 11 CORE tasks MINUS its size-matched "
-             "GPT-2's mean, both trained on OpenWebText and scored through the same harness "
-             "(limit=500 examples/task). Above 0 = the architecture beats GPT-2 on downstream "
-             "tasks. Error bars are ±1 standard error of that mean gap (per-task stderrs from "
-             "lm-eval, combined across the 11 tasks). SECONDARY to the BPB/CEG result. Pythia is "
-             "at/below parity and falls with scale (matching its BPB deficit); SmolLM2 sits "
-             "modestly above parity at every scale (~1.7σ; wins 7 of 11 tasks at small size) — a "
-             "downstream edge that neutral BPB, where SmolLM2 is only parity-or-worse, misses. "
-             "Per-task breakdown: core_expb_by_task.png.",
-             fontsize=7.0, color=INK2, va="bottom", wrap=True)
-    fig.tight_layout(rect=(0, 0.075, 1, 1))
+    fig.tight_layout()
     fig.savefig(out_path, facecolor=SURFACE); plt.close(fig)
 
 
@@ -381,14 +361,7 @@ def core_expb_by_task(root: Path, out_path):
         axes[r, 0].set_ylabel("Δ acc vs GPT-2", fontsize=8.5)
     fig.suptitle("Exp B — CORE accuracy gap vs matched GPT-2, per task (data = OWT)",
                  fontsize=12.5, x=0.012, ha="left", color=INK)
-    fig.text(0.012, 0.008,
-             "Each panel: candidate accuracy minus its size-matched GPT-2 on that task "
-             "(>0 = candidate better), vs model size, per lineage. limit=500, so single "
-             "tasks are noisy — read the consistency across tasks, not any one panel. "
-             "SmolLM2 (purple) is positive on most tasks at most sizes; Pythia (green) "
-             "scatters around/below zero. Aggregate + significance in core_expb_delta.png.",
-             fontsize=7.2, color=INK2, va="bottom", wrap=True)
-    fig.tight_layout(rect=(0, 0.04, 1, 0.95))
+    fig.tight_layout(rect=(0, 0, 1, 0.95))
     fig.savefig(out_path, facecolor=SURFACE); plt.close(fig)
 
 
@@ -508,17 +481,11 @@ def core_vs_scale(root: Path, out_path):
                loc="upper center", ncol=6, bbox_to_anchor=(0.5, 0.93))
     fig.suptitle("CORE task accuracy vs model size", fontsize=12.5, x=0.012,
                  ha="left", color=INK, y=0.985)
-    fig.text(0.012, 0.008,
-             "A0D0 (old-algo / old-data) GPT-2 baseline accuracy per task, "
-             "limit=500 (the gate reference). Two tracks match the report's two "
-             "curves: solid = current-arch (124M→355M, no 1.5B point); dashed = "
-             "ScaleUp (124M→1.5B, skipping its 355M gap); the 124M node is the "
-             "shared baseline. Filled = passed the 2σ>chance validity gate; "
-             "hollow = below it (e.g. boolq sits at chance at 124M, clears from "
-             "355M). Chance differs by task (0.25 four-way; 0.50 binary). "
-             "Secondary metric — BPB is primary.", fontsize=7.0, color=INK2,
-             va="bottom", wrap=True)
-    fig.tight_layout(rect=(0, 0.085, 1, 0.88))
+    fig.text(0.012, 0.01,
+             "GPT-2 (A0D0) baseline accuracy per task. Filled = passed the 2σ-above-chance "
+             "validity gate; hollow = below it. Secondary metric — BPB is primary.",
+             fontsize=7.5, color=INK2, va="bottom")
+    fig.tight_layout(rect=(0, 0.05, 1, 0.88))
     fig.savefig(out_path, facecolor=SURFACE)
     plt.close(fig)
 
@@ -596,22 +563,12 @@ def core_arms_by_task(root: Path, out_path):
                loc="upper center", ncol=4, bbox_to_anchor=(0.5, 0.955))
     fig.suptitle("CORE accuracy across all four arms", fontsize=12.5, x=0.012,
                  ha="left", color=INK, y=0.99)
-    fig.text(0.012, 0.006,
-             "Each panel is one gate-usable task; points are the four arms at "
-             "124M / 355M / 1.5B with ±1 stderr bars taken directly from lm-eval "
-             "(≈0.021–0.022 per task, except copa ≈0.048 — it has only 100 "
-             "examples vs 500).  This is a QUALITATIVE companion to the BPB "
-             "result, NOT a second CEG claim — at this noise level most arm gaps "
-             "overlap within error.  The clearest recurring hint is new-data (D1) "
-             "arms edging "
-             "out their old-data (D0) counterparts on arc_easy and piqa at every "
-             "scale (sizable on arc_easy, within ~1–2 stderr on piqa); boolq "
-             "shows no such pattern, so it is task-specific, not universal.  Read "
-             "as directionally suggestive only — BPB remains the primary, "
-             "decisive metric.  (A1 = current modded speedrun at 124M/355M, "
-             "2024-ScaleUp at 1.5B; nothing is connected across scale.)",
-             fontsize=7.0, color=INK2, va="bottom", wrap=True)
-    fig.tight_layout(rect=(0, 0.11 if nrow == 2 else 0.07, 1, 0.90))
+    fig.text(0.012, 0.01,
+             "One gate-usable task per panel; the four arms at 124M / 355M / 1.5B with ±1 stderr "
+             "(points not connected — arms are compared within each scale). Qualitative companion "
+             "to BPB, not a second CEG claim — most arm gaps overlap within error.",
+             fontsize=7.5, color=INK2, va="bottom")
+    fig.tight_layout(rect=(0, 0.05 if nrow == 2 else 0.03, 1, 0.90))
     fig.savefig(out_path, facecolor=SURFACE)
     plt.close(fig)
 

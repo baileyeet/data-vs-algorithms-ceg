@@ -74,13 +74,7 @@ for r in range(nrow):
 axf[0].legend(frameon=False, fontsize=8, labelcolor=INK2, loc="best")
 fig.suptitle("Exp A — CORE accuracy per task, old vs new algorithm across data eras (124M)",
              fontsize=12.5, x=0.012, ha="left", color=INK)
-fig.text(0.012, 0.008,
-         "One panel per CORE task; old-algorithm (blue) vs new-algorithm (orange) accuracy at 124M as the "
-         "training corpus advances in time, ±1 stderr. SECONDARY / qualitative: at 124M and limit=500 the two "
-         "algorithms overlap within error on essentially every task/corpus — CORE is a sanity check, the "
-         "data-quality signal lives in BPB/CEG. OWT/DCLM from the 2x2 study; C4/RefinedWeb from the faithful retrain.",
-         fontsize=7.0, color=INK2, va="bottom", wrap=True)
-fig.tight_layout(rect=(0, 0.05, 1, 0.95))
+fig.tight_layout(rect=(0, 0, 1, 0.95))
 out = ROOT / "core_era_by_task.png"
 fig.savefig(out, facecolor=SURFACE); plt.close(fig)
 print("wrote", out)

@@ -61,15 +61,7 @@ ax.set_ylabel("Data-CEG vs matched GPT-2 on OWT (log)")
 ax.set_title("Exp B — data axis: better data flips new architectures from losing to beating GPT-2",
              fontsize=11, loc="left")
 ax.legend(frameon=False, fontsize=9, labelcolor=INK2, loc="upper left")
-fig.text(0.012, 0.012,
-         "Each architecture (small size) trained from scratch on each corpus; compared to ONE fixed "
-         "external bar — the size-matched GPT-2 trained on OWT. On OWT (2019) and C4 (2020) both "
-         "architectures are censored: they never reach the bar (they lose to a matched GPT-2, the "
-         "Exp B / B1 result). On RefinedWeb (2023) and DCLM (2024) both cross it, reaching GPT-2's "
-         "OWT quality with 4.6-6.4× less compute. C4 worse than OWT for BOTH archs independently "
-         "cross-validates Exp A's non-monotonic-in-release-year finding.",
-         fontsize=7.0, color=INK2, va="bottom", wrap=True)
-fig.tight_layout(rect=(0, 0.08, 1, 1))
+fig.tight_layout()
 out = Path(__file__).resolve().parent.parent / "results" / "data_ladder_expB.png"
 fig.savefig(out, facecolor=SURFACE); plt.close(fig)
 print("wrote", out)

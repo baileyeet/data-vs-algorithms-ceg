@@ -43,12 +43,6 @@ def series(key, color, label, dx=0.0):
 series("old_algo", OLD_C, "old-algo (GPT-2, 123.7M params)", dx=-0.4)
 xs2, ys2 = series("current_arch", NEW_C, "current-arch (modded, 498.8M params)", dx=+0.4)
 
-# direct dataset labels along the x axis
-for ds in order:
-    e = L["datasets"][ds]
-    ax.annotate(f"{ds}\n{e['release_year']}", (e["release_year"], 0.30),
-                ha="center", va="top", fontsize=8.5, color=INK2, annotation_clip=False)
-
 # baseline line at CEG=1 (old-algo OWT reference)
 ax.axhline(1.0, color=GRID, lw=1, ls="--", zorder=1)
 ax.annotate("old-algo OWT baseline (1×)", (2024.05, 1.0), fontsize=7.5,
@@ -61,16 +55,12 @@ ax.annotate("C4 (2020): no crossing — neutral BPB stays\nabove the OWT thresho
 ax.set_ylim(0.28, 60)
 ax.set_xlim(2018.6, 2024.6)
 ax.set_xticks([2019, 2020, 2023, 2024])
-ax.set_ylabel("compute-equivalent gain vs old-algo OWT  (× , log)")
-ax.set_xlabel("training-set release year")
-ax.set_title("Exp A · data-era ladder @124M (matched dims, not params)", fontsize=11, pad=16)
-fig.text(0.5, 0.905,
-         f'neutral BPB on wiki_eval_union; threshold {THR:.4f}. '
-         f'algo CEG = gap between curves (OWT {L["datasets"]["OWT"]["algo_ceg_at_dataset"]:.1f}×, '
-         f'DCLM {L["datasets"]["DCLM"]["algo_ceg_at_dataset"]:.1f}×)',
-         ha="center", fontsize=8, color=INK2)
+ax.set_xticklabels([f"{ds}\n{L['datasets'][ds]['release_year']}" for ds in order])
+ax.set_ylabel("Compute-equivalent gain vs old-algo on OWT  (×, log)")
+ax.set_xlabel("Training-data corpus (release year)")
+ax.set_title("Exp A — data-era ladder (@124M)", fontsize=11.5, loc="left")
 ax.legend(loc="center left", frameon=False, fontsize=8.5)
-fig.tight_layout(rect=[0, 0, 1, 0.98])
+fig.tight_layout()
 Path("results").mkdir(exist_ok=True)
 fig.savefig("results/era_ladder.png", facecolor=SURFACE, bbox_inches="tight")
 print("wrote results/era_ladder.png")
