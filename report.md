@@ -198,9 +198,11 @@ Two things stand out. **Pythia at/below parity, falling with scale** (−0.009 �
 
 ![Exp B CORE gap vs matched GPT-2, by scale](core_expb_delta.png)
 
-Per-task breakdown (each task is noisy at limit=500 — read the consistency across tasks, not any single panel):
+Per-task breakdown (each task is noisy at limit=500 — read the consistency across tasks, not any single panel). First as the gap vs matched GPT-2, then in absolute accuracy (comparable to the Exp A / 2×2 CORE figures):
 
 ![Exp B CORE gap per task](core_expb_by_task.png)
+
+![Exp B CORE absolute accuracy per task](core_expb_by_task_abs.png)
 
 ## CORE-subset (secondary, validity-gated)
 

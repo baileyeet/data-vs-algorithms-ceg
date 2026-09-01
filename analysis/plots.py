@@ -365,6 +365,49 @@ def core_expb_by_task(root: Path, out_path):
     fig.savefig(out_path, facecolor=SURFACE); plt.close(fig)
 
 
+def core_expb_by_task_abs(root: Path, out_path):
+    """Exp B CORE per task in ABSOLUTE accuracy (each candidate architecture vs its
+    size-matched GPT-2), directly comparable to Exp A's core_era_by_task and the 2x2
+    study's core_arms_by_task. One panel per task; x = model size; a candidate line +
+    its matched-GPT-2 line per lineage. Reads results/core_expb_summary.json."""
+    S = json.loads((root / "core_expb_summary.json").read_text())["pairs"]
+    PARAMS = {"pythia-160M": 162, "pythia-410M": 405, "pythia-1.4B": 1415,
+              "smollm2-135M": 135, "smollm2-360M": 362, "smollm2-1.7B": 1711}
+    LIN = {"pythia": ("Pythia", "#1baf7a"), "smollm2": ("SmolLM2", "#8e44ad")}
+    GPT = "#2a78d6"
+    tasks = ["arc_easy", "arc_challenge", "openbookqa", "hellaswag", "commonsense_qa",
+             "boolq", "copa", "piqa", "winogrande", "xwinograd_en", "lambada_openai"]
+    ncol = 4
+    nrow = (len(tasks) + ncol - 1) // ncol
+    fig, axes = plt.subplots(nrow, ncol, figsize=(12.5, 2.5 * nrow), dpi=150, sharex=True)
+    axf = axes.ravel()
+    for i, task in enumerate(tasks):
+        ax = axf[i]
+        for lname, (label, col) in LIN.items():
+            pts = sorted(((PARAMS[k], v["per_task"].get(task, {})) for k, v in S.items()
+                          if k.startswith(lname)))
+            xs = [p for p, d in pts if d]
+            ax.plot(xs, [d["cand"] for p, d in pts if d], color=col, marker="o", ms=5,
+                    lw=1.6, label=label, zorder=3, markeredgecolor=SURFACE, markeredgewidth=0.8)
+            ax.plot(xs, [d["gpt2"] for p, d in pts if d], color=GPT, marker="s", ms=4,
+                    lw=1.2, ls=(0, (3, 2)), zorder=2, alpha=0.8,
+                    label="matched GPT-2" if lname == "pythia" else None)
+        ax.set_xscale("log"); ax.set_xticks([135, 400, 1500])
+        ax.set_xticklabels(["135M", "400M", "1.5B"], fontsize=7.5)
+        ax.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
+        ax.set_title(task, fontsize=9.5, loc="left")
+        _style(ax)
+    for j in range(len(tasks), len(axf)):
+        axf[j].axis("off")
+    axf[0].legend(frameon=False, fontsize=7.5, labelcolor=INK2, loc="best")
+    for r in range(nrow):
+        axes[r, 0].set_ylabel("accuracy", fontsize=8.5)
+    fig.suptitle("Exp B — CORE accuracy per task: each architecture vs its matched GPT-2 (data = OWT)",
+                 fontsize=12.5, x=0.012, ha="left", color=INK)
+    fig.tight_layout(rect=(0, 0, 1, 0.95))
+    fig.savefig(out_path, facecolor=SURFACE); plt.close(fig)
+
+
 def _assemble_all_configs(root: Path):
     """Build the all_configs curves dict from the canonical CEG JSONs."""
     sm = json.loads((root / "small" / "ceg_newdef.json").read_text())
@@ -580,7 +623,7 @@ if __name__ == "__main__":
     ap.add_argument("kind", choices=["curves", "cross_scale", "sensitivity",
                                      "all_configs", "multipliers",
                                      "core_vs_scale", "core_arms_by_task",
-                                     "core_expb", "core_expb_by_task"])
+                                     "core_expb", "core_expb_by_task", "core_expb_by_task_abs"])
     ap.add_argument("--size-label", default="")
     ap.add_argument("--out", required=True)
     ap.add_argument("--threshold", type=float)
@@ -606,6 +649,8 @@ if __name__ == "__main__":
         core_expb_delta_vs_scale(Path("results"), a.out)
     elif a.kind == "core_expb_by_task":
         core_expb_by_task(Path("results"), a.out)
+    elif a.kind == "core_expb_by_task_abs":
+        core_expb_by_task_abs(Path("results"), a.out)
     else:
         threshold_sensitivity(a.csv, a.size_label, a.out)
     print(f"wrote {a.out}")
