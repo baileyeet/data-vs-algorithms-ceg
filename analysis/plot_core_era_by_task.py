@@ -72,6 +72,7 @@ for j in range(len(TASKS), len(axf)):
 for r in range(nrow):
     axes[r, 0].set_ylabel("accuracy", fontsize=8.5)
 axf[0].legend(frameon=False, fontsize=8, labelcolor=INK2, loc="best")
+fig.supxlabel("Training-data corpus (release year)", fontsize=10, color=INK)
 fig.suptitle("Exp A — CORE accuracy per task, old vs new algorithm across data eras (124M)",
              fontsize=12.5, x=0.012, ha="left", color=INK)
 fig.tight_layout(rect=(0, 0, 1, 0.95))

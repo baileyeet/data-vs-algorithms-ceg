@@ -358,7 +358,8 @@ def core_expb_by_task(root: Path, out_path):
         axf[j].axis("off")
     axf[0].legend(frameon=False, fontsize=8, labelcolor=INK2, loc="upper right")
     for r in range(nrow):
-        axes[r, 0].set_ylabel("Δ acc vs GPT-2", fontsize=8.5)
+        axes[r, 0].set_ylabel("Δ CORE acc\nvs GPT-2", fontsize=8.5)
+    fig.supxlabel("Model size (parameters, log scale)", fontsize=10, color=INK)
     fig.suptitle("Exp B — CORE accuracy gap vs matched GPT-2, per task (data = OWT)",
                  fontsize=12.5, x=0.012, ha="left", color=INK)
     fig.tight_layout(rect=(0, 0, 1, 0.95))
@@ -410,7 +411,7 @@ def core_expb_by_task_abs(root: Path, out_path):
                         markeredgecolor=SURFACE, markeredgewidth=0.7)
         ax.set_xscale("log"); ax.set_xlim(110, 2100)
         ax.set_xticks([150, 500, 1500])
-        ax.set_xticklabels(["0.15B", "0.5B", "1.5B"], fontsize=8)
+        ax.set_xticklabels(["150M", "500M", "1.5B"], fontsize=8)
         ax.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
         ax.set_title(task, fontsize=9.5, loc="left")
         _style(ax)
@@ -418,7 +419,8 @@ def core_expb_by_task_abs(root: Path, out_path):
         axf[j].axis("off")
     axf[0].legend(frameon=False, fontsize=8, labelcolor=INK2, loc="best")
     for r in range(nrow):
-        axes[r, 0].set_ylabel("accuracy", fontsize=8.5)
+        axes[r, 0].set_ylabel("CORE accuracy", fontsize=8.5)
+    fig.supxlabel("Model size (parameters, log scale)", fontsize=10, color=INK)
     fig.suptitle("Exp B — CORE accuracy per task (11-task subset, ±1 stderr): each architecture vs GPT-2, data = OWT",
                  fontsize=12, x=0.012, ha="left", color=INK)
     fig.tight_layout(rect=(0, 0, 1, 0.95))
@@ -621,14 +623,11 @@ def core_arms_by_task(root: Path, out_path):
                  markersize=6, label=ARM_LABELS[a]) for a in arms]
     fig.legend(handles=lg, frameon=False, fontsize=8, labelcolor=INK2,
                loc="upper center", ncol=4, bbox_to_anchor=(0.5, 0.955))
-    fig.suptitle("CORE accuracy across all four arms", fontsize=12.5, x=0.012,
+    fig.supxlabel("Model size (parameters)", fontsize=10, color=INK)
+    fig.suptitle("CORE accuracy across all four arms  (gate-usable tasks; ±1 stderr; points not "
+                 "connected — arms compared within each scale)", fontsize=11, x=0.012,
                  ha="left", color=INK, y=0.99)
-    fig.text(0.012, 0.01,
-             "One gate-usable task per panel; the four arms at 124M / 355M / 1.5B with ±1 stderr "
-             "(points not connected — arms are compared within each scale). Qualitative companion "
-             "to BPB, not a second CEG claim — most arm gaps overlap within error.",
-             fontsize=7.5, color=INK2, va="bottom")
-    fig.tight_layout(rect=(0, 0.05 if nrow == 2 else 0.03, 1, 0.90))
+    fig.tight_layout(rect=(0, 0.02, 1, 0.90))
     fig.savefig(out_path, facecolor=SURFACE)
     plt.close(fig)
 

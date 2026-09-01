@@ -26,6 +26,10 @@ ROOT = Path(__file__).resolve().parent.parent
 RES = ROOT / "results"
 BK = Path.home() / "Desktop" / "era_ladder_backup"
 
+# one canonical definition, used on every figure that shows censored arms
+CENSORED_DEF = ('“Censored” = the arm never reaches the threshold within its compute budget, '
+                'so its compute-to-threshold is a bound, not a value (hollow markers).')
+
 
 def curve(csv_path):
     rows = list(csv.DictReader(open(csv_path)))
@@ -85,9 +89,7 @@ def expb_arch():
                THR[tk], f"GPT-2 bar {THR[tk]:.3f}", title)
     fig.suptitle("Exp B architecture axis — BPB vs GPU-hours (OWT); each arch vs its size-matched GPT-2",
                  fontsize=12.5, x=0.012, ha="left", color=INK)
-    fig.text(0.012, 0.005, "“censored” = the arm never reaches the threshold within its compute "
-             "budget, so its compute-to-threshold is only bounded, not a value.",
-             fontsize=8, color=INK2, va="bottom")
+    fig.text(0.012, 0.005, CENSORED_DEF, fontsize=8, color=INK2, va="bottom")
     fig.tight_layout(rect=(0, 0.03, 1, 0.97))
     fig.savefig(RES / "expb_arch_curves.png", facecolor=SURFACE); plt.close(fig)
     print("wrote", RES / "expb_arch_curves.png")
@@ -114,9 +116,7 @@ def expb_data():
     ], thr_sm, f"GPT-2-OWT bar {thr_sm:.3f}", "SmolLM2-135M across data corpora")
     fig.suptitle("Exp B data axis — BPB vs GPU-hours; better data (RefinedWeb/DCLM) crosses the GPT-2-OWT bar",
                  fontsize=12, x=0.012, ha="left", color=INK)
-    fig.text(0.012, 0.005, "“censored” = training on that corpus never reaches the GPT-2-OWT bar within "
-             "the compute budget (that data can't match GPT-2-on-OWT at this compute).",
-             fontsize=8, color=INK2, va="bottom")
+    fig.text(0.012, 0.005, CENSORED_DEF, fontsize=8, color=INK2, va="bottom")
     fig.tight_layout(rect=(0, 0.03, 1, 0.96))
     fig.savefig(RES / "expb_data_curves.png", facecolor=SURFACE); plt.close(fig)
     print("wrote", RES / "expb_data_curves.png")
