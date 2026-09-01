@@ -185,6 +185,11 @@ def _era_core_section(root):
             "DCLM clearly help); downstream tasks at this scale don't resolve the algorithm difference.", ""]
     if (root / "core_era_ladder.png").exists():
         out += ["![Exp A CORE downstream accuracy across data eras](core_era_ladder.png)", ""]
+    if (root / "core_era_by_task.png").exists():
+        out += ["Per-task breakdown (old vs new algorithm across the four corpora; the two "
+                "overlap within ±1 stderr on essentially every task, so read the aggregate, "
+                "not any single panel):", "",
+                "![Exp A CORE accuracy per task](core_era_by_task.png)", ""]
     return out
 
 

@@ -123,6 +123,10 @@ At 124M and limit=500 the old-vs-new gap is within ±0.02 (≈ stderr) at every 
 
 ![Exp A CORE downstream accuracy across data eras](core_era_ladder.png)
 
+Per-task breakdown (old vs new algorithm across the four corpora; the two overlap within ±1 stderr on essentially every task, so read the aggregate, not any single panel):
+
+![Exp A CORE accuracy per task](core_era_by_task.png)
+
 ## Exp B — architecture landscape (Transformer lineages vs matched GPT-2)
 
 The completed study found a large small-scale *algorithm* CEG for the current-arch speedrun (13.7× @124M). Exp B is the direct test of whether that generalizes beyond a small-scale-optimized speedrun: it trains PUBLISHED open-model lineages — **Pythia (GPT-NeoX, 2023)** and **SmolLM2 (Llama, 2024)** — from scratch on fixed data (OpenWebText), each against a size-matched GPT-2 baseline through the identical harness, and asks whether any reaches (crosses) the GPT-2 baseline's neutral-BPB threshold. Data is held fixed → no data/algorithm 2×2; this is algorithm-CEG only.
