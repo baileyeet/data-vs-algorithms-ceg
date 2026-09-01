@@ -156,6 +156,10 @@ def _era_ladder_section(root):
             "corpora (see the OWT/RefinedWeb/DCLM column).", ""]
     if (root / "era_ladder.png").exists():
         out += ["![Exp A: CEG vs dataset release-year](era_ladder.png)", ""]
+    if (root / "era_curves.png").exists():
+        out += ["The raw training curves the CEG numbers are read from (BPB vs GPU-hours, "
+                "per corpus; where each arm crosses the threshold):", "",
+                "![Exp A training curves per corpus](era_curves.png)", ""]
     out += _era_core_section(root)
     return out
 
@@ -242,6 +246,10 @@ def _expb_section(root):
             "to within the ±0.013 same-seed noise floor at ALL scales incl 1.4B); the "
             "undertraining regime biases toward parity (not just noise), so all arms are "
             "compared at convergence.", ""]
+    if (root / "expb_arch_curves.png").exists():
+        out += ["Raw training curves (BPB vs GPU-hours), each architecture vs its size-matched "
+                "GPT-2 — the candidate curve stays at or above the GPT-2 threshold at every size:", "",
+                "![Exp B architecture-axis training curves](expb_arch_curves.png)", ""]
     out += _expb_data_ladder_section(root)
     out += _expb_core_section(root)
     return out
@@ -290,6 +298,10 @@ def _expb_data_ladder_section(root):
             "algorithm.", ""]
     if (root / "data_ladder_expB.png").exists():
         out += ["![Exp B data axis: CEG vs data-era per architecture](data_ladder_expB.png)", ""]
+    if (root / "expb_data_curves.png").exists():
+        out += ["The raw training curves (BPB vs GPU-hours): on OWT/C4 both architectures stay "
+                "above the GPT-2-OWT bar (censored), on RefinedWeb/DCLM they dive below it (cross):", "",
+                "![Exp B data-axis training curves](expb_data_curves.png)", ""]
     return out
 
 

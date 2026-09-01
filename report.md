@@ -108,6 +108,10 @@ Data-quality is **NON-monotonic in release year**: C4 (2020) is CENSORED under B
 
 ![Exp A: CEG vs dataset release-year](era_ladder.png)
 
+The raw training curves the CEG numbers are read from (BPB vs GPU-hours, per corpus; where each arm crosses the threshold):
+
+![Exp A training curves per corpus](era_curves.png)
+
 ### Exp A — CORE downstream tasks (secondary)
 
 The CEG result above is on bits-per-byte. As a downstream check we score all four era corpora on the study's CORE task subset (limit 500) at 124M — old-algorithm vs new-algorithm. (OWT and DCLM reuse the completed 2×2 study's 124M CORE; C4 and RefinedWeb come from a faithful retrain, since those era checkpoints had been lost.)
@@ -148,6 +152,10 @@ Pythia is clean at every scale (deficit shrinks 160M→410M then stabilizes ~0.0
 
 Methodology: like-for-like train_hf denominators at every size (a matched GPT-2 through the SAME harness — verified equivalent to the study's train_old GPT-2 to within the ±0.013 same-seed noise floor at ALL scales incl 1.4B); the undertraining regime biases toward parity (not just noise), so all arms are compared at convergence.
 
+Raw training curves (BPB vs GPU-hours), each architecture vs its size-matched GPT-2 — the candidate curve stays at or above the GPT-2 threshold at every size:
+
+![Exp B architecture-axis training curves](expb_arch_curves.png)
+
 ### Exp B — data axis (the new architectures across data eras)
 
 B1 above held data fixed (OWT). This closes the grid: each new architecture (at small size) is trained from scratch on all four data-era corpora and measured against ONE fixed external bar — the size-matched GPT-2 trained on OWT (the same denominator as B1). Using one external bar (not each architecture's own OWT quality) is deliberate: it makes 'crosses the bar' mean 'beats a matched GPT-2', which is the headline. data-CEG = GPU-hours for that GPT-2-OWT baseline to reach the bar ÷ GPU-hours for the architecture-on-corpus to reach the same bar; an arm that never reaches it is censored.
@@ -168,6 +176,10 @@ B1 above held data fixed (OWT). This closes the grid: each new architecture (at 
 **Cross-validation of Exp A.** C4 (2020) comes out *worse* than OWT (2019) for BOTH architectures independently (both censored; final BPB higher on C4 than the crossing corpora, and OWT slightly better than C4). Exp A found exactly this non-monotonicity in dataset release-year using the original two algorithms; seeing it reproduce on two further, independent architectures (GPT-NeoX and Llama lineages) is direct cross-validation that the effect is a property of the data, not of a particular algorithm.
 
 ![Exp B data axis: CEG vs data-era per architecture](data_ladder_expB.png)
+
+The raw training curves (BPB vs GPU-hours): on OWT/C4 both architectures stay above the GPT-2-OWT bar (censored), on RefinedWeb/DCLM they dive below it (cross):
+
+![Exp B data-axis training curves](expb_data_curves.png)
 
 ### Exp B — CORE downstream tasks (secondary)
 
