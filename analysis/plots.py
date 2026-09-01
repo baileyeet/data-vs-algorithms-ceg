@@ -359,10 +359,10 @@ def core_expb_by_task(root: Path, out_path):
     axf[0].legend(frameon=False, fontsize=8, labelcolor=INK2, loc="upper right")
     for r in range(nrow):
         axes[r, 0].set_ylabel("Δ CORE acc\nvs GPT-2", fontsize=8.5)
-    fig.supxlabel("Model size (parameters, log scale)", fontsize=10, color=INK)
     fig.suptitle("Exp B — CORE accuracy gap vs matched GPT-2, per task (data = OWT)",
                  fontsize=12.5, x=0.012, ha="left", color=INK)
-    fig.tight_layout(rect=(0, 0, 1, 0.95))
+    fig.tight_layout(rect=(0, 0.04, 1, 0.95))
+    fig.supxlabel("Model size (parameters, log scale)", fontsize=10, color=INK, y=0.01)
     fig.savefig(out_path, facecolor=SURFACE); plt.close(fig)
 
 
@@ -420,10 +420,10 @@ def core_expb_by_task_abs(root: Path, out_path):
     axf[0].legend(frameon=False, fontsize=8, labelcolor=INK2, loc="best")
     for r in range(nrow):
         axes[r, 0].set_ylabel("CORE accuracy", fontsize=8.5)
-    fig.supxlabel("Model size (parameters, log scale)", fontsize=10, color=INK)
     fig.suptitle("Exp B — CORE accuracy per task (11-task subset, ±1 stderr): each architecture vs GPT-2, data = OWT",
                  fontsize=12, x=0.012, ha="left", color=INK)
-    fig.tight_layout(rect=(0, 0, 1, 0.95))
+    fig.tight_layout(rect=(0, 0.04, 1, 0.95))
+    fig.supxlabel("Model size (parameters, log scale)", fontsize=10, color=INK, y=0.01)
     fig.savefig(out_path, facecolor=SURFACE); plt.close(fig)
 
 
