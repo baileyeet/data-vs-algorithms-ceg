@@ -177,7 +177,7 @@ deficit is real, but its exact size is confounded. This is the central Exp
 B result: the current speedrun's small-scale advantage does not come from
 a generally-better architecture.
 
-CORE downstream tasks (`results/core_expb_delta.png`,
+CORE downstream tasks (`results/core_bpb_vs_downstream.png`,
 `core_expb_by_task.png`) add a wrinkle: Pythia stays at or below its
 matched GPT-2, consistent with the gap above, but SmolLM2 lands slightly
 above its matched GPT-2 at every size, despite tying or losing on
@@ -185,7 +185,7 @@ bits-per-byte — a small architectural edge on downstream accuracy that the
 compute-efficiency metric misses. This is a modest, noisy signal
 (limit=500), not a compute-efficiency claim.
 
-**Exp B data axis** (`results/data_ladder_expB.png`) — Pythia-160M and
+**Exp B data axis** (`results/data_replication.png`) — Pythia-160M and
 SmolLM2-135M trained on all four corpora, each measured against the same
 external bar (its size-matched GPT-2 trained on OWT):
 
@@ -198,10 +198,12 @@ The fixed external bar makes the headline visible: better data flips both
 architectures from losing to a matched GPT-2 (OWT/C4) to beating it
 (RefinedWeb/DCLM), at 4.6–6.4x less compute — a far bigger lever than any
 architecture change we found (in B1, no new architecture beat GPT-2 on OWT
-at all). C4 is worse than OWT for both architectures independently — direct
-cross-validation of Exp A's non-monotonic finding, now reproduced on two
-more architectures (GPT-NeoX and Llama lineages). The effect is a property
-of the data, not of any one algorithm.
+at all). Corpus progress is not monotonic with release date: on OWT (2019)
+and C4 (2020) both architectures stay censored — neither reaches the bar —
+with C4's terminal BPB marginally lower than OWT's, while RefinedWeb and
+DCLM cross. This reproduces Exp A's non-monotonic-in-release-date finding
+across two further, independent architectures (GPT-NeoX and Llama lineages),
+rather than it being tied to any one algorithm.
 
 ## Where the artifacts live (checkpoints & data)
 
@@ -246,9 +248,13 @@ noting — it's the one asset in this table with no backup at all.
 - `analysis/` — `threshold.py` (the one canonical neutral-BPB threshold
   function), `ceg_shapley.py` + `matched_compute.py` (compute-to-threshold
   and the log-space Shapley split), `core_gate.py` (CORE validity gate),
-  `threshold_sensitivity.py`, `plots.py` (every figure, including the
-  unified `multipliers_vs_scale.png`, now carrying Exp B's censored
-  lineages), `era_ladder.py` / `plot_era_ladder.py` (Exp A),
+  `threshold_sensitivity.py`, `plots.py` (the hero `multipliers_vs_scale.png`
+  — current-arch and ScaleUp only — plus the per-size and CORE figures),
+  the publication-figure scripts `plot_corpus_intervention.py` (Exp A),
+  `plot_training_curves_ab.py` (Exp B architecture + data replication),
+  `plot_core_disagreement.py` (Exp B CORE), `plot_method_factorial.py`
+  (method schematic) — each writing PNG + vector PDF; see
+  `results/FIGURE_NOTES.md` for per-figure captions and provenance.
   `make_report.py` (regenerates `report.md`)
 - `scripts/check_sizes.py` — param-count check for every size
 - `report.md` — the full write-up: two cross-scale curves (current-arch and
