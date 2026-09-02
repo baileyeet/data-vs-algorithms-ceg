@@ -153,7 +153,18 @@ def _era_ladder_section(root):
             "under BOTH algorithms (never reaches the OWT threshold — a WORSE training "
             "corpus than 2019 OWT), while RefinedWeb (2023) and DCLM (2024) do improve. "
             "So 'newer dataset' ≠ 'better data'. The algorithm CEG stays large across "
-            "corpora (see the OWT/RefinedWeb/DCLM column).", ""]
+            "corpora (see the OWT/RefinedWeb/DCLM column).", "",
+            "**C4 threshold-borderline note.** The two C4 censorings are not equally firm. "
+            "Under the OLD recipe, C4 is robustly censored (its best neutral BPB, ~1.31, "
+            "sits well above the 1.276 threshold). Under the CURRENT recipe the C4 "
+            "comparison is close to the threshold: the original run remained censored "
+            "(best ~1.284), while a later same-seed recovery rerun crossed by ~0.003 BPB — "
+            "within the estimated ±0.01 same-seed noise floor. We retain the ORIGINAL run "
+            "for consistency with the canonical CEG analysis and disclose the rerun rather "
+            "than substituting it. This borderline case does not support a claim that C4 "
+            "meaningfully beats or loses to OWT under the current recipe; the "
+            "non-monotonic-in-release-year finding rests on the robust old-recipe result "
+            "and on RefinedWeb/DCLM clearly improving.", ""]
     if (root / "corpus_intervention.png").exists():
         out += ["Panel A shows the raw BPB-vs-GPU-hours curves (where each arm crosses the "
                 "threshold, or never does); panel B the corpus CEG per recipe; panel C the "
@@ -200,7 +211,8 @@ def _era_core_section(root):
 def _expb_section(root):
     """Exp B: architecture landscape. Published Transformer lineages (Pythia, SmolLM2)
     vs a size-matched GPT-2, data fixed (OWT), algorithm-CEG only (no 2x2). Reads
-    b1_results.json. Exp B also appears as censored markers on multipliers_vs_scale.png."""
+    b1_results.json. Exp B has its own figures (expb_arch_curves.png, data_replication.png,
+    core_bpb_vs_downstream.png); it is NOT on the current-arch/ScaleUp hero."""
     p = root / "b1_results.json"
     if not p.exists():
         return []

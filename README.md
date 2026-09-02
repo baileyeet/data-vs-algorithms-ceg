@@ -136,6 +136,12 @@ Algorithm advantage falls as scale grows — sharply for current-arch, gently
 for ScaleUp. The data multiplier stays roughly flat (~3x). Disclosed gaps:
 current-arch at 1.5B, ScaleUp at 355M.
 
+Note on scale labels: "124M / 355M / 1.5B" are the **GPT-2 baseline scales**
+(baseline dimensions), not the candidate parameter counts. The current-arch
+model has ~498.8M parameters at the 124M-baseline dimensions (its value-embed /
+U-net additions are the algorithm being measured; old-algo GPT-2 = 123.7M). CEG
+compares each candidate to the GPT-2 baseline of matching dimensions.
+
 **Exp A — data-era ladder @124M** (CEG vs. the OWT GPT-2 baseline;
 threshold 1.2760 — this corrected value comes from a stricter, unified
 eval set built after Exp A added new corpora; see the methodology note

@@ -110,6 +110,8 @@ Corrected 2x2 (union eval, all arms torch 2.10): threshold **1.2760 BPB**; **dat
 
 Data-quality is **NON-monotonic in release year**: C4 (2020) is CENSORED under BOTH algorithms (never reaches the OWT threshold — a WORSE training corpus than 2019 OWT), while RefinedWeb (2023) and DCLM (2024) do improve. So 'newer dataset' ≠ 'better data'. The algorithm CEG stays large across corpora (see the OWT/RefinedWeb/DCLM column).
 
+**C4 threshold-borderline note.** The two C4 censorings are not equally firm. Under the OLD recipe, C4 is robustly censored (its best neutral BPB, ~1.31, sits well above the 1.276 threshold). Under the CURRENT recipe the C4 comparison is close to the threshold: the original run remained censored (best ~1.284), while a later same-seed recovery rerun crossed by ~0.003 BPB — within the estimated ±0.01 same-seed noise floor. We retain the ORIGINAL run for consistency with the canonical CEG analysis and disclose the rerun rather than substituting it. This borderline case does not support a claim that C4 meaningfully beats or loses to OWT under the current recipe; the non-monotonic-in-release-year finding rests on the robust old-recipe result and on RefinedWeb/DCLM clearly improving.
+
 Panel A shows the raw BPB-vs-GPU-hours curves (where each arm crosses the threshold, or never does); panel B the corpus CEG per recipe; panel C the within-recipe data lever. The corpus and training-recipe interventions interact, so the data multiplier is recipe-dependent, not a single number.
 
 ![Exp A: corpus intervention at the 124M baseline scale](corpus_intervention.png)

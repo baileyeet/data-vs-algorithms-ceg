@@ -100,13 +100,14 @@ Caption:
   `analysis/plot_method_factorial.py`.
 - New in-repo data: `results/era_orig_metrics/` (8 original era arm CSVs).
 
-## Superseded / appendix (NOT deleted — awaiting your OK before removal)
-- Superseded PNGs still on disk: `era_ladder.png`, `era_curves.png`, `expb_data_curves.png`,
-  `data_ladder_expB.png`, `core_expb_delta.png`. Their generating scripts `analysis/plot_era_ladder.py`
-  and `analysis/plot_data_ladder.py` are no longer invoked (no build driver runs them). Safe to delete
-  on your confirmation.
-- Appendix-only (kept, not in the blog's main flow): `all_configs.png`, per-size `curves.png`/
-  `sensitivity.png`, `core_*_by_task*.png`, `core_vs_scale.png`, `core_arms_by_task.png`,
+## Superseded / appendix
+- Superseded figures **moved to `results/superseded/`** (retained for provenance, not deleted):
+  `era_ladder.png`, `era_curves.png`, `expb_data_curves.png`, `data_ladder_expB.png`,
+  `core_expb_delta.png` — see `results/superseded/README.md` for the replacement mapping. Their
+  generating scripts `analysis/plot_era_ladder.py` and `analysis/plot_data_ladder.py` are no longer
+  invoked (no build driver runs them).
+- Appendix-only (kept at top level, not in the blog's main flow): `all_configs.png`, per-size
+  `curves.png`/`sensitivity.png`, `core_*_by_task*.png`, `core_vs_scale.png`, `core_arms_by_task.png`,
   `core_era_ladder.png`, `core_era_by_task.png`.
 
 ## Materially-changed findings
