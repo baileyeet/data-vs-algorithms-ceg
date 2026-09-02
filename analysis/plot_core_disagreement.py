@@ -58,8 +58,8 @@ axL.annotate("candidate better ↑", xy=(0.02, 0.98), xycoords="axes fraction", 
 axL.annotate("worse ↓", xy=(0.02, 0.02), xycoords="axes fraction", va="bottom", fontsize=8, color=INK2)
 axL.annotate("parity ±1σ (BPB noise)", xy=(0.98, BPB_SIGMA), xycoords=("axes fraction", "data"),
              ha="right", va="bottom", xytext=(0, 1), textcoords="offset points", fontsize=7.5, color=INK2)
-axL.set_ylabel("BPB advantage over matched GPT-2  (bits, ↑ better)")
-axL.set_title("Compute efficiency (neutral BPB)", fontsize=11, loc="left")
+axL.set_ylabel("Neutral-corpus BPB advantage over matched GPT-2  (bits, ↑ better)")
+axL.set_title("Compute efficiency (neutral-corpus BPB)", fontsize=11, loc="left")
 
 # ---- Right: CORE downstream advantage (up = candidate better), ±1 stderr ----
 for lin, rows in ROWS.items():
@@ -71,27 +71,27 @@ for lin, rows in ROWS.items():
 axR.annotate("candidate better ↑", xy=(0.02, 0.98), xycoords="axes fraction", va="top",
              fontsize=8, color=INK2)
 axR.annotate("worse ↓", xy=(0.02, 0.02), xycoords="axes fraction", va="bottom", fontsize=8, color=INK2)
-axR.set_ylabel("CORE accuracy advantage over matched GPT-2  (↑ better)")
-axR.set_title("Downstream capability (CORE, 11-task mean)", fontsize=11, loc="left")
+axR.set_ylabel("CORE accuracy advantage over matched GPT-2  (accuracy, ↑ better)")
+axR.set_title("Downstream capability (CORE, 11-task mean accuracy)", fontsize=11, loc="left")
 
 for ax in (axL, axR):
     ax.set_xticks([0, 1, 2]); ax.set_xticklabels(TIERS, fontsize=9)
     ax.set_xlim(-0.3, 2.3)
-    ax.set_xlabel("Model scale tier")
+    ax.set_xlabel("Model scale (Pythia / SmolLM2 matched pairs, params)")
     _style(ax)
 
 handles = [Line2D([], [], color=LINCOL[l], lw=2, marker="o", ms=8, label=LINLBL[l])
            for l in ("pythia", "smollm2")]
 handles.append(Line2D([], [], color=INK2, lw=0, marker="o", ms=8, markerfacecolor="none",
-                      label="open = divergence-confounded (SmolLM2 360M/1.7B; best-case less negative)"))
+                      label="open = best checkpoint shown (see caption)"))
 fig.legend(handles=handles, frameon=False, fontsize=8, labelcolor=INK2, loc="upper center",
-           ncol=3, bbox_to_anchor=(0.5, 0.955))
-fig.suptitle("Exp B — a metric disagreement: BPB efficiency is not the same as downstream capability",
+           ncol=3, bbox_to_anchor=(0.5, 0.97), columnspacing=1.2)
+fig.suptitle("Relative BPB efficiency and CORE performance by model scale",
              fontsize=12.5, x=0.012, ha="left", color=INK)
 fig.text(0.012, 0.006,
-         "Both panels: ↑ = candidate beats its size-matched GPT-2 (identical pipeline). Pythia sits at/below parity on BOTH "
-         "metrics. SmolLM2 never beats GPT-2 on BPB (left) yet shows a small, consistent downstream edge on CORE (right) — "
-         "the two measures disagree. CORE (limit=500) is secondary and noisy; ±1 stderr shown.",
+         "Both panels: ↑ = candidate beats its size-matched GPT-2 (identical pipeline). Pythia sits at/below parity on both "
+         "metrics; SmolLM2 stays at BPB parity or below (left) while showing a small, consistent downstream edge on CORE "
+         "(right). CORE (limit=500) is secondary to BPB and noisy; ±1 stderr shown.",
          fontsize=7.5, color=INK2, va="bottom", wrap=True)
 fig.tight_layout(rect=(0, 0.05, 1, 0.9))
 _savefig(fig, ROOT / "core_bpb_vs_downstream.png")

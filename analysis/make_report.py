@@ -168,9 +168,10 @@ def _era_ladder_section(root):
     if (root / "corpus_intervention.png").exists():
         out += ["Panel A shows the raw BPB-vs-GPU-hours curves (where each arm crosses the "
                 "threshold, or never does); panel B the corpus CEG per recipe; panel C the "
-                "within-recipe data lever. The corpus and training-recipe interventions "
-                "interact, so the data multiplier is recipe-dependent, not a single number.", "",
-                "![Exp A: corpus intervention at the 124M baseline scale](corpus_intervention.png)", ""]
+                "within-recipe corpus effect (hold the recipe, swap OWT for the other corpus). "
+                "The corpus and training-recipe interventions interact, so the corpus multiplier "
+                "is recipe-dependent, not a single number.", "",
+                "![Corpus compute-equivalent gain at the 124M GPT-2 baseline scale](corpus_intervention.png)", ""]
     out += _era_core_section(root)
     return out
 
@@ -243,16 +244,17 @@ def _expb_section(root):
             continue
         for s in sorted(R[lin], key=lambda k: R[lin][k]["params"]):
             e = R[lin][s]
-            conf = " *(divergence-confounded)*" if e.get("confounded") else ""
+            conf = " *(best checkpoint shown; BPB rose again late in training)*" if e.get("confounded") else ""
             out.append(f"| {lin} | {s} | +{e['delta']:.3f}{conf} | ≤1× (censored, no crossing) |")
     out += ["",
             "Pythia is clean at every scale (deficit shrinks 160M→410M then stabilizes "
             "~0.02–0.03). SmolLM2-135M is parity-within-noise (confirmed with a 2nd seed). "
-            "SmolLM2-360M/1.7B are deficits but **divergence-confounded**: even at each "
-            "size's documented LR they overfit OWT under the fixed ~8.87B budget (neutral "
-            "BPB rises off its own minimum while own-val keeps falling), an effect that "
+            "SmolLM2-360M/1.7B are deficits, but at each of those sizes BPB improved on OWT "
+            "itself while it worsened on the held-out neutral eval late in training — the "
+            "model was overfitting the training corpus. We report the best (lowest) neutral "
+            "BPB reached before that reversal, not just the final checkpoint; the effect "
             "grows with size — the deficit verdict is robust (holds on the best/min BPB too) "
-            "but the exact magnitude is inflated.", "",
+            "but the exact magnitude is inflated by training past the best checkpoint.", "",
             "Methodology: like-for-like train_hf denominators at every size (a matched GPT-2 "
             "through the SAME harness — verified equivalent to the study's train_old GPT-2 "
             "to within the ±0.013 same-seed noise floor at ALL scales incl 1.4B); the "
@@ -261,7 +263,7 @@ def _expb_section(root):
     if (root / "expb_arch_curves.png").exists():
         out += ["Raw training curves (BPB vs GPU-hours), each architecture vs its size-matched "
                 "GPT-2 — the candidate curve stays at or above the GPT-2 threshold at every size:", "",
-                "![Exp B architecture-axis training curves](expb_arch_curves.png)", ""]
+                "![Bits per byte vs. GPU-hours for matched architecture comparisons](expb_arch_curves.png)", ""]
     out += _expb_data_ladder_section(root)
     out += _expb_core_section(root)
     return out
@@ -298,9 +300,9 @@ def _expb_data_ladder_section(root):
             "**Headline: better data flips both new architectures from losing to a matched GPT-2 "
             "to beating it.** On OWT (2019) and C4 (2020) both are censored — they never reach the "
             "GPT-2-OWT bar (the B1 result). On RefinedWeb (2023) and DCLM (2024) both cross it, "
-            "reaching GPT-2's OWT quality with 4.6–6.4× less compute. The data lever is far larger "
-            "than any architecture lever we found (in B1, no new architecture beat GPT-2 on OWT at "
-            "all).", "",
+            "reaching GPT-2's OWT quality with 4.6–6.4× less compute. The effect of the training "
+            "corpus is far larger than any architecture effect we found (in B1, no new architecture "
+            "beat GPT-2 on OWT at all).", "",
             "**Cross-validation of Exp A.** Corpus progress is not monotonic with release date. "
             "Under the Exp B threshold, neither OWT (2019) nor C4 (2020) produces a measurable CEG "
             "for either architecture — neither reaches the reference GPT-2-OWT bar. Their terminal "
@@ -315,7 +317,7 @@ def _expb_data_ladder_section(root):
         out += ["Same architecture, four corpora, vs its fixed size-matched GPT-2-OWT bar: on "
                 "OWT/C4 both architectures stay above the bar (censored), on RefinedWeb/DCLM they "
                 "dive below it (cross) — the corpus effect reproduces across both tested stacks:", "",
-                "![Exp B data axis: the data effect reproduces across architectures](data_replication.png)", ""]
+                "![Neutral-corpus BPB vs. GPU-hours by training corpus](data_replication.png)", ""]
     return out
 
 
@@ -348,15 +350,17 @@ def _expb_core_section(root):
             "(−0.009 → −0.022, significant at 1.4B: 9 of 11 tasks lost) — CORE corroborates "
             "its BPB deficit, and more cleanly (monotone in scale). **SmolLM2 modestly ABOVE "
             "parity at every scale** (+0.011 to +0.019, ~1.7σ, winning 7 of 11 tasks at 135M "
-            "and 360M) — which DISAGREES with its BPB result (parity at 135M, divergence-"
-            "confounded deficit at 360M/1.7B). The most likely reading: SmolLM2's BPB penalty "
-            "at larger sizes is OWT-overfitting (own-val improves while neutral BPB rises), "
-            "which need not hurt downstream tasks; and even at 135M (no divergence) the "
-            "Llama-family design (SwiGLU/GQA/RoPE) buys a small downstream edge that neutral "
-            "BPB does not register. This is a directional, secondary signal — limit=500 CORE "
-            "is noisy — not a compute-efficiency claim (on BPB/CEG neither lineage beats GPT-2).", ""]
+            "and 360M) — which DISAGREES with its BPB result (parity at 135M; at 360M/1.7B its "
+            "best-checkpoint BPB is a deficit, and training past that checkpoint made BPB worse "
+            "still). The most likely reading: SmolLM2's BPB penalty at larger sizes comes from "
+            "overfitting the training corpus (own-corpus loss improves while neutral BPB rises "
+            "late in training), which need not hurt downstream tasks; and even at 135M (no "
+            "overfitting) the Llama-family design (SwiGLU/GQA/RoPE) buys a small downstream edge "
+            "that neutral BPB does not register. This is a directional, secondary signal — "
+            "limit=500 CORE is noisy — not a compute-efficiency claim (on BPB/CEG neither "
+            "architecture beats GPT-2).", ""]
     if (root / "core_bpb_vs_downstream.png").exists():
-        out += ["![Exp B: BPB efficiency vs downstream capability](core_bpb_vs_downstream.png)", ""]
+        out += ["![Relative BPB efficiency and CORE performance by model scale](core_bpb_vs_downstream.png)", ""]
     if (root / "core_expb_by_task.png").exists():
         out += ["Per-task breakdown (each task is noisy at limit=500 — read the "
                 "consistency across tasks, not any single panel). Exp B shows all 11 "

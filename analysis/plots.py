@@ -281,23 +281,21 @@ def multipliers_vs_scale(curves: dict, out_path, censored: dict = None):
         ax.set_xticks([124, 355, 1536])
         ax.set_xticklabels(["124M", "355M", "1.5B"])
         ax.set_xlim(95, 2100)
-        ax.set_xlabel("GPT-2 baseline scale")
+        ax.set_xlabel("GPT-2 baseline scale (params)")
         ax.set_title(ttl, fontsize=11, loc="left")
         _style(ax)
         ax.set_ylim(0.82, max(20, ax.get_ylim()[1]))
-    ax1.set_ylabel("Compute-reduction multiplier  (×, log)")
+    ax1.set_ylabel("Compute-equivalent gain  (×, log scale)")
     handles, labels = ax1.get_legend_handles_labels()
     fig.legend(handles, labels, frameon=False, fontsize=8.5, labelcolor=INK2,
                loc="upper center", ncol=2, bbox_to_anchor=(0.5, 0.9))
-    fig.suptitle("Compute-equivalent-gain multipliers vs model scale",
+    fig.suptitle("Compute-equivalent gain vs. GPT-2 baseline scale",
                  fontsize=12.5, x=0.012, ha="left", color=INK, y=0.985)
     fig.text(0.012, 0.008,
-             "x-axis = GPT-2 baseline scale (baseline dimensions), not candidate parameter count: "
-             "current-arch carries ~498.8M params at the 124M-baseline dimensions (the\n"
-             "value-embed / U-net additions are the algorithm being measured). Eval set: wiki_eval. "
-             "Lineages use independent hardware GPU-hour bases and are never mixed in one ratio.",
-             fontsize=7, color=INK2, va="bottom")
-    fig.tight_layout(rect=(0, 0.06, 1, 0.87))
+             "x-axis = GPT-2 baseline scale (baseline model dimensions), not the trained candidate's own "
+             "parameter count — see caption for the current-arch parameter count at 124M-baseline dimensions.",
+             fontsize=7, color=INK2, va="bottom", wrap=True)
+    fig.tight_layout(rect=(0, 0.045, 1, 0.87))
     _savefig(fig, out_path)
 
 

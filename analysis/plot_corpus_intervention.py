@@ -90,6 +90,11 @@ axA.legend(handles=recipe_handles, frameon=False, fontsize=8, labelcolor=INK2,
 
 
 # ---------------- Panels B & C: multiplier dot plots ----------------
+CENSORED_Y = 0.80  # fixed below-parity slot for "did not reach threshold" markers — never
+# plotted ON the 1x line itself, so a censored comparison can never be misread as a
+# measured 1x (no-advantage) value.
+
+
 def dotpanel(ax, getval, title, ylab):
     """getval(dataset_dict, recipe) -> (value or None). recipe in {'old','current'}."""
     xs = list(range(len(CORPORA)))
@@ -97,25 +102,31 @@ def dotpanel(ax, getval, title, ylab):
     ax.annotate("1× — no advantage", xy=(0.98, 1.0), xycoords=("axes fraction", "data"),
                 xytext=(0, -3), textcoords="offset points", ha="right", va="top",
                 fontsize=7.5, color=INK2)
+    censored_xs = []
     for i, (corpus, year, *_ ) in enumerate(CORPORA):
         d = J["datasets"][corpus]
         col = CORP_COLOR[corpus]
         for recipe, dx, mk in (("old", -0.13, "o"), ("current", 0.13, "s")):
             v = getval(d, recipe)
-            if v is None:  # censored -> hollow marker at the parity line + tag
-                ax.scatter([i + dx], [1.0], marker=mk, s=70, facecolors="none",
+            if v is None:  # did not reach threshold -> hollow marker BELOW parity, never on it
+                ax.scatter([i + dx], [CENSORED_Y], marker=mk, s=70, facecolors="none",
                            edgecolors=col, linewidths=1.7, zorder=4)
+                ax.annotate("", xy=(i + dx, CENSORED_Y * 0.90), xytext=(i + dx, CENSORED_Y * 0.98),
+                            arrowprops=dict(arrowstyle="-|>", color=col, lw=1.3), zorder=4)
+                censored_xs.append(i + dx)
             else:
                 ax.scatter([i + dx], [v], marker=mk, s=70, facecolors=col,
                            edgecolors=SURFACE, linewidths=1.0, zorder=4)
                 ax.annotate(f"{v:.1f}×", xy=(i + dx, v), xytext=(0, 8 if recipe == "old" else 8),
                             textcoords="offset points", ha="center", fontsize=8, color=INK)
-    # censored note for C4 (placed ABOVE the hollow markers, clear of the x-tick label)
-    ci = [i for i, (c, *_ ) in enumerate(CORPORA) if c == "C4"][0]
-    ax.annotate("C4 censored\n(never crosses)", xy=(ci, 1.0), xytext=(0, 20),
-                textcoords="offset points", ha="center", fontsize=7.5, color=INK2)
+    # one compact label for the censored cluster, in the gap between the markers and the
+    # 1x line (never below the markers, where a wide offset could clip against the x-axis)
+    if censored_xs:
+        ax.annotate("did not reach threshold", xy=(sum(censored_xs) / len(censored_xs), CENSORED_Y),
+                    xytext=(0, 8), textcoords="offset points", ha="center", va="bottom",
+                    fontsize=7.5, color=INK2)
     ax.set_yscale("log")
-    ax.set_ylim(0.8, 60)
+    ax.set_ylim(0.62, 60)
     ax.set_xticks(xs)
     ax.set_xticklabels([f"{c}\n{y}" for c, y, *_ in CORPORA], fontsize=8.5)
     ax.set_xlim(-0.5, len(CORPORA) - 0.5)
@@ -126,28 +137,26 @@ def dotpanel(ax, getval, title, ylab):
 
 
 dotpanel(axB, lambda d, r: d["old_algo" if r == "old" else "current_arch"]["ceg_vs_a0d0"],
-         "B · Corpus CEG vs reference (old-algo · OWT)",
-         "Compute-reduction multiplier  (×, log)")
+         "B · Corpus CEG vs. old-recipe·OWT reference",
+         "Compute-equivalent gain  (×, log scale)")
 dotpanel(axC, lambda d, r: d["data_ceg_old_algo" if r == "old" else "data_ceg_current_arch"],
-         "C · Within-recipe data lever (swap OWT → corpus)",
-         "Data-only compute-reduction  (×, log)")
+         "C · Within-recipe corpus CEG (OWT → corpus)",
+         "Within-recipe corpus CEG  (×, log scale)")
 
 # shared recipe legend for B/C — figure-level, top-center (clear of all data marks)
-shape_handles = [Line2D([], [], color=INK2, marker="o", ls="none", ms=8, label="old-algo (GPT-2) recipe"),
-                 Line2D([], [], color=INK2, marker="s", ls="none", ms=8, label="current-arch (modded) recipe"),
+shape_handles = [Line2D([], [], color=INK2, marker="o", ls="none", ms=8, label="old GPT-2 recipe"),
+                 Line2D([], [], color=INK2, marker="s", ls="none", ms=8, label="current training recipe"),
                  Line2D([], [], color=INK2, marker="o", ls="none", ms=8, markerfacecolor="none",
-                        label="hollow = censored (bound, not a value)")]
+                        label="hollow, below 1× = did not reach threshold")]
 fig.legend(handles=shape_handles, frameon=False, fontsize=8, labelcolor=INK2,
            loc="upper center", ncol=3, bbox_to_anchor=(0.68, 0.965))
 
-fig.suptitle("Exp A — corpus intervention at the 124M GPT-2 baseline scale (neutral eval: wiki_eval_union)",
+fig.suptitle("Corpus compute-equivalent gain at the 124M GPT-2 baseline scale",
              fontsize=12.5, x=0.008, ha="left", color=INK, y=0.995)
 fig.text(0.008, 0.008,
-         "Panel C isolates the corpus lever within each fixed recipe. The two recipes give different "
-         "data multipliers (old-algo ~3.3–3.5× vs current-arch ~1.6× on RefinedWeb/DCLM): the corpus and "
-         "training-recipe interventions INTERACT, so a Shapley attribution of “how much the data is "
-         "worth” is context-dependent and not a single number. C4 (2020) never reaches the threshold "
-         "under either recipe — corpus quality is non-monotonic in release date.",
+         "Neutral eval: wiki_eval_union. Panel C holds the recipe fixed and swaps only the training corpus "
+         "(OWT → corpus); the two recipes give different corpus multipliers on RefinedWeb/DCLM (old GPT-2 "
+         "recipe ~3.3–3.5× vs current training recipe ~1.6×) — see caption for interpretation.",
          fontsize=7, color=INK2, va="bottom", wrap=True)
 fig.tight_layout(rect=(0, 0.07, 1, 0.955))
 _savefig(fig, ROOT / "corpus_intervention.png")
