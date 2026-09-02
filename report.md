@@ -8,6 +8,10 @@
 
 The current-arch A1 numbers are v2-canonical (re-derived from yarn_state reruns after the loader-fidelity fixes).
 
+**How to read the numbers.** Compute is timed GPU-hours to reach a fixed neutral-BPB threshold; the 2×2 factorial is decomposed into data and algorithm multipliers by a log-space Shapley split (both intervention orderings averaged). Worked example:
+
+![How a compute-equivalent gain is measured and decomposed](method_factorial.png)
+
 ## 124M (small)
 
 Reference threshold: **1.2744 BPB** (neutral corpus; = fully-trained A0D0 at this size).
@@ -63,7 +67,7 @@ The 16 arms distilled to compute-equivalent-gain multipliers for both lineages a
 
 So the single-margin ScaleUp numbers bound a full Shapley from opposite sides on the two axes. (Multipliers are within-hardware GPU-hour ratios — current-arch 8-GPU, ScaleUp 5-GPU — so the count overhead cancels in each ratio.)
 
-The figure's algorithm panel also carries a THIRD estimator — the Exp B architecture lineages (Pythia, SmolLM2) as open ▽ at 1× — which are algorithm-CEG vs a matched GPT-2 (data fixed, no data-panel entry) and are all censored (≤1×, none cross). See the Exp B section below.
+This hero shows only the two lineages that share the factorial 2×2 estimator (current-arch, ScaleUp). The Exp B architecture lineages (Pythia, SmolLM2) use a different estimator — algorithm-CEG vs a matched GPT-2 with data held fixed — and are all censored (≤1×, none cross), so they are presented separately in the Exp B section below rather than on this axis.
 
 ## Curve 1 — current-arch (124M, 355M)
 
@@ -74,7 +78,7 @@ The SOTA modded-nanoGPT speedrun as A1. Direct test of whether the data/algorith
 | small | 2.23 | 13.69 | 30.47 |
 | medium | 3.74 | 4.06 | 15.18 |
 
-**The algorithm advantage decays sharply with scale (13.1x -> 4.1x from 124M to 355M).** The 1.5B point is a disclosed GAP — no reproducible 1.5B recipe for this arch, and scaling it up requires inventing hand-tuned subsystems (U-net skip topology) with no reference and no way to validate them.
+**The algorithm advantage decays sharply with scale (13.69x -> 4.1x from 124M to 355M).** The 1.5B point is a disclosed GAP — no reproducible 1.5B recipe for this arch, and scaling it up requires inventing hand-tuned subsystems (U-net skip topology) with no reference and no way to validate them.
 
 ## Curve 2 — ScaleUp-arch (124M, 1.5B)
 
@@ -85,7 +89,7 @@ A1 = the 2024 ScaleUp lineage, run from its DOCUMENTED per-size recipe (each siz
 | 124M | 3.25x | 2.9x | censored <=1x |
 | 1.5B | 3.43x | 2.34x | CENSORED (<=1x; ScaleUp worse than GPT-2-XL on OWT) |
 
-The ScaleUp algorithm's advantage on new data **declines mildly with scale (2.90x -> 2.34x, 124M -> 1.5B)** — a gentle decay, versus the current arch's steep 13.1x -> 4.1x. And it is **data-dependent**: a real advantage on DCLM (new data), but NONE on OWT (old data) at either scale — the ScaleUp arm never crosses the threshold on OWT because GPT-2 matches/beats it there at equal budget (a genuine result, confirmed by equal-budget comparison, not undertraining). The data multiplier, by contrast, is roughly stable across scale (~3.3x).
+The ScaleUp algorithm's advantage on new data **declines mildly with scale (2.90x -> 2.34x, 124M -> 1.5B)** — a gentle decay, versus the current arch's steep 13.69x -> 4.1x. And it is **data-dependent**: a real advantage on DCLM (new data), but NONE on OWT (old data) at either scale — the ScaleUp arm never crosses the threshold on OWT because GPT-2 matches/beats it there at equal budget (a genuine result, confirmed by equal-budget comparison, not undertraining). The data multiplier, by contrast, is roughly stable across scale (~3.3x).
 
 NOTE (hardware): the ScaleUp A1 arms and their GPT-2 A0 baseline were all measured on 5xH100 (the A0-124M baseline was re-run on 5 GPUs for this — an 8-vs-5 mix had distorted the 124M algo multiplier to 2.35x; the consistent value is 2.90x). GPU-hours is NOT cleanly count-invariant here (the forced batch/accum change cost ~22%).
 
@@ -106,11 +110,9 @@ Corrected 2x2 (union eval, all arms torch 2.10): threshold **1.2760 BPB**; **dat
 
 Data-quality is **NON-monotonic in release year**: C4 (2020) is CENSORED under BOTH algorithms (never reaches the OWT threshold — a WORSE training corpus than 2019 OWT), while RefinedWeb (2023) and DCLM (2024) do improve. So 'newer dataset' ≠ 'better data'. The algorithm CEG stays large across corpora (see the OWT/RefinedWeb/DCLM column).
 
-![Exp A: CEG vs dataset release-year](era_ladder.png)
+Panel A shows the raw BPB-vs-GPU-hours curves (where each arm crosses the threshold, or never does); panel B the corpus CEG per recipe; panel C the within-recipe data lever. The corpus and training-recipe interventions interact, so the data multiplier is recipe-dependent, not a single number.
 
-The raw training curves the CEG numbers are read from (BPB vs GPU-hours, per corpus; where each arm crosses the threshold):
-
-![Exp A training curves per corpus](era_curves.png)
+![Exp A: corpus intervention at the 124M baseline scale](corpus_intervention.png)
 
 ### Exp A — CORE downstream tasks (secondary)
 
@@ -135,7 +137,7 @@ Per-task breakdown (old vs new algorithm across the four corpora; the two overla
 
 The completed study found a large small-scale *algorithm* CEG for the current-arch speedrun (13.7× @124M). Exp B is the direct test of whether that generalizes beyond a small-scale-optimized speedrun: it trains PUBLISHED open-model lineages — **Pythia (GPT-NeoX, 2023)** and **SmolLM2 (Llama, 2024)** — from scratch on fixed data (OpenWebText), each against a size-matched GPT-2 baseline through the identical harness, and asks whether any reaches (crosses) the GPT-2 baseline's neutral-BPB threshold. Data is held fixed → no data/algorithm 2×2; this is algorithm-CEG only.
 
-**Result: no lineage crosses at any scale (135M–1.7B) → algorithm-CEG ≤1× everywhere (no measurable gain over a matched, properly-tuned GPT-2).** Best case is SmolLM2-135M, whose gap is within same-seed noise of parity (still not a crossing). A direct empirical 'no' to whether the current-arch small-scale advantage generalizes to these lineages. Exp B is the censored (open ▽ at 1×) markers on the algorithm panel of `multipliers_vs_scale.png` above.
+**Result: no lineage crosses at any scale (135M–1.7B) → algorithm-CEG ≤1× everywhere (no measurable gain over a matched, properly-tuned GPT-2).** Best case is SmolLM2-135M, whose gap is within same-seed noise of parity (still not a crossing). A direct empirical 'no' to whether the current-arch small-scale advantage generalizes to these lineages. The six matched comparisons are shown in `expb_arch_curves.png` below.
 
 Pre-registered verdict rule: |delta| within ±0.013 neutral BPB of the matched GPT-2 = parity-within-noise; ≥0.026 (2σ) = significant deficit. delta = arch tail-mean neutral BPB − its matched GPT-2 (both @512k); >0 = worse.
 
@@ -173,13 +175,11 @@ B1 above held data fixed (OWT). This closes the grid: each new architecture (at 
 
 **Headline: better data flips both new architectures from losing to a matched GPT-2 to beating it.** On OWT (2019) and C4 (2020) both are censored — they never reach the GPT-2-OWT bar (the B1 result). On RefinedWeb (2023) and DCLM (2024) both cross it, reaching GPT-2's OWT quality with 4.6–6.4× less compute. The data lever is far larger than any architecture lever we found (in B1, no new architecture beat GPT-2 on OWT at all).
 
-**Cross-validation of Exp A.** C4 (2020) comes out *worse* than OWT (2019) for BOTH architectures independently (both censored; final BPB higher on C4 than the crossing corpora, and OWT slightly better than C4). Exp A found exactly this non-monotonicity in dataset release-year using the original two algorithms; seeing it reproduce on two further, independent architectures (GPT-NeoX and Llama lineages) is direct cross-validation that the effect is a property of the data, not of a particular algorithm.
+**Cross-validation of Exp A.** Corpus progress is not monotonic with release date. Under the Exp B threshold, neither OWT (2019) nor C4 (2020) produces a measurable CEG for either architecture — neither reaches the reference GPT-2-OWT bar. Their terminal BPBs are similar, with C4 marginally lower in both tested architectures, while RefinedWeb (2023) and DCLM (2024) show substantially stronger improvements and do cross. Exp A found the same non-monotonicity in dataset release-year using the original two algorithms (C4 failing to improve on OWT); seeing C4 again fail to unlock the gains that the later corpora deliver — now across two further, independent architectures (GPT-NeoX and Llama lineages) — is direct cross-validation that the effect reproduces across the tested architectures rather than being tied to a particular algorithm.
 
-![Exp B data axis: CEG vs data-era per architecture](data_ladder_expB.png)
+Same architecture, four corpora, vs its fixed size-matched GPT-2-OWT bar: on OWT/C4 both architectures stay above the bar (censored), on RefinedWeb/DCLM they dive below it (cross) — the corpus effect reproduces across both tested stacks:
 
-The raw training curves (BPB vs GPU-hours): on OWT/C4 both architectures stay above the GPT-2-OWT bar (censored), on RefinedWeb/DCLM they dive below it (cross):
-
-![Exp B data-axis training curves](expb_data_curves.png)
+![Exp B data axis: the data effect reproduces across architectures](data_replication.png)
 
 ### Exp B — CORE downstream tasks (secondary)
 
@@ -196,7 +196,7 @@ The BPB/CEG result above is compute-efficiency on a language-modeling bar. As a 
 
 Two things stand out. **Pythia at/below parity, falling with scale** (−0.009 → −0.022, significant at 1.4B: 9 of 11 tasks lost) — CORE corroborates its BPB deficit, and more cleanly (monotone in scale). **SmolLM2 modestly ABOVE parity at every scale** (+0.011 to +0.019, ~1.7σ, winning 7 of 11 tasks at 135M and 360M) — which DISAGREES with its BPB result (parity at 135M, divergence-confounded deficit at 360M/1.7B). The most likely reading: SmolLM2's BPB penalty at larger sizes is OWT-overfitting (own-val improves while neutral BPB rises), which need not hurt downstream tasks; and even at 135M (no divergence) the Llama-family design (SwiGLU/GQA/RoPE) buys a small downstream edge that neutral BPB does not register. This is a directional, secondary signal — limit=500 CORE is noisy — not a compute-efficiency claim (on BPB/CEG neither lineage beats GPT-2).
 
-![Exp B CORE gap vs matched GPT-2, by scale](core_expb_delta.png)
+![Exp B: BPB efficiency vs downstream capability](core_bpb_vs_downstream.png)
 
 Per-task breakdown (each task is noisy at limit=500 — read the consistency across tasks, not any single panel). Exp B shows all 11 evaluated CORE-subset tasks (lambada is valid here — these are real-logits HF models — and at 135M–1.7B more tasks clear the validity gate than at the study's 124M, where the CORE figures gate down to 6). First as the gap vs matched GPT-2, then in absolute accuracy (same 3-line format as the Exp A / 2×2 CORE figures):
 

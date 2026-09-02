@@ -90,7 +90,7 @@ def _scaleup_section(root):
            "",
            "The ScaleUp algorithm's advantage on new data **declines mildly with "
            "scale (2.90x -> 2.34x, 124M -> 1.5B)** — a gentle decay, versus the "
-           "current arch's steep 13.1x -> 4.1x. And it is **data-dependent**: a "
+           "current arch's steep 13.69x -> 4.1x. And it is **data-dependent**: a "
            "real advantage on DCLM (new data), but NONE on OWT (old data) at "
            "either scale — the ScaleUp arm never crosses the threshold on OWT "
            "because GPT-2 matches/beats it there at equal budget (a genuine "
@@ -154,12 +154,12 @@ def _era_ladder_section(root):
             "corpus than 2019 OWT), while RefinedWeb (2023) and DCLM (2024) do improve. "
             "So 'newer dataset' ≠ 'better data'. The algorithm CEG stays large across "
             "corpora (see the OWT/RefinedWeb/DCLM column).", ""]
-    if (root / "era_ladder.png").exists():
-        out += ["![Exp A: CEG vs dataset release-year](era_ladder.png)", ""]
-    if (root / "era_curves.png").exists():
-        out += ["The raw training curves the CEG numbers are read from (BPB vs GPU-hours, "
-                "per corpus; where each arm crosses the threshold):", "",
-                "![Exp A training curves per corpus](era_curves.png)", ""]
+    if (root / "corpus_intervention.png").exists():
+        out += ["Panel A shows the raw BPB-vs-GPU-hours curves (where each arm crosses the "
+                "threshold, or never does); panel B the corpus CEG per recipe; panel C the "
+                "within-recipe data lever. The corpus and training-recipe interventions "
+                "interact, so the data multiplier is recipe-dependent, not a single number.", "",
+                "![Exp A: corpus intervention at the 124M baseline scale](corpus_intervention.png)", ""]
     out += _era_core_section(root)
     return out
 
@@ -218,8 +218,8 @@ def _expb_section(root):
            "everywhere (no measurable gain over a matched, properly-tuned GPT-2).** Best "
            "case is SmolLM2-135M, whose gap is within same-seed noise of parity (still not "
            "a crossing). A direct empirical 'no' to whether the current-arch small-scale "
-           "advantage generalizes to these lineages. Exp B is the censored (open ▽ at 1×) "
-           "markers on the algorithm panel of `multipliers_vs_scale.png` above.", "",
+           "advantage generalizes to these lineages. The six matched comparisons are shown "
+           "in `expb_arch_curves.png` below.", "",
            f"Pre-registered verdict rule: |delta| within ±{R['noise_sigma']} neutral BPB of "
            f"the matched GPT-2 = parity-within-noise; ≥{R['sig_2sigma']} (2σ) = significant "
            "deficit. delta = arch tail-mean neutral BPB − its matched GPT-2 (both @512k); "
@@ -289,19 +289,21 @@ def _expb_data_ladder_section(root):
             "reaching GPT-2's OWT quality with 4.6–6.4× less compute. The data lever is far larger "
             "than any architecture lever we found (in B1, no new architecture beat GPT-2 on OWT at "
             "all).", "",
-            "**Cross-validation of Exp A.** C4 (2020) comes out *worse* than OWT (2019) for BOTH "
-            "architectures independently (both censored; final BPB higher on C4 than the crossing "
-            "corpora, and OWT slightly better than C4). Exp A found exactly this non-monotonicity "
-            "in dataset release-year using the original two algorithms; seeing it reproduce on two "
-            "further, independent architectures (GPT-NeoX and Llama lineages) is direct "
-            "cross-validation that the effect is a property of the data, not of a particular "
-            "algorithm.", ""]
-    if (root / "data_ladder_expB.png").exists():
-        out += ["![Exp B data axis: CEG vs data-era per architecture](data_ladder_expB.png)", ""]
-    if (root / "expb_data_curves.png").exists():
-        out += ["The raw training curves (BPB vs GPU-hours): on OWT/C4 both architectures stay "
-                "above the GPT-2-OWT bar (censored), on RefinedWeb/DCLM they dive below it (cross):", "",
-                "![Exp B data-axis training curves](expb_data_curves.png)", ""]
+            "**Cross-validation of Exp A.** Corpus progress is not monotonic with release date. "
+            "Under the Exp B threshold, neither OWT (2019) nor C4 (2020) produces a measurable CEG "
+            "for either architecture — neither reaches the reference GPT-2-OWT bar. Their terminal "
+            "BPBs are similar, with C4 marginally lower in both tested architectures, while "
+            "RefinedWeb (2023) and DCLM (2024) show substantially stronger improvements and do "
+            "cross. Exp A found the same non-monotonicity in dataset release-year using the original "
+            "two algorithms (C4 failing to improve on OWT); seeing C4 again fail to unlock the gains "
+            "that the later corpora deliver — now across two further, independent architectures "
+            "(GPT-NeoX and Llama lineages) — is direct cross-validation that the effect reproduces "
+            "across the tested architectures rather than being tied to a particular algorithm.", ""]
+    if (root / "data_replication.png").exists():
+        out += ["Same architecture, four corpora, vs its fixed size-matched GPT-2-OWT bar: on "
+                "OWT/C4 both architectures stay above the bar (censored), on RefinedWeb/DCLM they "
+                "dive below it (cross) — the corpus effect reproduces across both tested stacks:", "",
+                "![Exp B data axis: the data effect reproduces across architectures](data_replication.png)", ""]
     return out
 
 
@@ -341,8 +343,8 @@ def _expb_core_section(root):
             "Llama-family design (SwiGLU/GQA/RoPE) buys a small downstream edge that neutral "
             "BPB does not register. This is a directional, secondary signal — limit=500 CORE "
             "is noisy — not a compute-efficiency claim (on BPB/CEG neither lineage beats GPT-2).", ""]
-    if (root / "core_expb_delta.png").exists():
-        out += ["![Exp B CORE gap vs matched GPT-2, by scale](core_expb_delta.png)", ""]
+    if (root / "core_bpb_vs_downstream.png").exists():
+        out += ["![Exp B: BPB efficiency vs downstream capability](core_bpb_vs_downstream.png)", ""]
     if (root / "core_expb_by_task.png").exists():
         out += ["Per-task breakdown (each task is noisy at limit=500 — read the "
                 "consistency across tasks, not any single panel). Exp B shows all 11 "
@@ -387,6 +389,12 @@ def main():
              "The current-arch A1 numbers are v2-canonical (re-derived from "
              "yarn_state reruns after the loader-fidelity fixes).",
              ""]
+    if (root / "method_factorial.png").exists():
+        lines += ["**How to read the numbers.** Compute is timed GPU-hours to reach a fixed "
+                  "neutral-BPB threshold; the 2×2 factorial is decomposed into data and "
+                  "algorithm multipliers by a log-space Shapley split (both intervention "
+                  "orderings averaged). Worked example:", "",
+                  "![How a compute-equivalent gain is measured and decomposed](method_factorial.png)", ""]
     results = []
     for size in SIZE_ORDER:
         d = root / size
@@ -437,10 +445,12 @@ def main():
                   "opposite sides on the two axes. (Multipliers are within-"
                   "hardware GPU-hour ratios — current-arch 8-GPU, ScaleUp 5-GPU — "
                   "so the count overhead cancels in each ratio.)", "",
-                  "The figure's algorithm panel also carries a THIRD estimator — the "
-                  "Exp B architecture lineages (Pythia, SmolLM2) as open ▽ at 1× — which "
-                  "are algorithm-CEG vs a matched GPT-2 (data fixed, no data-panel entry) "
-                  "and are all censored (≤1×, none cross). See the Exp B section below.", ""]
+                  "This hero shows only the two lineages that share the factorial 2×2 "
+                  "estimator (current-arch, ScaleUp). The Exp B architecture lineages "
+                  "(Pythia, SmolLM2) use a different estimator — algorithm-CEG vs a matched "
+                  "GPT-2 with data held fixed — and are all censored (≤1×, none cross), so "
+                  "they are presented separately in the Exp B section below rather than on "
+                  "this axis.", ""]
     lines += ["## Curve 1 — current-arch (124M, 355M)", "",
               "The SOTA modded-nanoGPT speedrun as A1. Direct test of whether the "
               "data/algorithm split is scale-invariant for this algorithm:", ""]
@@ -452,7 +462,7 @@ def main():
                          f"| {m['total']:.2f} |")
         lines += ["",
                   "**The algorithm advantage decays sharply with scale "
-                  "(13.1x -> 4.1x from 124M to 355M).** The 1.5B point is a "
+                  "(13.69x -> 4.1x from 124M to 355M).** The 1.5B point is a "
                   "disclosed GAP — no reproducible 1.5B recipe for this arch, and "
                   "scaling it up requires inventing hand-tuned subsystems (U-net "
                   "skip topology) with no reference and no way to validate them.",

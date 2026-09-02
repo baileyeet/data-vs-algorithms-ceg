@@ -47,6 +47,16 @@ def _style(ax):
     ax.title.set_color(INK)
 
 
+def _savefig(fig, out_path):
+    """Save a publication figure as BOTH raster (PNG) and vector (PDF) at the
+    same basename, so the blog gets a crisp PNG and the paper a scalable PDF."""
+    out_path = Path(out_path)
+    fig.savefig(out_path, facecolor=SURFACE)
+    fig.savefig(out_path.with_suffix(".pdf"), facecolor=SURFACE)
+    plt.close(fig)
+    print("wrote", out_path, "+", out_path.with_suffix(".pdf").name)
+
+
 def load_metrics(run_dir):
     rows = list(csv.DictReader(open(Path(run_dir) / "metrics.csv")))
     return [(float(r["gpu_hours"]), float(r["neutral_bpb"])) for r in rows
@@ -224,65 +234,71 @@ def all_configs_curves(root: Path, out_path):
 
 
 def multipliers_vs_scale(curves: dict, out_path, censored: dict = None):
-    """Summary figure: cross-scale CEG multipliers across scale, ALL lineages.
+    """HERO figure: cross-scale CEG multipliers vs GPT-2-baseline scale.
 
-    curves[name] = {scales:[M params], algo:[x], data:[x]} — numeric multiplier
-    lineages (current-arch, ScaleUp). Two panels (algorithm | data) share the
-    model-size axis. AGGREGATES the 16 arms into Shapley multipliers.
+    curves[name] = {scales:[M params], algo:[x], data:[x]} — the two numeric
+    multiplier lineages that share the factorial 2x2 estimator: current-arch
+    (modded-nanoGPT speedrun) and ScaleUp (2024). Two panels (algorithm | data)
+    share the baseline-scale axis. Each point is a compute-reduction multiplier
+    (GPU-hours-to-threshold ratio) from the log-space Shapley split.
 
-    censored[name] = {label, color, scales:[M params], annot:{size:txt}} — Exp B
-    architecture lineages (Pythia, SmolLM2, later Mamba/Mamba2). These are a THIRD
-    estimator: algorithm-CEG vs a MATCHED GPT-2 baseline, data held fixed (OWT) so
-    NO data-panel entry. Every Exp B arm is CENSORED (its converged neutral BPB
-    stays above the matched-GPT-2 threshold -> never crosses -> algorithm-CEG <=1x),
-    so it carries no numeric multiplier; drawn as a hollow down-triangle at the 1x
-    parity line on the ALGORITHM panel only. SmolLM2-135M is annotated as within
-    same-seed noise of parity (still censored, not a crossing).
+    The x-axis is the GPT-2 BASELINE SCALE (124M / 355M / 1.5B baseline
+    dimensions), NOT a literal candidate parameter count — the current-arch model
+    carries ~498.8M parameters at the 124M-baseline dimensions (the value-embed /
+    U-net additions ARE the algorithm being measured). See figure footnote.
+
+    A visible 1x parity line (no compute advantage) is drawn on both panels. The
+    Exp B architecture lineages (Pythia, SmolLM2) are deliberately OMITTED here —
+    they use a different (matched-GPT-2, data-fixed) estimator and are all
+    censored; they get their own figures. `censored` is accepted for backward
+    compatibility but ignored.
     """
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11.2, 4.8), dpi=150,
                                    sharex=True)
-    for ax, key, ttl in ((ax1, "algo", "Algorithm multiplier"),
-                         (ax2, "data", "Data multiplier")):
+    for ax, key, ttl in ((ax1, "algo", "Algorithm contribution"),
+                         (ax2, "data", "Data contribution")):
+        # 1x parity reference (compute-equivalent to the old-algo / old-data
+        # baseline) on BOTH panels, drawn under the data marks.
+        ax.axhline(1.0, color=INK2, lw=1.1, ls=(0, (4, 3)), zorder=1)
+        ax.annotate("1× — no compute advantage", xy=(0.5, 1.0),
+                    xycoords=("axes fraction", "data"), xytext=(0, -4),
+                    textcoords="offset points", ha="center", va="top",
+                    fontsize=8, color=INK2)
         for name, c in curves.items():
             col = CURVE_COLORS[name]
             st = CURVE_STYLE[name]
             xs, ys = c["scales"], c[key]
-            ax.plot(xs, ys, color=col, marker=st["marker"], markersize=7,
+            ax.plot(xs, ys, color=col, marker=st["marker"], markersize=8,
                     linewidth=2, linestyle=st["linestyle"],
                     markerfacecolor=(col if st["fill"] else SURFACE),
                     markeredgecolor=col, markeredgewidth=1.6,
                     label=CURVE_LABELS[name] if ax is ax1 else None)
             for x, y in zip(xs, ys):
-                ax.annotate(f"{y:.1f}×", xy=(x, y), xytext=(0, 9),
+                ax.annotate(f"{y:.1f}×", xy=(x, y), xytext=(0, 10),
                             textcoords="offset points", fontsize=8.5,
                             color=INK, ha="center")
-        # Exp B censored lineages: algorithm panel only, hollow v at the 1x parity line
-        if censored and ax is ax1:
-            ax.axhline(1.0, color=GRID, lw=1.2, ls=(0, (4, 3)), zorder=1)
-            ax.annotate("1× (parity with matched GPT-2)", xy=(1, 1.0),
-                        xycoords=("axes fraction", "data"), xytext=(-4, 4),
-                        textcoords="offset points", ha="right", va="bottom",
-                        fontsize=8, color=INK2)
-            for lname, e in censored.items():
-                ax.scatter(e["scales"], [1.0] * len(e["scales"]), marker="v",
-                           s=85, facecolors="none", edgecolors=e["color"],
-                           linewidths=1.8, zorder=4, label=e["label"])
         ax.set_xscale("log"); ax.set_yscale("log")
         ax.set_xticks([124, 355, 1536])
         ax.set_xticklabels(["124M", "355M", "1.5B"])
-        ax.set_xlabel("Model size (parameters)")
+        ax.set_xlim(95, 2100)
+        ax.set_xlabel("GPT-2 baseline scale")
         ax.set_title(ttl, fontsize=11, loc="left")
         _style(ax)
         ax.set_ylim(0.82, max(20, ax.get_ylim()[1]))
     ax1.set_ylabel("Compute-reduction multiplier  (×, log)")
     handles, labels = ax1.get_legend_handles_labels()
-    fig.legend(handles, labels, frameon=False, fontsize=8, labelcolor=INK2,
-               loc="upper center", ncol=2, bbox_to_anchor=(0.5, 0.94))
+    fig.legend(handles, labels, frameon=False, fontsize=8.5, labelcolor=INK2,
+               loc="upper center", ncol=2, bbox_to_anchor=(0.5, 0.9))
     fig.suptitle("Compute-equivalent-gain multipliers vs model scale",
-                 fontsize=12.5, x=0.012, ha="left", color=INK, y=0.995)
-    fig.tight_layout(rect=(0, 0, 1, 0.82))
-    fig.savefig(out_path, facecolor=SURFACE)
-    plt.close(fig)
+                 fontsize=12.5, x=0.012, ha="left", color=INK, y=0.985)
+    fig.text(0.012, 0.008,
+             "x-axis = GPT-2 baseline scale (baseline dimensions), not candidate parameter count: "
+             "current-arch carries ~498.8M params at the 124M-baseline dimensions (the\n"
+             "value-embed / U-net additions are the algorithm being measured). Eval set: wiki_eval. "
+             "Lineages use independent hardware GPU-hour bases and are never mixed in one ratio.",
+             fontsize=7, color=INK2, va="bottom")
+    fig.tight_layout(rect=(0, 0.06, 1, 0.87))
+    _savefig(fig, out_path)
 
 
 def core_expb_delta_vs_scale(root: Path, out_path):
@@ -655,8 +671,8 @@ if __name__ == "__main__":
     elif a.kind == "all_configs":
         all_configs_curves(Path("results"), a.out)
     elif a.kind == "multipliers":
-        multipliers_vs_scale(_assemble_all_configs(Path("results")), a.out,
-                             censored=_assemble_expb(Path("results")))
+        # hero = current-arch + ScaleUp only (Exp B omitted; it has its own figures)
+        multipliers_vs_scale(_assemble_all_configs(Path("results")), a.out)
     elif a.kind == "core_vs_scale":
         core_vs_scale(Path("results"), a.out)
     elif a.kind == "core_arms_by_task":
