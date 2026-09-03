@@ -64,8 +64,8 @@ def _panel(ax, series, thr, thr_label, title):
                 xytext=(0, 3), textcoords="offset points", fontsize=7.5, color=INK2)
     ax.set_xscale("log")
     ax.set_ylim(lo - 0.03, thr + 0.45)
-    ax.set_xlabel("GPU-hours (log)")
-    ax.set_ylabel("Neutral BPB")
+    ax.set_xlabel("GPU-hours (log scale)")
+    ax.set_ylabel("Neutral-corpus BPB (bits/byte)")
     ax.set_title(title, fontsize=10.5, loc="left")
     _style(ax)
     ax.legend(handles=handles, frameon=False, fontsize=8, labelcolor=INK2, loc="upper right")
@@ -111,7 +111,7 @@ def expb_arch():
             ax.axhline(bar, color=INK2, lw=1.1, ls=(0, (4, 3)), zorder=1)
             ax.annotate(f"GPT-2 bar {bar:.3f}", xy=(0.02, bar), xycoords=("axes fraction", "data"),
                         xytext=(0, 3), textcoords="offset points", fontsize=7.5, color=INK2)
-            # candidate min-BPB marker for the divergence-confounded runs
+            # candidate min-BPB marker for runs whose BPB rose again late in training
             cbs = [b for _, b in curve(f"{B1M}/{cand}/metrics.csv")]
             cmin = min(cbs)
             if info.get("confounded"):
@@ -119,13 +119,13 @@ def expb_arch():
                 hmin = chs[cbs.index(cmin)]
                 ax.scatter([hmin], [cmin], marker="v", s=55, facecolors="none",
                            edgecolors=ARCH[lin], linewidths=1.6, zorder=5)
-                ax.annotate(f"best {cmin:.3f}\n(rises after; diverges)", xy=(hmin, cmin),
+                ax.annotate(f"best ckpt {cmin:.3f}\n(BPB rose again after)", xy=(hmin, cmin),
                             xytext=(6, 10), textcoords="offset points", fontsize=7, color=ARCH[lin])
-            # verdict box: delta vs bar (and min-based delta when confounded)
+            # verdict box: delta vs bar (and best-checkpoint delta for the runs above)
             d = info["delta"]
             txt = f"Δ = +{d:.3f} vs bar"
             if info.get("confounded"):
-                txt += f"\n(best-case +{info['delta_min']:.3f})"
+                txt += f"\n(best ckpt +{info['delta_min']:.3f})"
             elif abs(d) < sig:
                 txt += "\n(within noise = parity)"
             ax.annotate(txt, xy=(0.97, 0.96), xycoords="axes fraction", ha="right", va="top",
@@ -135,21 +135,21 @@ def expb_arch():
             ax.set_ylim(YLO, YHI)
             ax.set_title(title, fontsize=10.5, loc="left")
             if r == 1:
-                ax.set_xlabel("GPU-hours (log)")
+                ax.set_xlabel("GPU-hours (log scale)")
             if c == 0:
-                ax.set_ylabel("Neutral BPB  (lower = better)")
+                ax.set_ylabel("Neutral-corpus BPB (bits/byte, lower = better)")
             ax.legend(frameon=False, fontsize=8, labelcolor=INK2, loc="upper left")
             _style(ax)
     # row labels
     for r, name in enumerate(["Pythia (GPT-NeoX, 2023)", "SmolLM2 (Llama, 2024)"]):
         axes[r, 0].annotate(name, xy=(-0.30, 0.5), xycoords="axes fraction", rotation=90,
                             ha="center", va="center", fontsize=10.5, color=INK, fontweight="bold")
-    fig.suptitle("Exp B — a large speedrun-style algorithmic advantage does NOT reproduce across six matched comparisons",
+    fig.suptitle("Bits per byte vs. GPU-hours for matched architecture comparisons",
                  fontsize=12.5, x=0.012, ha="left", color=INK)
     fig.text(0.012, 0.006,
              "Each modern architecture vs a GPT-2 trained through the identical pipeline at the same size (OWT, 8.87B tokens, "
-             "converged 512k-batch recipe). Lower BPB is better; no candidate reaches its matched GPT-2 bar. "
-             + CENSORED_DEF, fontsize=7.5, color=INK2, va="bottom", wrap=True)
+             "converged 512k-batch recipe). Lower BPB is better. " + CENSORED_DEF,
+             fontsize=7.5, color=INK2, va="bottom", wrap=True)
     fig.tight_layout(rect=(0.02, 0.05, 1, 0.96))
     _savefig(fig, RES / "expb_arch_curves.png")
 
@@ -196,17 +196,17 @@ def expb_data_replication():
                     textcoords="offset points", fontsize=7.5, color=INK2)
         ax.set_xscale("log")
         ax.set_ylim(lo - 0.03, bar + 0.32)
-        ax.set_xlabel("GPU-hours (log)")
+        ax.set_xlabel("GPU-hours (log scale)")
         ax.set_title(title, fontsize=10.5, loc="left")
         ax.legend(handles=handles, frameon=False, fontsize=8, labelcolor=INK2, loc="upper right",
                   title="training corpus", title_fontsize=8)
         _style(ax)
-    axes[0].set_ylabel("Neutral BPB  (lower = better)")
-    fig.suptitle("Exp B — the data effect reproduces across both tested architecture stacks",
+    axes[0].set_ylabel("Neutral-corpus BPB (bits/byte, lower = better)")
+    fig.suptitle("Neutral-corpus BPB vs. GPU-hours by training corpus",
                  fontsize=12.5, x=0.012, ha="left", color=INK)
     fig.text(0.012, 0.006,
-             "Same architecture, four corpora, vs its fixed size-matched GPT-2-OWT bar. RefinedWeb (2023) and DCLM (2024) "
-             "cross under BOTH lineages; OWT (2019) and C4 (2020) stay censored under both. " + CENSORED_DEF,
+             "Same architecture, four training corpora, vs its fixed size-matched GPT-2-OWT bar. RefinedWeb (2023) and "
+             "DCLM (2024) cross under both architectures; OWT (2019) and C4 (2020) stay censored under both. " + CENSORED_DEF,
              fontsize=7.5, color=INK2, va="bottom", wrap=True)
     fig.tight_layout(rect=(0, 0.05, 1, 0.96))
     _savefig(fig, RES / "data_replication.png")

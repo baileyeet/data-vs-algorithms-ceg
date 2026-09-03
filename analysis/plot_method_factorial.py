@@ -112,12 +112,14 @@ axB.text(5.0, 5.0, "algorithm edges (orange)\nhold data fixed", ha="center", va=
 axB.text(5.0, cy["A0"] + 1.35, "data edges (blue) hold algorithm fixed", ha="center", va="center",
          fontsize=7.6, color=DATA_C)
 
-fig.suptitle("How a compute-equivalent gain is measured and decomposed (worked at the 124M current-arch point)",
-             fontsize=12.5, x=0.012, ha="left", color=INK)
+fig.suptitle("Factorial decomposition of compute-equivalent gain",
+             fontsize=12.5, x=0.012, ha="left", color=INK, y=0.99)
+fig.text(0.012, 0.925, "Worked example: 124M GPT-2 baseline scale, current training recipe",
+         fontsize=9.5, color=INK2, va="top")
 fig.text(0.012, 0.006,
          "Each edge is a GPU-hours ratio between two arms that differ in a single intervention; the Shapley multiplier for "
          "an intervention is the geometric mean of its two edges (both orderings averaged). Values re-derived from the four "
          "arm GPU-hours in results/small/ceg_newdef.json (eval set: wiki_eval).",
          fontsize=7.5, color=INK2, va="bottom", wrap=True)
-fig.tight_layout(rect=(0, 0.05, 1, 0.95))
+fig.tight_layout(rect=(0, 0.05, 1, 0.90))
 _savefig(fig, ROOT / "method_factorial.png")

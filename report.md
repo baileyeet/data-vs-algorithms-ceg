@@ -112,9 +112,9 @@ Data-quality is **NON-monotonic in release year**: C4 (2020) is CENSORED under B
 
 **C4 threshold-borderline note.** The two C4 censorings are not equally firm. Under the OLD recipe, C4 is robustly censored (its best neutral BPB, ~1.31, sits well above the 1.276 threshold). Under the CURRENT recipe the C4 comparison is close to the threshold: the original run remained censored (best ~1.284), while a later same-seed recovery rerun crossed by ~0.003 BPB — within the estimated ±0.01 same-seed noise floor. We retain the ORIGINAL run for consistency with the canonical CEG analysis and disclose the rerun rather than substituting it. This borderline case does not support a claim that C4 meaningfully beats or loses to OWT under the current recipe; the non-monotonic-in-release-year finding rests on the robust old-recipe result and on RefinedWeb/DCLM clearly improving.
 
-Panel A shows the raw BPB-vs-GPU-hours curves (where each arm crosses the threshold, or never does); panel B the corpus CEG per recipe; panel C the within-recipe data lever. The corpus and training-recipe interventions interact, so the data multiplier is recipe-dependent, not a single number.
+Panel A shows the raw BPB-vs-GPU-hours curves (where each arm crosses the threshold, or never does); panel B the corpus CEG per recipe; panel C the within-recipe corpus effect (hold the recipe, swap OWT for the other corpus). The corpus and training-recipe interventions interact, so the corpus multiplier is recipe-dependent, not a single number.
 
-![Exp A: corpus intervention at the 124M baseline scale](corpus_intervention.png)
+![Corpus compute-equivalent gain at the 124M GPT-2 baseline scale](corpus_intervention.png)
 
 ### Exp A — CORE downstream tasks (secondary)
 
@@ -149,16 +149,16 @@ Pre-registered verdict rule: |delta| within ±0.013 neutral BPB of the matched G
 | pythia | 410M | +0.020 | ≤1× (censored, no crossing) |
 | pythia | 1.4B | +0.030 | ≤1× (censored, no crossing) |
 | smollm2 | 135M | +0.009 | ≤1× (censored, no crossing) |
-| smollm2 | 360M | +0.054 *(divergence-confounded)* | ≤1× (censored, no crossing) |
-| smollm2 | 1.7B | +0.120 *(divergence-confounded)* | ≤1× (censored, no crossing) |
+| smollm2 | 360M | +0.054 *(best checkpoint shown; BPB rose again late in training)* | ≤1× (censored, no crossing) |
+| smollm2 | 1.7B | +0.120 *(best checkpoint shown; BPB rose again late in training)* | ≤1× (censored, no crossing) |
 
-Pythia is clean at every scale (deficit shrinks 160M→410M then stabilizes ~0.02–0.03). SmolLM2-135M is parity-within-noise (confirmed with a 2nd seed). SmolLM2-360M/1.7B are deficits but **divergence-confounded**: even at each size's documented LR they overfit OWT under the fixed ~8.87B budget (neutral BPB rises off its own minimum while own-val keeps falling), an effect that grows with size — the deficit verdict is robust (holds on the best/min BPB too) but the exact magnitude is inflated.
+Pythia is clean at every scale (deficit shrinks 160M→410M then stabilizes ~0.02–0.03). SmolLM2-135M is parity-within-noise (confirmed with a 2nd seed). SmolLM2-360M/1.7B are deficits, but at each of those sizes BPB improved on OWT itself while it worsened on the held-out neutral eval late in training — the model was overfitting the training corpus. We report the best (lowest) neutral BPB reached before that reversal, not just the final checkpoint; the effect grows with size — the deficit verdict is robust (holds on the best/min BPB too) but the exact magnitude is inflated by training past the best checkpoint.
 
 Methodology: like-for-like train_hf denominators at every size (a matched GPT-2 through the SAME harness — verified equivalent to the study's train_old GPT-2 to within the ±0.013 same-seed noise floor at ALL scales incl 1.4B); the undertraining regime biases toward parity (not just noise), so all arms are compared at convergence.
 
 Raw training curves (BPB vs GPU-hours), each architecture vs its size-matched GPT-2 — the candidate curve stays at or above the GPT-2 threshold at every size:
 
-![Exp B architecture-axis training curves](expb_arch_curves.png)
+![Bits per byte vs. GPU-hours for matched architecture comparisons](expb_arch_curves.png)
 
 ### Exp B — data axis (the new architectures across data eras)
 
@@ -175,13 +175,13 @@ B1 above held data fixed (OWT). This closes the grid: each new architecture (at 
 | SmolLM2-135M | RefinedWeb (2023) | 1.1318 | crosses (5.4×) | 5.39× |
 | SmolLM2-135M | DCLM (2024) | 1.1283 | crosses (6.4×) | 6.43× |
 
-**Headline: better data flips both new architectures from losing to a matched GPT-2 to beating it.** On OWT (2019) and C4 (2020) both are censored — they never reach the GPT-2-OWT bar (the B1 result). On RefinedWeb (2023) and DCLM (2024) both cross it, reaching GPT-2's OWT quality with 4.6–6.4× less compute. The data lever is far larger than any architecture lever we found (in B1, no new architecture beat GPT-2 on OWT at all).
+**Headline: better data flips both new architectures from losing to a matched GPT-2 to beating it.** On OWT (2019) and C4 (2020) both are censored — they never reach the GPT-2-OWT bar (the B1 result). On RefinedWeb (2023) and DCLM (2024) both cross it, reaching GPT-2's OWT quality with 4.6–6.4× less compute. The effect of the training corpus is far larger than any architecture effect we found (in B1, no new architecture beat GPT-2 on OWT at all).
 
 **Cross-validation of Exp A.** Corpus progress is not monotonic with release date. Under the Exp B threshold, neither OWT (2019) nor C4 (2020) produces a measurable CEG for either architecture — neither reaches the reference GPT-2-OWT bar. Their terminal BPBs are similar, with C4 marginally lower in both tested architectures, while RefinedWeb (2023) and DCLM (2024) show substantially stronger improvements and do cross. Exp A found the same non-monotonicity in dataset release-year using the original two algorithms (C4 failing to improve on OWT); seeing C4 again fail to unlock the gains that the later corpora deliver — now across two further, independent architectures (GPT-NeoX and Llama lineages) — is direct cross-validation that the effect reproduces across the tested architectures rather than being tied to a particular algorithm.
 
 Same architecture, four corpora, vs its fixed size-matched GPT-2-OWT bar: on OWT/C4 both architectures stay above the bar (censored), on RefinedWeb/DCLM they dive below it (cross) — the corpus effect reproduces across both tested stacks:
 
-![Exp B data axis: the data effect reproduces across architectures](data_replication.png)
+![Neutral-corpus BPB vs. GPU-hours by training corpus](data_replication.png)
 
 ### Exp B — CORE downstream tasks (secondary)
 
@@ -196,9 +196,9 @@ The BPB/CEG result above is compute-efficiency on a language-modeling bar. As a 
 | smollm2 | 360M | +0.018 ± 0.010 (1.79σ) | 7W/3T/1L |
 | smollm2 | 1.7B | +0.011 ± 0.010 (1.07σ) | 5W/2T/4L |
 
-Two things stand out. **Pythia at/below parity, falling with scale** (−0.009 → −0.022, significant at 1.4B: 9 of 11 tasks lost) — CORE corroborates its BPB deficit, and more cleanly (monotone in scale). **SmolLM2 modestly ABOVE parity at every scale** (+0.011 to +0.019, ~1.7σ, winning 7 of 11 tasks at 135M and 360M) — which DISAGREES with its BPB result (parity at 135M, divergence-confounded deficit at 360M/1.7B). The most likely reading: SmolLM2's BPB penalty at larger sizes is OWT-overfitting (own-val improves while neutral BPB rises), which need not hurt downstream tasks; and even at 135M (no divergence) the Llama-family design (SwiGLU/GQA/RoPE) buys a small downstream edge that neutral BPB does not register. This is a directional, secondary signal — limit=500 CORE is noisy — not a compute-efficiency claim (on BPB/CEG neither lineage beats GPT-2).
+Two things stand out. **Pythia at/below parity, falling with scale** (−0.009 → −0.022, significant at 1.4B: 9 of 11 tasks lost) — CORE corroborates its BPB deficit, and more cleanly (monotone in scale). **SmolLM2 modestly ABOVE parity at every scale** (+0.011 to +0.019, ~1.7σ, winning 7 of 11 tasks at 135M and 360M) — which DISAGREES with its BPB result (parity at 135M; at 360M/1.7B its best-checkpoint BPB is a deficit, and training past that checkpoint made BPB worse still). The most likely reading: SmolLM2's BPB penalty at larger sizes comes from overfitting the training corpus (own-corpus loss improves while neutral BPB rises late in training), which need not hurt downstream tasks; and even at 135M (no overfitting) the Llama-family design (SwiGLU/GQA/RoPE) buys a small downstream edge that neutral BPB does not register. This is a directional, secondary signal — limit=500 CORE is noisy — not a compute-efficiency claim (on BPB/CEG neither architecture beats GPT-2).
 
-![Exp B: BPB efficiency vs downstream capability](core_bpb_vs_downstream.png)
+![Relative BPB efficiency and CORE performance by model scale](core_bpb_vs_downstream.png)
 
 Per-task breakdown (each task is noisy at limit=500 — read the consistency across tasks, not any single panel). Exp B shows all 11 evaluated CORE-subset tasks (lambada is valid here — these are real-logits HF models — and at 135M–1.7B more tasks clear the validity gate than at the study's 124M, where the CORE figures gate down to 6). First as the gap vs matched GPT-2, then in absolute accuracy (same 3-line format as the Exp A / 2×2 CORE figures):
 
