@@ -410,7 +410,7 @@ def main():
                   "neutral-BPB threshold; the 2×2 factorial is decomposed into data and "
                   "algorithm multipliers by a log-space Shapley split (both intervention "
                   "orderings averaged). Worked example:", "",
-                  "![How a compute-equivalent gain is measured and decomposed](method_factorial.png)", ""]
+                  "![Factorial decomposition of compute-equivalent gain](method_factorial.png)", ""]
     results = []
     for size in SIZE_ORDER:
         d = root / size
@@ -434,7 +434,7 @@ def main():
                   "for both lineages across scale. The two curves are kept "
                   "strictly separate (different A1 generations); each is missing "
                   "the one scale where it has no validated recipe.", "",
-                  "![multipliers vs scale](multipliers_vs_scale.png)", "",
+                  "![Compute-equivalent gain vs. GPT-2 baseline scale](multipliers_vs_scale.png)", "",
                   "**The two curves are different estimators — not directly "
                   "comparable.** The current-arch points are true compute-Shapley "
                   "values: all four cells cross the threshold, so the data effect "

@@ -68,7 +68,7 @@ for corpus, year, old, new in CORPORA:
         axA.plot(hs, bs, color=col, lw=1.9, ls=ls,
                  marker="o", ms=2.6, alpha=0.95)
 axA.axhline(THR, color=INK2, lw=1.2, ls=(0, (4, 3)))
-axA.annotate(f"reference threshold {THR:.3f}\n(old-algo · OWT)", xy=(0.015, THR),
+axA.annotate(f"Reference threshold {THR:.3f}\n(old GPT-2 recipe · OWT)", xy=(0.015, THR),
              xycoords=("axes fraction", "data"), xytext=(0, 4),
              textcoords="offset points", fontsize=8, color=INK2)
 axA.set_xscale("log")
@@ -79,14 +79,14 @@ axA.set_title("A · Compute to reach the neutral-BPB threshold", fontsize=10.5, 
 _style(axA)
 corpus_handles = [Line2D([], [], color=CORP_COLOR[c], lw=2.4,
                          label=f"{c} ({y})") for c, y, *_ in CORPORA]
-recipe_handles = [Line2D([], [], color=INK2, lw=1.9, ls="-", label="old-algo (GPT-2)"),
-                  Line2D([], [], color=INK2, lw=1.9, ls=(0, (4, 2)), label="current-arch (modded)")]
+recipe_handles = [Line2D([], [], color=INK2, lw=1.9, ls="-", label="Old GPT-2 recipe"),
+                  Line2D([], [], color=INK2, lw=1.9, ls=(0, (4, 2)), label="Current training recipe")]
 leg1 = axA.legend(handles=corpus_handles, frameon=False, fontsize=8, labelcolor=INK2,
-                  loc="upper right", title="corpus", title_fontsize=8)
+                  loc="upper right", title="Corpus", title_fontsize=8)
 leg1._legend_box.align = "left"
 axA.add_artist(leg1)
 axA.legend(handles=recipe_handles, frameon=False, fontsize=8, labelcolor=INK2,
-           loc="lower left", title="recipe", title_fontsize=8)
+           loc="lower left", title="Recipe", title_fontsize=8)
 
 
 # ---------------- Panels B & C: multiplier dot plots ----------------
@@ -99,64 +99,61 @@ def dotpanel(ax, getval, title, ylab):
     """getval(dataset_dict, recipe) -> (value or None). recipe in {'old','current'}."""
     xs = list(range(len(CORPORA)))
     ax.axhline(1.0, color=INK2, lw=1.1, ls=(0, (4, 3)), zorder=1)
-    ax.annotate("1× — no advantage", xy=(0.98, 1.0), xycoords=("axes fraction", "data"),
+    ax.annotate("1×", xy=(0.985, 1.0), xycoords=("axes fraction", "data"),
                 xytext=(0, -3), textcoords="offset points", ha="right", va="top",
                 fontsize=7.5, color=INK2)
-    censored_xs = []
     for i, (corpus, year, *_ ) in enumerate(CORPORA):
         d = J["datasets"][corpus]
         col = CORP_COLOR[corpus]
         for recipe, dx, mk in (("old", -0.13, "o"), ("current", 0.13, "s")):
             v = getval(d, recipe)
             if v is None:  # did not reach threshold -> hollow marker BELOW parity, never on it
+                # (definition: "hollow, below 1x = did not reach threshold" — shared legend above)
                 ax.scatter([i + dx], [CENSORED_Y], marker=mk, s=70, facecolors="none",
                            edgecolors=col, linewidths=1.7, zorder=4)
                 ax.annotate("", xy=(i + dx, CENSORED_Y * 0.90), xytext=(i + dx, CENSORED_Y * 0.98),
                             arrowprops=dict(arrowstyle="-|>", color=col, lw=1.3), zorder=4)
-                censored_xs.append(i + dx)
             else:
                 ax.scatter([i + dx], [v], marker=mk, s=70, facecolors=col,
                            edgecolors=SURFACE, linewidths=1.0, zorder=4)
-                ax.annotate(f"{v:.1f}×", xy=(i + dx, v), xytext=(0, 8 if recipe == "old" else 8),
-                            textcoords="offset points", ha="center", fontsize=8, color=INK)
-    # one compact label for the censored cluster, in the gap between the markers and the
-    # 1x line (never below the markers, where a wide offset could clip against the x-axis)
-    if censored_xs:
-        ax.annotate("did not reach threshold", xy=(sum(censored_xs) / len(censored_xs), CENSORED_Y),
-                    xytext=(0, 8), textcoords="offset points", ha="center", va="bottom",
-                    fontsize=7.5, color=INK2)
+                # nudge left/right (not just up) so the old/current labels never collide
+                # when both recipes land on the same value (e.g. the OWT reference, 1.0x)
+                ha = "right" if recipe == "old" else "left"
+                ax.annotate(f"{v:.1f}×", xy=(i + dx, v), xytext=(-3 if recipe == "old" else 3, 8),
+                            textcoords="offset points", ha=ha, fontsize=8, color=INK)
     ax.set_yscale("log")
     ax.set_ylim(0.62, 60)
     ax.set_xticks(xs)
     ax.set_xticklabels([f"{c}\n{y}" for c, y, *_ in CORPORA], fontsize=8.5)
     ax.set_xlim(-0.5, len(CORPORA) - 0.5)
-    ax.set_xlabel("Training corpus (ordered by release date)")
+    ax.set_xlabel("Training corpus")
     ax.set_ylabel(ylab)
     ax.set_title(title, fontsize=10.5, loc="left")
     _style(ax)
 
 
 dotpanel(axB, lambda d, r: d["old_algo" if r == "old" else "current_arch"]["ceg_vs_a0d0"],
-         "B · Corpus CEG vs. old-recipe·OWT reference",
+         "B · Corpus CEG vs. old GPT-2 recipe · OWT reference",
          "Compute-equivalent gain  (×, log scale)")
 dotpanel(axC, lambda d, r: d["data_ceg_old_algo" if r == "old" else "data_ceg_current_arch"],
          "C · Within-recipe corpus CEG (OWT → corpus)",
          "Within-recipe corpus CEG  (×, log scale)")
 
 # shared recipe legend for B/C — figure-level, top-center (clear of all data marks)
-shape_handles = [Line2D([], [], color=INK2, marker="o", ls="none", ms=8, label="old GPT-2 recipe"),
-                 Line2D([], [], color=INK2, marker="s", ls="none", ms=8, label="current training recipe"),
+shape_handles = [Line2D([], [], color=INK2, marker="o", ls="none", ms=8, label="Old GPT-2 recipe"),
+                 Line2D([], [], color=INK2, marker="s", ls="none", ms=8, label="Current training recipe"),
                  Line2D([], [], color=INK2, marker="o", ls="none", ms=8, markerfacecolor="none",
-                        label="hollow, below 1× = did not reach threshold")]
+                        label="Hollow, below 1× = did not reach threshold")]
 fig.legend(handles=shape_handles, frameon=False, fontsize=8, labelcolor=INK2,
            loc="upper center", ncol=3, bbox_to_anchor=(0.68, 0.965))
 
 fig.suptitle("Corpus compute-equivalent gain at the 124M GPT-2 baseline scale",
              fontsize=12.5, x=0.008, ha="left", color=INK, y=0.995)
 fig.text(0.008, 0.008,
-         "Neutral eval: wiki_eval_union. Panel C holds the recipe fixed and swaps only the training corpus "
-         "(OWT → corpus); the two recipes give different corpus multipliers on RefinedWeb/DCLM (old GPT-2 "
-         "recipe ~3.3–3.5× vs current training recipe ~1.6×) — see caption for interpretation.",
+         "Held-out, decontaminated Wikipedia evaluation set (“wiki_eval_union”). Panel C holds the "
+         "recipe fixed and swaps only the training corpus (OWT → corpus); the two recipes give different "
+         "corpus multipliers on RefinedWeb/DCLM (old GPT-2 recipe ~3.3–3.5× vs current training "
+         "recipe ~1.6×) — see caption for interpretation.",
          fontsize=7, color=INK2, va="bottom", wrap=True)
 fig.tight_layout(rect=(0, 0.07, 1, 0.955))
 _savefig(fig, ROOT / "corpus_intervention.png")

@@ -94,8 +94,9 @@ def expb_arch():
          ("smollm2", "360M", "SmolLM2-360M", "r512k_smollm2_360m", "r512k_gpt2b360", "b360"),
          ("smollm2", "1.7B", "SmolLM2-1.7B", "r512k_smollm2_1_7b", "r512k_gpt2b1700", "b1700")],
     ]
-    # shared y-range = plateau/crossing region (early steep descent is off the top, on purpose)
-    YLO, YHI = 1.15, 1.45
+    # shared y-range = plateau/crossing region (early steep descent is off the top, on purpose);
+    # a little headroom above 1.45 keeps the clipped curve tops clear of the panel titles
+    YLO, YHI = 1.15, 1.48
     fig, axes = plt.subplots(2, 3, figsize=(13.5, 8.0), dpi=150, sharey=True)
     for r, row in enumerate(rows):
         for c, (lin, sz, title, cand, gpt2, tk) in enumerate(row):
@@ -103,7 +104,7 @@ def expb_arch():
             bar = THR[tk]
             info = R[lin][sz]
             # matched GPT-2 curve + its tail-mean bar
-            for run, col, lbl in ((gpt2, GPTCOL, "matched GPT-2"), (cand, ARCH[lin], title)):
+            for run, col, lbl in ((gpt2, GPTCOL, "Matched GPT-2"), (cand, ARCH[lin], title)):
                 pts = curve(f"{B1M}/{run}/metrics.csv")
                 hs, bs = zip(*pts)
                 ax.plot(hs, bs, color=col, lw=2.0, marker="o", ms=2.4,
@@ -148,7 +149,8 @@ def expb_arch():
                  fontsize=12.5, x=0.012, ha="left", color=INK)
     fig.text(0.012, 0.006,
              "Each modern architecture vs a GPT-2 trained through the identical pipeline at the same size (OWT, 8.87B tokens, "
-             "converged 512k-batch recipe). Lower BPB is better. " + CENSORED_DEF,
+             "converged 512k-batch recipe). Lower BPB is better; Δ is the final BPB minus the matched-GPT-2 bar. Open triangle "
+             "= best (lowest) checkpoint for SmolLM2-360M and SmolLM2-1.7B, whose BPB rose again later in training.",
              fontsize=7.5, color=INK2, va="bottom", wrap=True)
     fig.tight_layout(rect=(0.02, 0.05, 1, 0.96))
     _savefig(fig, RES / "expb_arch_curves.png")
@@ -191,7 +193,7 @@ def expb_data_replication():
                                   markerfacecolor=(CORP[corpus] if crossed else SURFACE),
                                   label=corpus + ("" if crossed else "  (censored)")))
         ax.axhline(bar, color=INK2, lw=1.2, ls=(0, (4, 3)))
-        ax.annotate(f"matched GPT-2-OWT bar {bar:.3f}", xy=(0.02, bar),
+        ax.annotate(f"Matched GPT-2-OWT bar {bar:.3f}", xy=(0.02, bar),
                     xycoords=("axes fraction", "data"), xytext=(0, 3),
                     textcoords="offset points", fontsize=7.5, color=INK2)
         ax.set_xscale("log")
@@ -199,7 +201,7 @@ def expb_data_replication():
         ax.set_xlabel("GPU-hours (log scale)")
         ax.set_title(title, fontsize=10.5, loc="left")
         ax.legend(handles=handles, frameon=False, fontsize=8, labelcolor=INK2, loc="upper right",
-                  title="training corpus", title_fontsize=8)
+                  title="Training corpus", title_fontsize=8)
         _style(ax)
     axes[0].set_ylabel("Neutral-corpus BPB (bits/byte, lower = better)")
     fig.suptitle("Neutral-corpus BPB vs. GPU-hours by training corpus",

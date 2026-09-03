@@ -10,7 +10,7 @@ The current-arch A1 numbers are v2-canonical (re-derived from yarn_state reruns 
 
 **How to read the numbers.** Compute is timed GPU-hours to reach a fixed neutral-BPB threshold; the 2×2 factorial is decomposed into data and algorithm multipliers by a log-space Shapley split (both intervention orderings averaged). Worked example:
 
-![How a compute-equivalent gain is measured and decomposed](method_factorial.png)
+![Factorial decomposition of compute-equivalent gain](method_factorial.png)
 
 ## 124M (small)
 
@@ -58,7 +58,7 @@ Every arm on one figure: neutral BPB vs GPU-hours for all 16 setups (4 scale-poi
 
 The 16 arms distilled to compute-equivalent-gain multipliers for both lineages across scale. The two curves are kept strictly separate (different A1 generations); each is missing the one scale where it has no validated recipe.
 
-![multipliers vs scale](multipliers_vs_scale.png)
+![Compute-equivalent gain vs. GPT-2 baseline scale](multipliers_vs_scale.png)
 
 **The two curves are different estimators — not directly comparable.** The current-arch points are true compute-Shapley values: all four cells cross the threshold, so the data effect is averaged over both rows and the algorithm effect over both columns (in log-compute, data = ½·[(A0D0−A0D1)+(A1D0−A1D1)], algorithm = ½·[(A0D0−A1D0)+(A0D1−A1D1)]). For ScaleUp, A1D0 (ScaleUp on OpenWebText) never crosses, so one term in each average is censored and no symmetric Shapley exists; the plotted ScaleUp points are the single surviving margin — data = the A0 (GPT-2) row ratio, algorithm = the D1 (DCLM) column ratio. The censoring biases the two axes in **opposite** directions:
 

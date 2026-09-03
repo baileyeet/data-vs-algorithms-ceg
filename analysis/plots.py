@@ -149,8 +149,8 @@ CURVE_COLORS = {"current-arch": "#2a78d6", "scaleup": "#eb6834"}
 # computable margin (its A1D0/ScaleUp-on-OWT cell never crosses, so the
 # symmetric average is undefined). Distinguish them by style, not just color.
 CURVE_LABELS = {
-    "current-arch": "current-arch — Shapley (avg of both orderings)",
-    "scaleup": "ScaleUp — single margin (complement cell censored)"}
+    "current-arch": "Current training recipe",
+    "scaleup": "ScaleUp (2024)"}
 CURVE_STYLE = {"current-arch": dict(linestyle="-", marker="o", fill=True),
                "scaleup": dict(linestyle=(0, (5, 3)), marker="s", fill=False)}
 
@@ -260,9 +260,8 @@ def multipliers_vs_scale(curves: dict, out_path, censored: dict = None):
         # 1x parity reference (compute-equivalent to the old-algo / old-data
         # baseline) on BOTH panels, drawn under the data marks.
         ax.axhline(1.0, color=INK2, lw=1.1, ls=(0, (4, 3)), zorder=1)
-        ax.annotate("1× — no compute advantage", xy=(0.5, 1.0),
-                    xycoords=("axes fraction", "data"), xytext=(0, -4),
-                    textcoords="offset points", ha="center", va="top",
+        ax.annotate("1×", xy=(0.985, 1.0), xycoords=("axes fraction", "data"),
+                    xytext=(0, -3), textcoords="offset points", ha="right", va="top",
                     fontsize=8, color=INK2)
         for name, c in curves.items():
             col = CURVE_COLORS[name]
@@ -281,7 +280,7 @@ def multipliers_vs_scale(curves: dict, out_path, censored: dict = None):
         ax.set_xticks([124, 355, 1536])
         ax.set_xticklabels(["124M", "355M", "1.5B"])
         ax.set_xlim(95, 2100)
-        ax.set_xlabel("GPT-2 baseline scale (params)")
+        ax.set_xlabel("GPT-2 baseline scale (number of parameters)")
         ax.set_title(ttl, fontsize=11, loc="left")
         _style(ax)
         ax.set_ylim(0.82, max(20, ax.get_ylim()[1]))
@@ -292,8 +291,7 @@ def multipliers_vs_scale(curves: dict, out_path, censored: dict = None):
     fig.suptitle("Compute-equivalent gain vs. GPT-2 baseline scale",
                  fontsize=12.5, x=0.012, ha="left", color=INK, y=0.985)
     fig.text(0.012, 0.008,
-             "x-axis = GPT-2 baseline scale (baseline model dimensions), not the trained candidate's own "
-             "parameter count — see caption for the current-arch parameter count at 124M-baseline dimensions.",
+             "X-axis: dimensions of the reference GPT-2 model, not the trained candidate's own parameter count.",
              fontsize=7, color=INK2, va="bottom", wrap=True)
     fig.tight_layout(rect=(0, 0.045, 1, 0.87))
     _savefig(fig, out_path)

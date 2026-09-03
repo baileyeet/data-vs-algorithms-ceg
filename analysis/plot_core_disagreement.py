@@ -29,14 +29,16 @@ B = json.load(open(ROOT / "b1_results.json"))
 BPB_SIGMA = B["noise_sigma"]
 LINCOL = {"pythia": "#1baf7a", "smollm2": "#8e44ad"}
 LINLBL = {"pythia": "Pythia (GPT-NeoX, 2023)", "smollm2": "SmolLM2 (Llama, 2024)"}
-# (lineage, [(tier_x, core_key, size_key)]) — tiers pair the two lineages' nearest sizes
-TIERS = ["≈135–160M", "≈360–410M", "≈1.4–1.7B"]
+# (lineage, [(tier_x, core_key, size_key)]) — tiers pair the two lineages' NEAREST sizes, not
+# identical ones (Pythia and SmolLM2 use different model-size ladders); tick labels below name
+# both real sizes explicitly so the pairing is never read as "the same scale".
+TIERS = ["Pythia 160M\nSmolLM2 135M", "Pythia 410M\nSmolLM2 360M", "Pythia 1.4B\nSmolLM2 1.7B"]
 ROWS = {
     "pythia": [(0, "pythia-160M", "160M"), (1, "pythia-410M", "410M"), (2, "pythia-1.4B", "1.4B")],
     "smollm2": [(0, "smollm2-135M", "135M"), (1, "smollm2-360M", "360M"), (2, "smollm2-1.7B", "1.7B")],
 }
 
-fig, (axL, axR) = plt.subplots(1, 2, figsize=(12.5, 5.2), dpi=150)
+fig, (axL, axR) = plt.subplots(1, 2, figsize=(13.0, 6.0), dpi=150)
 
 # ---- parity + noise band on both panels ----
 for ax in (axL, axR):
@@ -53,12 +55,9 @@ for lin, rows in ROWS.items():
     for x, y, cf in zip(xs, ys, conf):
         axL.scatter([x], [y], s=64, zorder=4, color=LINCOL[lin],
                     facecolors=(SURFACE if cf else LINCOL[lin]), edgecolors=LINCOL[lin], linewidths=1.8)
-axL.annotate("candidate better ↑", xy=(0.02, 0.98), xycoords="axes fraction", va="top",
-             fontsize=8, color=INK2)
-axL.annotate("worse ↓", xy=(0.02, 0.02), xycoords="axes fraction", va="bottom", fontsize=8, color=INK2)
-axL.annotate("parity ±1σ (BPB noise)", xy=(0.98, BPB_SIGMA), xycoords=("axes fraction", "data"),
+axL.annotate("Parity ±1σ (BPB noise)", xy=(0.98, BPB_SIGMA), xycoords=("axes fraction", "data"),
              ha="right", va="bottom", xytext=(0, 1), textcoords="offset points", fontsize=7.5, color=INK2)
-axL.set_ylabel("Neutral-corpus BPB advantage over matched GPT-2  (bits, ↑ better)")
+axL.set_ylabel("BPB advantage over matched GPT-2\n(bits; ↑ = candidate better)")
 axL.set_title("Compute efficiency (neutral-corpus BPB)", fontsize=11, loc="left")
 
 # ---- Right: CORE downstream advantage (up = candidate better), ±1 stderr ----
@@ -68,30 +67,27 @@ for lin, rows in ROWS.items():
     es = [C[ck]["mean_delta_stderr"] for _, ck, _ in rows]
     axR.errorbar(xs, ys, yerr=es, color=LINCOL[lin], lw=2, marker="o", ms=8, capsize=3.5,
                  elinewidth=1.2, markeredgecolor=SURFACE, markeredgewidth=1.0, zorder=3)
-axR.annotate("candidate better ↑", xy=(0.02, 0.98), xycoords="axes fraction", va="top",
-             fontsize=8, color=INK2)
-axR.annotate("worse ↓", xy=(0.02, 0.02), xycoords="axes fraction", va="bottom", fontsize=8, color=INK2)
-axR.set_ylabel("CORE accuracy advantage over matched GPT-2  (accuracy, ↑ better)")
+axR.set_ylabel("CORE accuracy advantage over matched GPT-2\n(↑ = candidate better)")
 axR.set_title("Downstream capability (CORE, 11-task mean accuracy)", fontsize=11, loc="left")
 
 for ax in (axL, axR):
-    ax.set_xticks([0, 1, 2]); ax.set_xticklabels(TIERS, fontsize=9)
+    ax.set_xticks([0, 1, 2]); ax.set_xticklabels(TIERS, fontsize=8.5)
     ax.set_xlim(-0.3, 2.3)
-    ax.set_xlabel("Model scale (Pythia / SmolLM2 matched pairs, params)")
+    ax.set_xlabel("Model scale (matched Pythia / SmolLM2 pairs)")
     _style(ax)
 
 handles = [Line2D([], [], color=LINCOL[l], lw=2, marker="o", ms=8, label=LINLBL[l])
            for l in ("pythia", "smollm2")]
 handles.append(Line2D([], [], color=INK2, lw=0, marker="o", ms=8, markerfacecolor="none",
-                      label="open = best checkpoint shown (see caption)"))
+                      label="Open = best checkpoint shown (see caption)"))
 fig.legend(handles=handles, frameon=False, fontsize=8, labelcolor=INK2, loc="upper center",
-           ncol=3, bbox_to_anchor=(0.5, 0.97), columnspacing=1.2)
+           ncol=3, bbox_to_anchor=(0.5, 0.90), columnspacing=1.2)
 fig.suptitle("Relative BPB efficiency and CORE performance by model scale",
-             fontsize=12.5, x=0.012, ha="left", color=INK)
+             fontsize=12.5, x=0.012, ha="left", color=INK, y=0.985)
 fig.text(0.012, 0.006,
          "Both panels: ↑ = candidate beats its size-matched GPT-2 (identical pipeline). Pythia sits at/below parity on both "
          "metrics; SmolLM2 stays at BPB parity or below (left) while showing a small, consistent downstream edge on CORE "
          "(right). CORE (limit=500) is secondary to BPB and noisy; ±1 stderr shown.",
          fontsize=7.5, color=INK2, va="bottom", wrap=True)
-fig.tight_layout(rect=(0, 0.05, 1, 0.9))
+fig.tight_layout(rect=(0.015, 0.10, 1, 0.82))
 _savefig(fig, ROOT / "core_bpb_vs_downstream.png")
