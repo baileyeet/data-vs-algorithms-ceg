@@ -19,15 +19,21 @@ Requires `matplotlib` (see `requirements.txt`, pinned `requirements-lock.txt`).
 **Status of this pass (2026-09-03):** a prior session (`bda2398`, merged as PR #1) wrote the
 source edits for a first figure-quality pass but could not install `matplotlib` in its
 sandbox, so it never rendered or visually inspected the actual PNG/PDF output. This session
-had a working `matplotlib` + `numpy`, so it (1) ran all five regeneration commands, (2)
-visually inspected every PNG at full resolution and at 2–3× crops of every legend/annotation
-cluster, (3) found and fixed three real rendering bugs plus a round of academic-audience
-copy edits requested by the user, and (4) re-rendered and re-inspected until clean. No PDF
-rasterizer (`pdftoppm`/`pymupdf`) is available in this container; the PDFs are not separately
-rasterized and eyeballed pixel-by-pixel, but they are written by the same `fig.savefig()` call
-on the same already-laid-out Matplotlib `Figure` object as the PNG (see `plots.py::_savefig`),
-so the element positions are identical between the two — only antialiasing/font-hinting
-differs. All six PDFs were checked for a valid `%PDF-1.4` header and `%%EOF` trailer.
+had a working `matplotlib` + `numpy`, so it went through **three rounds**: (1) an initial
+render + full-resolution visual audit that caught 3 rendering bugs, (2) an academic-audience
+copy pass (dropped legend jargon, spelled out abbreviations, fixed capitalization, real
+per-family size labels instead of shared buckets), (3) a second, closer visual audit —
+prompted by the user spotting problems in the rendered PNGs sent back to them — that caught 4
+more bugs invisible at thumbnail size (a legend sitting on top of data, a marker rendering as
+an unrecognizable blob, inconsistent axis wording across four BPB-vs-GPU-hours figures, and a
+color-coding collision in the method schematic). Every round ended by re-rendering and
+re-inspecting until clean; **7 real layout/rendering bugs found and fixed in total**, listed
+below. No PDF rasterizer (`pdftoppm`/`pymupdf`) is available in this container; the PDFs are
+not separately rasterized and eyeballed pixel-by-pixel, but they are written by the same
+`fig.savefig()` call on the same already-laid-out Matplotlib `Figure` object as the PNG (see
+`plots.py::_savefig`), so the element positions are identical between the two — only
+antialiasing/font-hinting differs. All six PDFs were checked for a valid `%PDF-1.4` header and
+`%%EOF` trailer.
 
 ## Bugs found by rendering (not visible from reading the code)
 
@@ -53,6 +59,49 @@ differs. All six PDFs were checked for a valid `%PDF-1.4` header and `%%EOF` tra
    height (5.2 → 6.0 in) and more reserved top/bottom margin, and moved the legend row down
    so it no longer collided with the suptitle either (a second overlap introduced and then
    fixed during the same edit — see below).
+4. **`corpus_intervention.png`, panel A: the in-axes legend sat on top of the data.** Panel
+   A's two legends ("Corpus" upper-right, "Recipe" lower-left, both `frameon=False`) were
+   placed *inside* the axes, and the four corpus curves fill the plotting area densely enough
+   (from top-left down to bottom-right) that all four lines ran straight through the
+   transparent legend box — RefinedWeb, DCLM, and part of OWT/C4 crossed directly behind the
+   "Corpus" title and every corpus name. This was caught only by cropping the region at 1.8×;
+   at full-figure thumbnail size the legend just looked slightly busy, not obviously broken.
+   **Fix:** removed both in-axes legends from panel A entirely and replaced all three of this
+   figure's legends (two in panel A, one shared for B/C) with **one** consolidated two-row
+   legend above all three panels — row 1 is corpus color, row 2 is recipe (line style *and*
+   marker shape on one handle, since panel A encodes recipe as line style while B/C encode it
+   as marker shape) plus the censored-marker convention. Every color/style is now defined
+   exactly once for the whole figure, with zero chance of sitting behind a data line.
+5. **`corpus_intervention.png`, panels B/C: the censored marker read as an unrecognizable
+   blob, not a hollow circle/square.** The hollow marker for a censored (never-crossed)
+   comparison had a short arrow glyph (`arrowprops`) drawn directly on top of it to suggest
+   "bounded from above." At the marker's actual render size the arrowhead and the hollow
+   circle/square outline merged into a shape that doesn't read as either — flagged by the user
+   as looking like "random figures." **Fix:** removed the arrow overlay; the marker is now a
+   plain hollow circle/square, matching the filled marker used for a real measured value
+   (filled = measured, hollow = censored), with the convention stated once in the shared
+   legend.
+6. **`corpus_intervention.png` panel A and `method_factorial.png` panel A used different
+   wording for the same two axes.** "GPU-hours (log)" vs. "GPU-hours (log scale)" (used by
+   `expb_arch_curves.png`/`data_replication.png`), and "Neutral-corpus BPB (lower = better)"
+   (no unit) vs. "Neutral-corpus BPB (bits/byte, lower = better)" — four figures that are all
+   "BPB vs. GPU-hours" plots read as though they used different conventions. **Fix:**
+   standardized both axes, on both figures, to match the wording already used by
+   `expb_arch_curves.png`/`data_replication.png`: **"GPU-hours (log scale)"** /
+   **"Neutral-corpus BPB (bits/byte, lower = better)"**.
+7. **`method_factorial.png` panel B: two unrelated things were both color-coded blue/orange,
+   reading as two overlaid diagrams.** The four arm boxes were outlined and labeled in
+   `ARM_COLORS` (per-arm identity colors used for cross-figure continuity elsewhere in the
+   study — a0d0 is blue, a1d0 is amber) so that they'd keep their hue across figures; the
+   panel's edges are separately colored blue (data-swap edges) and orange (algorithm-swap
+   edges) to carry the panel's actual message. Blue happened to label both "the A0D0 box" and
+   "a data edge"; amber happened to label both "the A1D0 box" and (closely) "an algorithm
+   edge" — two independent color legends sharing the same two hues, which is what read as
+   confusing/superimposed. **Fix:** the four boxes are now a single neutral color (gray
+   border, black bold text) — arm identity is carried by the "A0·D0"-style label text alone,
+   not by color, inside this panel. Color is now used for exactly one thing: data edges are
+   blue, algorithm edges are orange, full stop. Also removed a no-op
+   `labels[arm] if False else labels[arm]` leftover from an earlier edit.
 
 ## Copy/terminology pass (2026-09-03, user-requested — academic-paper audience)
 
@@ -188,12 +237,21 @@ Panels:
 - C · "Within-recipe corpus CEG (OWT → corpus)" — hold the recipe fixed, swap only the
   corpus; isolates the corpus-only compute-equivalent gain.
 Color follows the corpus (OWT gray, C4 amber, RefinedWeb blue, DCLM green) in every panel;
-recipe is a secondary encoding (linestyle in A, marker shape in B/C).
+recipe is a secondary encoding (linestyle in A, marker shape in B/C). All three panels share
+**one** two-row legend above the figure (row 1: corpus color; row 2: recipe line-style/marker
++ the censored-marker convention) — no panel carries its own in-axes legend.
 **Fixed this pass (real bugs, not just wording — see "Bugs found by rendering" above):**
 (1) the floating "did not reach threshold" label was struck through by the 1× dashed line in
 panels B/C; removed as redundant with the shared top legend. (2) two value labels at the OWT
 column of panel C collided into "1.0×1.0×"; labels now anchor away from each other instead of
-both centering on their marker.
+both centering on their marker. (3) panel A's two in-axes legends sat directly on top of the
+data (every corpus curve ran through the transparent legend box); removed and replaced, along
+with the old B/C-only shared legend, by one consolidated two-row legend above all three
+panels. (4) the censored (hollow) marker in panels B/C had a small arrow glyph overlaid on it
+that merged into an unrecognizable blob at render size; the arrow is gone, leaving a plain
+hollow circle/square. (5) panel A's axis wording ("GPU-hours (log)" / no BPB unit) now matches
+the other three BPB-vs-GPU-hours figures exactly: "GPU-hours (log scale)" / "Neutral-corpus
+BPB (bits/byte, lower = better)".
 Caption:
 1. Swapping the training corpus at the fixed 124M baseline scale, under both the old GPT-2
    recipe and the current training recipe.
@@ -302,14 +360,23 @@ Script: `analysis/plot_method_factorial.py`.
 Data: `results/small/ceg_newdef.json` + `results/small/small_a0d0_dense_metrics.csv`.
 Panel A · "The primitive — compute to reach the threshold": one training curve, the threshold
 line, and the crossing point. Panel B · "The 2×2 factorial and its log-space Shapley split":
-the four arms as boxes (old/new algorithm × old/new data), GPU-hours-ratio edges (data edges
-blue, algorithm edges orange), and the Shapley summary (geometric mean of each intervention's
-two edges). Refers to "the 2×2 factorial" / "factorial experiment" throughout — never "core
-2×2" — since this is one worked example of the same design used everywhere, not a larger or
-more privileged experiment.
+the four arms as neutral-gray boxes (old/new algorithm × old/new data, identified by their
+"A0·D0"-style text label, not by color), GPU-hours-ratio edges (data edges blue, algorithm
+edges orange — the only color used in this panel), and the Shapley summary (geometric mean of
+each intervention's two edges). Refers to "the 2×2 factorial" / "factorial experiment"
+throughout — never "core 2×2" — since this is one worked example of the same design used
+everywhere, not a larger or more privileged experiment.
 **Changed this pass:** capitalized every in-panel label/annotation for consistency (was a mix
 of sentence-case and lowercase small captions); glossed "wiki_eval" inline in the caption the
-same way `corpus_intervention.png` glosses "wiki_eval_union".
+same way `corpus_intervention.png` glosses "wiki_eval_union"; panel A's axis wording now
+matches the other three BPB-vs-GPU-hours figures ("GPU-hours (log scale)" / "Neutral-corpus
+BPB (bits/byte, lower = better)"). **Fixed a real bug:** panel B's four boxes used to be
+outlined/labeled in the same per-arm colors (`ARM_COLORS`) used for cross-figure continuity
+elsewhere in the study — which put blue on the A0D0 box *and* on the data-edge arrows, amber
+on the A1D0 box *and* near-amber on the algorithm-edge arrows, two independent color codings
+sharing hues. Reported by the user as the panel looking like several images superimposed.
+Boxes are now neutral gray/black; color in this panel means exactly one thing (data vs.
+algorithm edge).
 Caption:
 1. How a compute-equivalent gain (CEG) is measured and decomposed, worked at the 124M
    current-training-recipe point (no numbers invented — the multipliers are re-derived from
@@ -366,15 +433,20 @@ only — see the changelog sections above for the exhaustive list.
 ## Verification performed this pass
 - All five regeneration commands run to completion with no errors or warnings, from
   unmodified in-repo data (`git status` confirms zero `results/*.json` or `metrics.csv`
-  changes — only the five plotting scripts and the six regenerated image pairs).
+  changes across all three rounds — only plotting scripts and regenerated image pairs).
 - Every one of the six PNGs viewed at full resolution; every legend/annotation cluster
-  additionally viewed at 2–3× pixel crops to check for sub-pixel-scale overlap that isn't
-  visible at thumbnail size (this is how bugs 1–3 above were actually caught — none were
-  visible in a first full-figure look).
-- All three bugs re-verified fixed by re-rendering and re-cropping the same regions after
-  the code edit.
+  additionally viewed at 2–4× pixel crops to check for overlap that isn't visible at
+  thumbnail size — this is how all 7 bugs were actually caught (none were visible in a
+  first full-figure look; 4 of the 7 were only caught on the *second* audit pass, after
+  the user looked closely at the first round's renders and reported problems the first
+  audit had missed).
+- Every bug re-verified fixed by re-rendering and re-cropping the same region after its
+  code edit.
 - All six PDFs confirmed to have a valid `%PDF-1.4` header and `%%EOF` trailer; not
   separately rasterized (no `pdftoppm`/`pymupdf` available in this container) — see the
   note at the top of this file on why the PNG inspection also covers PDF layout.
 - `report.md` regenerated from `make_report.py`; diff is exactly the two alt-text updates
   described above, confirming no other drift between the report and the figures.
+- **Lesson for anyone extending this figure set:** a full-figure look at thumbnail size is
+  not sufficient QA — every legend, marker cluster, and multi-line label needs its own
+  close crop before a figure is called clean.

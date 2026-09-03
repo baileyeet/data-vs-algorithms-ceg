@@ -52,8 +52,8 @@ axA.annotate(f"Crosses at\n{cross:.2f} GPU-h", xy=(cross, THR), xytext=(10, 34),
              arrowprops=dict(arrowstyle="->", color=INK2, lw=1))
 axA.set_xscale("log")
 axA.set_ylim(min(bs) - 0.03, THR + 0.42)
-axA.set_xlabel("GPU-hours (log)")
-axA.set_ylabel("Neutral-corpus BPB  (lower = better)")
+axA.set_xlabel("GPU-hours (log scale)")
+axA.set_ylabel("Neutral-corpus BPB (bits/byte, lower = better)")
 axA.set_title("A · The primitive — compute to reach the threshold", fontsize=10.5, loc="left")
 axA.annotate("Example arm: old algorithm · old data (the baseline)", xy=(0.02, 0.02),
              xycoords="axes fraction", va="bottom", fontsize=8, color=INK2)
@@ -69,13 +69,19 @@ arm_of = {("A0", "D0"): "a0d0", ("A0", "D1"): "a0d1", ("A1", "D0"): "a1d0", ("A1
 labels = {"a0d0": "A0·D0", "a0d1": "A0·D1", "a1d0": "A1·D0", "a1d1": "A1·D1"}
 for (a, d), arm in arm_of.items():
     x, y = cx[d], cy[a]
+    # box border + label are neutral ink, not the ARM_COLORS used elsewhere in the report:
+    # this panel already uses blue/orange for a DIFFERENT distinction (data vs. algorithm
+    # edges below), and A0D0's arm color happens to be the same blue as the data edges,
+    # A1D0's the same amber as the algorithm edges — a second, unrelated color-coding
+    # collision that made the diagram read as two overlaid legends. One color language
+    # per panel: neutral boxes, colored edges.
     box = FancyBboxPatch((x - 1.35, y - 0.95), 2.7, 1.9, boxstyle="round,pad=0.08",
-                         fc=SURFACE, ec=ARM_COLORS[arm], lw=2.0, zorder=3)
+                         fc=SURFACE, ec=INK2, lw=1.6, zorder=3)
     axB.add_patch(box)
-    axB.text(x, y + 0.34, labels[arm] if False else labels[arm], ha="center", va="center",
-             fontsize=11, color=ARM_COLORS[arm], fontweight="bold", zorder=4)
+    axB.text(x, y + 0.34, labels[arm], ha="center", va="center",
+             fontsize=11, color=INK, fontweight="bold", zorder=4)
     axB.text(x, y - 0.42, f"{GH[arm]:.3f} GPU-h", ha="center", va="center",
-             fontsize=9.5, color=INK, zorder=4)
+             fontsize=9.5, color=INK2, zorder=4)
 # axis labels
 axB.text(cx["D0"], 9.5, "Old data (OWT)", ha="center", fontsize=9.5, color=INK)
 axB.text(cx["D1"], 9.5, "New data (DCLM)", ha="center", fontsize=9.5, color=INK)

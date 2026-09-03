@@ -73,20 +73,13 @@ axA.annotate(f"Reference threshold {THR:.3f}\n(old GPT-2 recipe · OWT)", xy=(0.
              textcoords="offset points", fontsize=8, color=INK2)
 axA.set_xscale("log")
 axA.set_ylim(lo - 0.03, THR + 0.30)
-axA.set_xlabel("GPU-hours (log)")
-axA.set_ylabel("Neutral-corpus BPB  (lower = better)")
+axA.set_xlabel("GPU-hours (log scale)")
+axA.set_ylabel("Neutral-corpus BPB (bits/byte, lower = better)")
 axA.set_title("A · Compute to reach the neutral-BPB threshold", fontsize=10.5, loc="left")
 _style(axA)
-corpus_handles = [Line2D([], [], color=CORP_COLOR[c], lw=2.4,
-                         label=f"{c} ({y})") for c, y, *_ in CORPORA]
-recipe_handles = [Line2D([], [], color=INK2, lw=1.9, ls="-", label="Old GPT-2 recipe"),
-                  Line2D([], [], color=INK2, lw=1.9, ls=(0, (4, 2)), label="Current training recipe")]
-leg1 = axA.legend(handles=corpus_handles, frameon=False, fontsize=8, labelcolor=INK2,
-                  loc="upper right", title="Corpus", title_fontsize=8)
-leg1._legend_box.align = "left"
-axA.add_artist(leg1)
-axA.legend(handles=recipe_handles, frameon=False, fontsize=8, labelcolor=INK2,
-           loc="lower left", title="Recipe", title_fontsize=8)
+# no in-axes legend here: panel A's curves fill the whole plotting area at every corner
+# (see FIGURE_NOTES.md bug list), so color/style are explained once, for the whole figure,
+# in the two legend rows above all three panels — not repeated in front of the data.
 
 
 # ---------------- Panels B & C: multiplier dot plots ----------------
@@ -109,10 +102,11 @@ def dotpanel(ax, getval, title, ylab):
             v = getval(d, recipe)
             if v is None:  # did not reach threshold -> hollow marker BELOW parity, never on it
                 # (definition: "hollow, below 1x = did not reach threshold" — shared legend above)
+                # a plain hollow marker only — an earlier version overlaid a small arrow glyph
+                # on top of it, which merged into an unrecognizable blob at this marker size
+                # (see FIGURE_NOTES.md bug list); the shared legend explains the convention.
                 ax.scatter([i + dx], [CENSORED_Y], marker=mk, s=70, facecolors="none",
                            edgecolors=col, linewidths=1.7, zorder=4)
-                ax.annotate("", xy=(i + dx, CENSORED_Y * 0.90), xytext=(i + dx, CENSORED_Y * 0.98),
-                            arrowprops=dict(arrowstyle="-|>", color=col, lw=1.3), zorder=4)
             else:
                 ax.scatter([i + dx], [v], marker=mk, s=70, facecolors=col,
                            edgecolors=SURFACE, linewidths=1.0, zorder=4)
@@ -139,13 +133,25 @@ dotpanel(axC, lambda d, r: d["data_ceg_old_algo" if r == "old" else "data_ceg_cu
          "C · Within-recipe corpus CEG (OWT → corpus)",
          "Within-recipe corpus CEG  (×, log scale)")
 
-# shared recipe legend for B/C — figure-level, top-center (clear of all data marks)
-shape_handles = [Line2D([], [], color=INK2, marker="o", ls="none", ms=8, label="Old GPT-2 recipe"),
-                 Line2D([], [], color=INK2, marker="s", ls="none", ms=8, label="Current training recipe"),
-                 Line2D([], [], color=INK2, marker="o", ls="none", ms=8, markerfacecolor="none",
-                        label="Hollow, below 1× = did not reach threshold")]
-fig.legend(handles=shape_handles, frameon=False, fontsize=8, labelcolor=INK2,
-           loc="upper center", ncol=3, bbox_to_anchor=(0.68, 0.965))
+# ONE consolidated legend system for the whole figure (two rows), replacing the three
+# separate per-panel legends this figure used to carry (two inside panel A, overlapping
+# the curves there, plus a third for B/C) — every color/style is defined exactly once.
+# Row 1: corpus color. Row 2: recipe (line style in A, marker shape in B/C, shown together
+# on one handle) + the censored-marker convention.
+corpus_handles = [Line2D([], [], color=CORP_COLOR[c], lw=2.4, label=f"{c} ({y})")
+                  for c, y, *_ in CORPORA]
+fig.legend(handles=corpus_handles, frameon=False, fontsize=8.5, labelcolor=INK2,
+           loc="upper center", ncol=4, bbox_to_anchor=(0.5, 0.955), title="Training corpus",
+           title_fontsize=8.5)
+recipe_handles = [
+    Line2D([], [], color=INK2, lw=1.9, ls="-", marker="o", ms=7, label="Old GPT-2 recipe"),
+    Line2D([], [], color=INK2, lw=1.9, ls=(0, (4, 2)), marker="s", ms=7,
+           label="Current training recipe"),
+    Line2D([], [], color=INK2, lw=0, marker="o", ms=8, markerfacecolor="none",
+           label="Hollow, below 1× = did not reach threshold"),
+]
+fig.legend(handles=recipe_handles, frameon=False, fontsize=8, labelcolor=INK2,
+           loc="upper center", ncol=3, bbox_to_anchor=(0.5, 0.895))
 
 fig.suptitle("Corpus compute-equivalent gain at the 124M GPT-2 baseline scale",
              fontsize=12.5, x=0.008, ha="left", color=INK, y=0.995)
@@ -155,5 +161,5 @@ fig.text(0.008, 0.008,
          "corpus multipliers on RefinedWeb/DCLM (old GPT-2 recipe ~3.3–3.5× vs current training "
          "recipe ~1.6×) — see caption for interpretation.",
          fontsize=7, color=INK2, va="bottom", wrap=True)
-fig.tight_layout(rect=(0, 0.07, 1, 0.955))
+fig.tight_layout(rect=(0, 0.07, 1, 0.86))
 _savefig(fig, ROOT / "corpus_intervention.png")
