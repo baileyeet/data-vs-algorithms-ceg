@@ -42,7 +42,7 @@ pts = [(float(r["gpu_hours"]), float(r["neutral_bpb"])) for r in rows
 hs, bs = zip(*pts)
 axA.plot(hs, bs, color=ARM_COLORS["a0d0"], lw=2.2, marker="o", ms=3, zorder=3)
 axA.axhline(THR, color=INK2, lw=1.2, ls=(0, (4, 3)), zorder=2)
-axA.annotate(f"Neutral-BPB threshold {THR:.3f}", xy=(0.02, THR), xycoords=("axes fraction", "data"),
+axA.annotate(f"{THR:.3f}", xy=(0.02, THR), xycoords=("axes fraction", "data"),
              xytext=(0, 4), textcoords="offset points", fontsize=8, color=INK2)
 cross = GH["a0d0"]
 axA.axvline(cross, color=INK2, lw=1.0, ls=":", zorder=2)
@@ -52,10 +52,10 @@ axA.annotate(f"Crosses at\n{cross:.2f} GPU-h", xy=(cross, THR), xytext=(10, 34),
              arrowprops=dict(arrowstyle="->", color=INK2, lw=1))
 axA.set_xscale("log")
 axA.set_ylim(min(bs) - 0.03, THR + 0.42)
-axA.set_xlabel("GPU-hours (log scale)")
-axA.set_ylabel("Neutral-corpus BPB (bits/byte, lower = better)")
+axA.set_xlabel("GPU-hours")
+axA.set_ylabel("Neutral-corpus BPB")
 axA.set_title("A · The primitive — compute to reach the threshold", fontsize=10.5, loc="left")
-axA.annotate("Example arm: old algorithm · old data (the baseline)", xy=(0.02, 0.02),
+axA.annotate("A0·D0 (old algorithm · old data)", xy=(0.02, 0.02),
              xycoords="axes fraction", va="bottom", fontsize=8, color=INK2)
 _style(axA)
 
@@ -120,12 +120,12 @@ axB.text(5.0, cy["A0"] + 1.35, "Data edges (blue) hold algorithm fixed", ha="cen
 
 fig.suptitle("Factorial decomposition of compute-equivalent gain",
              fontsize=12.5, x=0.012, ha="left", color=INK, y=0.99)
-fig.text(0.012, 0.925, "Worked example: 124M GPT-2 baseline scale, current training recipe",
-         fontsize=9.5, color=INK2, va="top")
+# "Worked example: 124M GPT-2 baseline scale, current training recipe" lives in the caption
+# only (report.md / FIGURE_NOTES.md), not in the image — the image carries just the title.
 fig.text(0.012, 0.006,
          "Each edge is a GPU-hours ratio between two arms that differ in a single intervention; the Shapley multiplier for "
          "an intervention is the geometric mean of its two edges (both orderings averaged). Values re-derived from the four "
          "arm GPU-hours in results/small/ceg_newdef.json (held-out Wikipedia evaluation set, “wiki_eval”).",
          fontsize=7.5, color=INK2, va="bottom", wrap=True)
-fig.tight_layout(rect=(0, 0.05, 1, 0.90))
+fig.tight_layout(rect=(0, 0.06, 1, 0.93))
 _savefig(fig, ROOT / "method_factorial.png")

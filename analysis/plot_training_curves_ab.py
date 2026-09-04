@@ -110,7 +110,7 @@ def expb_arch():
                 ax.plot(hs, bs, color=col, lw=2.0, marker="o", ms=2.4,
                         label=lbl, zorder=3 if run == cand else 2)
             ax.axhline(bar, color=INK2, lw=1.1, ls=(0, (4, 3)), zorder=1)
-            ax.annotate(f"GPT-2 bar {bar:.3f}", xy=(0.02, bar), xycoords=("axes fraction", "data"),
+            ax.annotate(f"{bar:.3f}", xy=(0.02, bar), xycoords=("axes fraction", "data"),
                         xytext=(0, 3), textcoords="offset points", fontsize=7.5, color=INK2)
             # candidate min-BPB marker for runs whose BPB rose again late in training
             cbs = [b for _, b in curve(f"{B1M}/{cand}/metrics.csv")]
@@ -136,9 +136,9 @@ def expb_arch():
             ax.set_ylim(YLO, YHI)
             ax.set_title(title, fontsize=10.5, loc="left")
             if r == 1:
-                ax.set_xlabel("GPU-hours (log scale)")
+                ax.set_xlabel("GPU-hours")
             if c == 0:
-                ax.set_ylabel("Neutral-corpus BPB (bits/byte, lower = better)")
+                ax.set_ylabel("Neutral-corpus BPB")
             ax.legend(frameon=False, fontsize=8, labelcolor=INK2, loc="upper left")
             _style(ax)
     # row labels
@@ -193,17 +193,17 @@ def expb_data_replication():
                                   markerfacecolor=(CORP[corpus] if crossed else SURFACE),
                                   label=corpus + ("" if crossed else "  (censored)")))
         ax.axhline(bar, color=INK2, lw=1.2, ls=(0, (4, 3)))
-        ax.annotate(f"Matched GPT-2-OWT bar {bar:.3f}", xy=(0.02, bar),
+        ax.annotate(f"{bar:.3f}", xy=(0.02, bar),
                     xycoords=("axes fraction", "data"), xytext=(0, 3),
                     textcoords="offset points", fontsize=7.5, color=INK2)
         ax.set_xscale("log")
         ax.set_ylim(lo - 0.03, bar + 0.32)
-        ax.set_xlabel("GPU-hours (log scale)")
+        ax.set_xlabel("GPU-hours")
         ax.set_title(title, fontsize=10.5, loc="left")
         ax.legend(handles=handles, frameon=False, fontsize=8, labelcolor=INK2, loc="upper right",
                   title="Training corpus", title_fontsize=8)
         _style(ax)
-    axes[0].set_ylabel("Neutral-corpus BPB (bits/byte, lower = better)")
+    axes[0].set_ylabel("Neutral-corpus BPB")
     fig.suptitle("Neutral-corpus BPB vs. GPU-hours by training corpus",
                  fontsize=12.5, x=0.012, ha="left", color=INK)
     fig.text(0.012, 0.006,

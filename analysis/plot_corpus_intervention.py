@@ -52,7 +52,7 @@ def curve(run):
             if float(r["gpu_hours"]) > 0 and r["neutral_bpb"]]
 
 
-fig, (axA, axB, axC) = plt.subplots(1, 3, figsize=(15.5, 5.0), dpi=150)
+fig, (axA, axB, axC) = plt.subplots(1, 3, figsize=(15.5, 5.4), dpi=150)
 
 # ---------------- Panel A: evidence curves ----------------
 lo = THR
@@ -68,13 +68,14 @@ for corpus, year, old, new in CORPORA:
         axA.plot(hs, bs, color=col, lw=1.9, ls=ls,
                  marker="o", ms=2.6, alpha=0.95)
 axA.axhline(THR, color=INK2, lw=1.2, ls=(0, (4, 3)))
-axA.annotate(f"Reference threshold {THR:.3f}\n(old GPT-2 recipe · OWT)", xy=(0.015, THR),
-             xycoords=("axes fraction", "data"), xytext=(0, 4),
-             textcoords="offset points", fontsize=8, color=INK2)
+# compact tag on the line itself (matches the "1x" convention on the other figures);
+# the recipe/corpus this threshold is defined on is stated once in the caption, not here
+axA.annotate(f"{THR:.3f}", xy=(0.015, THR), xycoords=("axes fraction", "data"),
+             xytext=(0, 4), textcoords="offset points", fontsize=8, color=INK2)
 axA.set_xscale("log")
 axA.set_ylim(lo - 0.03, THR + 0.30)
-axA.set_xlabel("GPU-hours (log scale)")
-axA.set_ylabel("Neutral-corpus BPB (bits/byte, lower = better)")
+axA.set_xlabel("GPU-hours")
+axA.set_ylabel("Neutral-corpus BPB")
 axA.set_title("A · Compute to reach the neutral-BPB threshold", fontsize=10.5, loc="left")
 _style(axA)
 # no in-axes legend here: panel A's curves fill the whole plotting area at every corner
@@ -128,10 +129,10 @@ def dotpanel(ax, getval, title, ylab):
 
 dotpanel(axB, lambda d, r: d["old_algo" if r == "old" else "current_arch"]["ceg_vs_a0d0"],
          "B · Corpus CEG vs. old GPT-2 recipe · OWT reference",
-         "Compute-equivalent gain  (×, log scale)")
+         "Compute-equivalent gain (×)")
 dotpanel(axC, lambda d, r: d["data_ceg_old_algo" if r == "old" else "data_ceg_current_arch"],
          "C · Within-recipe corpus CEG (OWT → corpus)",
-         "Within-recipe corpus CEG  (×, log scale)")
+         "Within-recipe corpus CEG (×)")
 
 # ONE consolidated legend system for the whole figure (two rows), replacing the three
 # separate per-panel legends this figure used to carry (two inside panel A, overlapping
@@ -141,8 +142,8 @@ dotpanel(axC, lambda d, r: d["data_ceg_old_algo" if r == "old" else "data_ceg_cu
 corpus_handles = [Line2D([], [], color=CORP_COLOR[c], lw=2.4, label=f"{c} ({y})")
                   for c, y, *_ in CORPORA]
 fig.legend(handles=corpus_handles, frameon=False, fontsize=8.5, labelcolor=INK2,
-           loc="upper center", ncol=4, bbox_to_anchor=(0.5, 0.955), title="Training corpus",
-           title_fontsize=8.5)
+           loc="upper center", ncol=4, bbox_to_anchor=(0.5, 0.975), title="Training corpus",
+           title_fontsize=8.5, columnspacing=2.2, handletextpad=0.7)
 recipe_handles = [
     Line2D([], [], color=INK2, lw=1.9, ls="-", marker="o", ms=7, label="Old GPT-2 recipe"),
     Line2D([], [], color=INK2, lw=1.9, ls=(0, (4, 2)), marker="s", ms=7,
@@ -150,8 +151,11 @@ recipe_handles = [
     Line2D([], [], color=INK2, lw=0, marker="o", ms=8, markerfacecolor="none",
            label="Hollow, below 1× = did not reach threshold"),
 ]
+# a visibly larger gap than the row above (0.975 -> 0.85, not 0.975 -> 0.915) so the two
+# rows read as two distinct legend groups, not one dense run-on block
 fig.legend(handles=recipe_handles, frameon=False, fontsize=8, labelcolor=INK2,
-           loc="upper center", ncol=3, bbox_to_anchor=(0.5, 0.895))
+           loc="upper center", ncol=3, bbox_to_anchor=(0.5, 0.85), columnspacing=2.2,
+           handletextpad=0.7)
 
 fig.suptitle("Corpus compute-equivalent gain at the 124M GPT-2 baseline scale",
              fontsize=12.5, x=0.008, ha="left", color=INK, y=0.995)
@@ -161,5 +165,5 @@ fig.text(0.008, 0.008,
          "corpus multipliers on RefinedWeb/DCLM (old GPT-2 recipe ~3.3–3.5× vs current training "
          "recipe ~1.6×) — see caption for interpretation.",
          fontsize=7, color=INK2, va="bottom", wrap=True)
-fig.tight_layout(rect=(0, 0.07, 1, 0.86))
+fig.tight_layout(rect=(0, 0.07, 1, 0.80))
 _savefig(fig, ROOT / "corpus_intervention.png")

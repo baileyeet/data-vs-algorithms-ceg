@@ -409,7 +409,8 @@ def main():
         lines += ["**How to read the numbers.** Compute is timed GPU-hours to reach a fixed "
                   "neutral-BPB threshold; the 2×2 factorial is decomposed into data and "
                   "algorithm multipliers by a log-space Shapley split (both intervention "
-                  "orderings averaged). Worked example:", "",
+                  "orderings averaged). Worked example, at the 124M GPT-2 baseline scale under "
+                  "the current training recipe:", "",
                   "![Factorial decomposition of compute-equivalent gain](method_factorial.png)", ""]
     results = []
     for size in SIZE_ORDER:

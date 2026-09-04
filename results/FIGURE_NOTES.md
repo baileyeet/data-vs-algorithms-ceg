@@ -103,6 +103,64 @@ antialiasing/font-hinting differs. All six PDFs were checked for a valid `%PDF-1
    blue, algorithm edges are orange, full stop. Also removed a no-op
    `labels[arm] if False else labels[arm]` leftover from an earlier edit.
 
+## Minimalism pass (2026-09-04, user-requested — trust the reader more)
+
+A third round, after the second round's fixes were sent back to the user: two more real
+layout issues, plus a push to cut in-image text the reader doesn't need repeated on every
+axis once it's established once (in the caption, in the paper's methods section, or by strong
+convention).
+
+- **`corpus_intervention.png`: the two legend rows (corpus color, recipe style) sat almost on
+  top of each other** — only ~0.06 of the figure height apart, so "OWT (2019)" and "Old GPT-2
+  recipe" on the row below it read as one merged block rather than two legend groups. Widened
+  the gap (now ~0.13), added `columnspacing`/`handletextpad` to both rows, and grew the figure
+  height (5.0 → 5.4in) to make room without shrinking the three panels.
+- **Removed "(log scale)" / "(× , log scale)" from every axis label that has it**
+  (`multipliers_vs_scale.png`, `corpus_intervention.png` all three panels,
+  `expb_arch_curves.png`, `data_replication.png`, `method_factorial.png` panel A) — the log
+  nature of every one of these axes is already visually obvious from the power-of-ten tick
+  labels (10⁰, 10¹, ...); stating it a second time in the axis text was one more thing for an
+  academic reader to read past for no new information.
+- **Removed "(bits/byte, lower = better)" from every "Neutral-corpus BPB" y-axis label** —
+  BPB is a standard, already-defined metric for this readership; the axis now just reads
+  "Neutral-corpus BPB". (`core_bpb_vs_downstream.png`'s y-axis labels are untouched — those
+  are *delta* quantities, "BPB advantage over matched GPT-2 (bits; ...)", where the unit is
+  new information, not a restatement of the metric's definition.)
+- **Shortened three long two-line in-plot annotations to a bare number, matching the "1×"
+  convention already used elsewhere**: `corpus_intervention.png` panel A's "Reference
+  threshold 1.276\n(old GPT-2 recipe · OWT)" → "1.276"; `method_factorial.png` panel A's
+  "Neutral-BPB threshold 1.274" → "1.274"; `expb_arch_curves.png`/`data_replication.png`'s
+  per-panel "GPT-2 bar 1.252" / "Matched GPT-2-OWT bar 1.252" → "1.252". The full description
+  of what each reference line is now lives once, in the caption below, rather than repeated
+  in-image at every one of the ~14 places these threshold lines appear across the figure set.
+- **`method_factorial.png`: moved the "Worked example: 124M GPT-2 baseline scale, current
+  training recipe" subtitle out of the image entirely.** It's in the caption (below, and in
+  `report.md`) only now; the image carries just the main title, freeing up ~6% more vertical
+  room for panels A/B.
+- **`method_factorial.png` panel A's "Example arm: old algorithm · old data (the baseline)"**
+  → "A0·D0 (old algorithm · old data)", matching panel B's own arm-box labeling convention
+  instead of using different phrasing for the same identification.
+
+## Open questions raised by the user, not yet acted on
+- **Should the multi-panel figures be split into one image per panel for paper layout?** The
+  user asked whether this would help sizing/clarity in a paper. Recommendation (not yet
+  done — needs a decision, see the chat response): keep panels combined where they're a single
+  comparison a reader needs side-by-side (`corpus_intervention` B vs. C, `expb_arch_curves`'s
+  six same-axis panels, `method_factorial` A→B); the PDF output is already vector so it
+  rescales cleanly in LaTeX at any column width without the pixelation that would motivate a
+  split. Splitting would mostly help if a paper's target venue caps single-figure panel counts
+  or wants each panel independently referenced/captioned.
+- **Are the appendix-only CORE figures (`core_arms_by_task.png`, `core_expb_by_task.png`,
+  `core_expb_by_task_abs.png`, `core_vs_scale.png`, `core_era_by_task.png`,
+  `core_era_ladder.png`) worth including?** Recommendation: yes for an appendix — they're
+  legible, well-organized small-multiples that reuse the same color scheme as the main figures
+  (e.g. `core_expb_by_task_abs.png`: green = Pythia, purple = SmolLM2, matching
+  `core_bpb_vs_downstream.png`). None of them have been through this quality pass yet, though,
+  and `core_expb_by_task_abs.png` at least has the same two issues already fixed elsewhere in
+  this set: the title says "Exp B" (repo-internal shorthand, not defined in-figure) and the
+  x-axis uses merged "150M / 500M / 1.5B" buckets rather than each family's real size. Apply
+  the same treatment before including any of these in an appendix.
+
 ## Copy/terminology pass (2026-09-03, user-requested — academic-paper audience)
 
 The user's second round of feedback, after seeing the rendered figures, asked to write for

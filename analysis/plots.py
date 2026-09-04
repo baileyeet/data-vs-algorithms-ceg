@@ -284,7 +284,7 @@ def multipliers_vs_scale(curves: dict, out_path, censored: dict = None):
         ax.set_title(ttl, fontsize=11, loc="left")
         _style(ax)
         ax.set_ylim(0.82, max(20, ax.get_ylim()[1]))
-    ax1.set_ylabel("Compute-equivalent gain  (×, log scale)")
+    ax1.set_ylabel("Compute-equivalent gain (×)")
     handles, labels = ax1.get_legend_handles_labels()
     fig.legend(handles, labels, frameon=False, fontsize=8.5, labelcolor=INK2,
                loc="upper center", ncol=2, bbox_to_anchor=(0.5, 0.9))

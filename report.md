@@ -8,7 +8,7 @@
 
 The current-arch A1 numbers are v2-canonical (re-derived from yarn_state reruns after the loader-fidelity fixes).
 
-**How to read the numbers.** Compute is timed GPU-hours to reach a fixed neutral-BPB threshold; the 2×2 factorial is decomposed into data and algorithm multipliers by a log-space Shapley split (both intervention orderings averaged). Worked example:
+**How to read the numbers.** Compute is timed GPU-hours to reach a fixed neutral-BPB threshold; the 2×2 factorial is decomposed into data and algorithm multipliers by a log-space Shapley split (both intervention orderings averaged). Worked example, at the 124M GPT-2 baseline scale under the current training recipe:
 
 ![Factorial decomposition of compute-equivalent gain](method_factorial.png)
 
