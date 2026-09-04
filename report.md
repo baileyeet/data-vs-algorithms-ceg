@@ -8,9 +8,13 @@
 
 The current-arch A1 numbers are v2-canonical (re-derived from yarn_state reruns after the loader-fidelity fixes).
 
-**How to read the numbers.** Compute is timed GPU-hours to reach a fixed neutral-BPB threshold; the 2×2 factorial is decomposed into data and algorithm multipliers by a log-space Shapley split (both intervention orderings averaged). Worked example, at the 124M GPT-2 baseline scale under the current training recipe:
+**How to read the numbers.** Compute is timed GPU-hours to reach a fixed neutral-BPB threshold — the primitive behind every compute-equivalent gain:
 
-![Factorial decomposition of compute-equivalent gain](method_factorial.png)
+![Compute to reach the neutral-BPB threshold](method_primitive.png)
+
+The 2×2 factorial is decomposed into data and algorithm multipliers by a log-space Shapley split (both intervention orderings averaged). Worked example, at the 124M GPT-2 baseline scale under the current training recipe:
+
+![The 2×2 factorial and its log-space Shapley split](method_shapley_split.png)
 
 ## 124M (small)
 
@@ -112,9 +116,19 @@ Data-quality is **NON-monotonic in release year**: C4 (2020) is CENSORED under B
 
 **C4 threshold-borderline note.** The two C4 censorings are not equally firm. Under the OLD recipe, C4 is robustly censored (its best neutral BPB, ~1.31, sits well above the 1.276 threshold). Under the CURRENT recipe the C4 comparison is close to the threshold: the original run remained censored (best ~1.284), while a later same-seed recovery rerun crossed by ~0.003 BPB — within the estimated ±0.01 same-seed noise floor. We retain the ORIGINAL run for consistency with the canonical CEG analysis and disclose the rerun rather than substituting it. This borderline case does not support a claim that C4 meaningfully beats or loses to OWT under the current recipe; the non-monotonic-in-release-year finding rests on the robust old-recipe result and on RefinedWeb/DCLM clearly improving.
 
-Panel A shows the raw BPB-vs-GPU-hours curves (where each arm crosses the threshold, or never does); panel B the corpus CEG per recipe; panel C the within-recipe corpus effect (hold the recipe, swap OWT for the other corpus). The corpus and training-recipe interventions interact, so the corpus multiplier is recipe-dependent, not a single number.
+The raw BPB-vs-GPU-hours curves below show where each arm crosses the threshold, or never does:
 
-![Corpus compute-equivalent gain at the 124M GPT-2 baseline scale](corpus_intervention.png)
+![Neutral-corpus BPB vs. GPU-hours by training corpus and recipe](corpus_bpb_curves.png)
+
+The total corpus compute-equivalent gain per recipe, vs. the old-recipe·OWT reference:
+
+![Corpus compute-equivalent gain vs. OWT reference](corpus_ceg_total.png)
+
+And the within-recipe corpus effect — hold the recipe/algorithm fixed, swap OWT for the other corpus, and isolate the corpus's own contribution:
+
+![Corpus-only compute-equivalent gain, training recipe held fixed](corpus_ceg_within_recipe.png)
+
+The corpus and training-recipe interventions interact, so the corpus multiplier is recipe-dependent, not a single number.
 
 ### Exp A — CORE downstream tasks (secondary)
 

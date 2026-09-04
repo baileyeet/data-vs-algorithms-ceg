@@ -256,11 +256,14 @@ noting — it's the one asset in this table with no backup at all.
   and the log-space Shapley split), `core_gate.py` (CORE validity gate),
   `threshold_sensitivity.py`, `plots.py` (the hero `multipliers_vs_scale.png`
   — current-arch and ScaleUp only — plus the per-size and CORE figures),
-  the publication-figure scripts `plot_corpus_intervention.py` (Exp A),
-  `plot_training_curves_ab.py` (Exp B architecture + data replication),
-  `plot_core_disagreement.py` (Exp B CORE), `plot_method_factorial.py`
-  (method schematic) — each writing PNG + vector PDF; see
-  `results/FIGURE_NOTES.md` for per-figure captions and provenance.
+  the publication-figure scripts `plot_corpus_intervention.py` (Exp A; writes
+  three standalone figures — `corpus_bpb_curves.png`, `corpus_ceg_total.png`,
+  `corpus_ceg_within_recipe.png`), `plot_training_curves_ab.py` (Exp B
+  architecture + data replication), `plot_core_disagreement.py` (Exp B CORE),
+  `plot_method_factorial.py` (method schematic; writes two standalone
+  figures — `method_primitive.png`, `method_shapley_split.png`) — each
+  writing PNG + vector PDF; see `results/FIGURE_NOTES.md` for per-figure
+  captions and provenance.
   `make_report.py` (regenerates `report.md`)
 - `scripts/check_sizes.py` — param-count check for every size
 - `report.md` — the full write-up: two cross-scale curves (current-arch and

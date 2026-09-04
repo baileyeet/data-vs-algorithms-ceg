@@ -9,30 +9,40 @@ included) is titles, labels, legends, and in-plot text only.
 **Regeneration commands** (all read only in-repo `results/` data):
 ```
 python analysis/plots.py multipliers --out results/multipliers_vs_scale.png
-python analysis/plot_corpus_intervention.py
+python analysis/plot_corpus_intervention.py      # writes corpus_bpb_curves.png +
+                                                  #   corpus_ceg_total.png + corpus_ceg_within_recipe.png
 python analysis/plot_training_curves_ab.py       # writes expb_arch_curves.png + data_replication.png
 python analysis/plot_core_disagreement.py
-python analysis/plot_method_factorial.py
+python analysis/plot_method_factorial.py         # writes method_primitive.png + method_shapley_split.png
 ```
 Requires `matplotlib` (see `requirements.txt`, pinned `requirements-lock.txt`).
 
-**Status of this pass (2026-09-03):** a prior session (`bda2398`, merged as PR #1) wrote the
+**Figure count: nine, not six.** The set started as six figures, two of them multi-panel
+(3-panel `corpus_intervention.png`, 2-panel `method_factorial.png`). Per user request (2026-
+09-04, so each figure sizes and scales independently in a paper), both were split into one
+standalone image per former panel — see the "Figure-split pass" section below. The old
+combined files are retired to `results/superseded/`.
+
+**Status of this pass (2026-09-04):** a prior session (`bda2398`, merged as PR #1) wrote the
 source edits for a first figure-quality pass but could not install `matplotlib` in its
 sandbox, so it never rendered or visually inspected the actual PNG/PDF output. This session
-had a working `matplotlib` + `numpy`, so it went through **three rounds**: (1) an initial
-render + full-resolution visual audit that caught 3 rendering bugs, (2) an academic-audience
-copy pass (dropped legend jargon, spelled out abbreviations, fixed capitalization, real
-per-family size labels instead of shared buckets), (3) a second, closer visual audit —
-prompted by the user spotting problems in the rendered PNGs sent back to them — that caught 4
-more bugs invisible at thumbnail size (a legend sitting on top of data, a marker rendering as
-an unrecognizable blob, inconsistent axis wording across four BPB-vs-GPU-hours figures, and a
-color-coding collision in the method schematic). Every round ended by re-rendering and
-re-inspecting until clean; **7 real layout/rendering bugs found and fixed in total**, listed
-below. No PDF rasterizer (`pdftoppm`/`pymupdf`) is available in this container; the PDFs are
-not separately rasterized and eyeballed pixel-by-pixel, but they are written by the same
+had a working `matplotlib` + `numpy`, so it went through **four rounds**, each ending with a
+re-render and a full re-inspection: (1) an initial render + full-resolution visual audit that
+caught 3 rendering bugs; (2) an academic-audience copy pass (dropped legend jargon, spelled
+out abbreviations, fixed capitalization, real per-family size labels instead of shared
+buckets); (3) a second, closer visual audit — prompted by the user spotting problems in the
+rendered PNGs sent back to them — that caught 4 more bugs invisible at thumbnail size (a
+legend sitting on top of data, a marker rendering as an unrecognizable blob, inconsistent
+axis wording, a color-coding collision in the method schematic), plus a further minimalism
+pass dropping redundant "(log scale)"/units text and cramped legend spacing; (4) a third
+audit — again prompted by the user looking closely at the round-3 renders — that caught a
+marker-fill/legend mismatch, a hard-to-see hollow marker, and two confusing titles, and
+carried out the user's request to split the two multi-panel figures into standalone images
+(see "Figure-split pass" below). Every round's bugs are listed below; no PDF rasterizer
+(`pdftoppm`/`pymupdf`) is available in this container, but the PDFs are written by the same
 `fig.savefig()` call on the same already-laid-out Matplotlib `Figure` object as the PNG (see
-`plots.py::_savefig`), so the element positions are identical between the two — only
-antialiasing/font-hinting differs. All six PDFs were checked for a valid `%PDF-1.4` header and
+`plots.py::_savefig`), so element positions are identical between the two — only
+antialiasing/font-hinting differs. All PDFs were checked for a valid `%PDF-1.4` header and
 `%%EOF` trailer.
 
 ## Bugs found by rendering (not visible from reading the code)
@@ -141,25 +151,78 @@ convention).
   → "A0·D0 (old algorithm · old data)", matching panel B's own arm-box labeling convention
   instead of using different phrasing for the same identification.
 
-## Open questions raised by the user, not yet acted on
-- **Should the multi-panel figures be split into one image per panel for paper layout?** The
-  user asked whether this would help sizing/clarity in a paper. Recommendation (not yet
-  done — needs a decision, see the chat response): keep panels combined where they're a single
-  comparison a reader needs side-by-side (`corpus_intervention` B vs. C, `expb_arch_curves`'s
-  six same-axis panels, `method_factorial` A→B); the PDF output is already vector so it
-  rescales cleanly in LaTeX at any column width without the pixelation that would motivate a
-  split. Splitting would mostly help if a paper's target venue caps single-figure panel counts
-  or wants each panel independently referenced/captioned.
-- **Are the appendix-only CORE figures (`core_arms_by_task.png`, `core_expb_by_task.png`,
-  `core_expb_by_task_abs.png`, `core_vs_scale.png`, `core_era_by_task.png`,
-  `core_era_ladder.png`) worth including?** Recommendation: yes for an appendix — they're
-  legible, well-organized small-multiples that reuse the same color scheme as the main figures
-  (e.g. `core_expb_by_task_abs.png`: green = Pythia, purple = SmolLM2, matching
-  `core_bpb_vs_downstream.png`). None of them have been through this quality pass yet, though,
-  and `core_expb_by_task_abs.png` at least has the same two issues already fixed elsewhere in
-  this set: the title says "Exp B" (repo-internal shorthand, not defined in-figure) and the
-  x-axis uses merged "150M / 500M / 1.5B" buckets rather than each family's real size. Apply
-  the same treatment before including any of these in an appendix.
+## Figure-split pass (2026-09-04, user-requested)
+
+`corpus_intervention.png` (3 panels) and `method_factorial.png` (2 panels) were split into
+five standalone figures — one PNG+PDF pair per former panel, each with its own self-contained
+title, axes, and legend (previously legends were shared figure-wide, which doesn't work once
+panels are separate files). Old combined files moved to `results/superseded/` (see its
+README for the full mapping). This is a **layout change only** — same in-repo data, same
+values.
+
+While splitting, three more issues found by close inspection were fixed at the same time
+(not new panels, just things easier to see once each panel had its own full-size render):
+
+- **`corpus_intervention` panel B's title was confusing.** "B · Corpus CEG vs. old GPT-2
+  recipe · OWT reference" packs three ideas into one compound noun phrase. The recipe
+  qualifier is redundant with the marker-shape legend directly below it, so the new
+  standalone title drops it: **"Corpus compute-equivalent gain vs. OWT reference."**
+- **`corpus_intervention` panel C's title didn't say what it measures.** A user reading "C ·
+  Within-recipe corpus CEG (OWT → corpus)" asked "is this algorithm gain or something?" — a
+  fair question, since the figure never states that the algorithm/recipe is held fixed here.
+  New title says so explicitly: **"Corpus-only compute-equivalent gain, training recipe held
+  fixed,"** and the caption repeats it ("no algorithm effect mixed in").
+- **`corpus_intervention` panel A's recipe legend didn't visibly show line style.** Flagged as
+  "the dottedness isn't labeled": the legend's line-icon segments were too short at the
+  default handle length to show more than one dash, so solid vs. dashed didn't read clearly
+  as two different styles. Fixed with `handlelength=3.6` on that legend only, giving each
+  icon enough length to show 2–3 dash repeats.
+
+Two further bugs, unrelated to the split, were also fixed this round:
+
+- **`expb_arch_curves.png`: the open-triangle "best checkpoint" marker was hard to read as
+  hollow.** At its original size (`s=55`, no backing) the ring competed visually with the
+  candidate line passing directly through the same point. Enlarged it (`s=170`) and added a
+  filled surface-colored disc behind it, giving the hollow ring a clean "cutout" against the
+  line so it unambiguously reads as an open (not filled) marker.
+- **`data_replication.png`: censored corpora's curve markers were filled solid, contradicting
+  their own hollow legend entry.** The legend already showed "OWT (censored)" / "C4
+  (censored)" with a hollow marker icon, but the actual plotted line for those corpora used
+  filled dots throughout — the same convention mismatch flagged by the user ("the OWT and C4
+  circles look like they should be unfilled but they are filled"). Fixed: a corpus's curve
+  now renders with hollow per-point markers whenever it's censored, filled when it crosses,
+  matching its own legend entry exactly.
+- **`expb_arch_curves.png`'s title didn't match `data_replication.png`'s**, despite both
+  being "BPB vs. GPU-hours" figures on the same recipe: "Bits per byte vs. GPU-hours for
+  matched architecture comparisons" vs. "Neutral-corpus BPB vs. GPU-hours by training
+  corpus." Unified to **"Neutral-corpus BPB vs. GPU-hours for matched architecture
+  comparisons,"** following the user's suggested template ("neutral-corpus BPB vs GPU-hours
+  for/by \<thing\>").
+- **`core_bpb_vs_downstream.png`: dropped the parenthetical unit/orientation text from every
+  axis label** ("(bits; ↑ = candidate better)", "(↑ = candidate better)", "(matched Pythia /
+  SmolLM2 pairs)") — the ↑-convention is already stated once in the caption, and the
+  "matched Pythia / SmolLM2 pairs" detail is redundant with the two-line tick labels, which
+  already name both families explicitly.
+
+## Open question raised by the user, not yet acted on
+**Should the appendix-only CORE figures for the original 2×2 study (not just Exp B) also be
+included?** The user specifically asked about CORE for "everything we ran" — confirmed by
+direct inspection, not assumption: `core_vs_scale.png` and `core_arms_by_task.png` cover the
+**original 2×2 study** (current-arch, ScaleUp; the runs the study's headline result is built
+on), separately from `core_era_ladder.png`/`core_era_by_task.png` (Exp A era ladder) and
+`core_expb_by_task.png`/`core_expb_by_task_abs.png` (Exp B, Pythia/SmolLM2). So all three
+experiments already have their own CORE figure(s) — nothing is actually missing.
+Recommendation: keep them as **three separate appendix figures**, not one merged "CORE
+everywhere" figure — the three cover different x-axes (model size within one family vs.
+matched pairs across two families), different task sets in places, and different color
+schemes tied to each experiment's own arms; forcing them into one figure would likely
+re-introduce the kind of over-encoding this whole pass has been removing. `core_vs_scale.png`
+(the original-study one) is reasonably close to publication-ready already but has its own
+minor bug: the "chance 0.50" label sits directly on the boolq curve near 124M. None of the
+six appendix CORE figures have had the terminology pass applied yet (`core_expb_by_task_abs.png`
+still titles itself "Exp B ..." and uses merged "150M / 500M / 1.5B" size buckets, the same
+issue fixed in the main figures). Flagging rather than fixing now — say the word and this can
+be done the same way as the rest of this pass.
 
 ## Copy/terminology pass (2026-09-03, user-requested — academic-paper audience)
 
@@ -224,7 +287,7 @@ buckets, and fix capitalization. Changes:
   (`python analysis/make_report.py --results-dir results --out report.md`) — the diff is
   exactly those two alt-text lines, confirming no other drift.
 
-## Terminology used consistently across all six figures
+## Terminology used consistently across all nine figures
 - **GPT-2 baseline scale** — the reference dimensions (124M / 355M / 1.5B) that a candidate
   is measured against; not necessarily the candidate's own parameter count (flagged wherever
   it matters, e.g. current-arch at 124M-baseline dimensions).
@@ -246,7 +309,11 @@ buckets, and fix capitalization. Changes:
   as a hollow marker with a short downward tick, defined once per figure (legend or caption),
   not repeated as floating in-plot prose.
 
-## The six canonical figures
+## The nine canonical figures
+
+(Figures 2 and 6 are each a former multi-panel figure split into standalone images — 2a/2b/2c
+and 6a/6b — per the "Figure-split pass" section above; the numbering follows the original
+six-figure order so cross-references from earlier in this document still resolve.)
 
 ### 1. `multipliers_vs_scale.{png,pdf}` — HERO
 **Title:** "Compute-equivalent gain vs. GPT-2 baseline scale."
@@ -281,51 +348,67 @@ Caption (for reuse in blog/paper):
 **Recommend:** (a) blog main text — yes; (b) paper main text — yes (the hero result); (c)
 appendix only — no.
 
-### 2. `corpus_intervention.{png,pdf}` — corpus intervention at fixed scale
-**Title:** "Corpus compute-equivalent gain at the 124M GPT-2 baseline scale."
-Script: `analysis/plot_corpus_intervention.py`.
+### 2a. `corpus_bpb_curves.{png,pdf}` — corpus evidence curves
+**Title:** "Neutral-corpus BPB vs. GPU-hours by training corpus and recipe."
+Script: `analysis/plot_corpus_intervention.py::fig_bpb_curves`.
 Data: `results/era_orig_metrics/*/metrics.csv` (the original era runs) +
 `results/era_ladder_results.json`. Eval: **wiki_eval_union** (held-out, decontaminated
-Wikipedia set; glossed inline in the figure's own caption on first use).
-Panels:
-- A · "Compute to reach the neutral-BPB threshold" — raw BPB-vs-GPU-hours for all four
-  corpora under both recipes (old GPT-2 recipe solid, current training recipe dashed).
-- B · "Corpus CEG vs. old GPT-2 recipe · OWT reference" — total compute-equivalent gain each
-  corpus buys vs. the fixed reference arm, under each recipe.
-- C · "Within-recipe corpus CEG (OWT → corpus)" — hold the recipe fixed, swap only the
-  corpus; isolates the corpus-only compute-equivalent gain.
-Color follows the corpus (OWT gray, C4 amber, RefinedWeb blue, DCLM green) in every panel;
-recipe is a secondary encoding (linestyle in A, marker shape in B/C). All three panels share
-**one** two-row legend above the figure (row 1: corpus color; row 2: recipe line-style/marker
-+ the censored-marker convention) — no panel carries its own in-axes legend.
-**Fixed this pass (real bugs, not just wording — see "Bugs found by rendering" above):**
-(1) the floating "did not reach threshold" label was struck through by the 1× dashed line in
-panels B/C; removed as redundant with the shared top legend. (2) two value labels at the OWT
-column of panel C collided into "1.0×1.0×"; labels now anchor away from each other instead of
-both centering on their marker. (3) panel A's two in-axes legends sat directly on top of the
-data (every corpus curve ran through the transparent legend box); removed and replaced, along
-with the old B/C-only shared legend, by one consolidated two-row legend above all three
-panels. (4) the censored (hollow) marker in panels B/C had a small arrow glyph overlaid on it
-that merged into an unrecognizable blob at render size; the arrow is gone, leaving a plain
-hollow circle/square. (5) panel A's axis wording ("GPU-hours (log)" / no BPB unit) now matches
-the other three BPB-vs-GPU-hours figures exactly: "GPU-hours (log scale)" / "Neutral-corpus
-BPB (bits/byte, lower = better)".
+Wikipedia set; glossed inline in the figure's own caption).
+The underlying evidence: raw BPB-vs-GPU-hours curves for all four corpora (OWT gray, C4
+amber, RefinedWeb blue, DCLM green) under both recipes (old GPT-2 recipe = solid line,
+current training recipe = dashed). Threshold line tagged with its bare value (1.276); full
+description ("old GPT-2 recipe · OWT") lives in the caption, not the image.
+**Was panel A of the retired `corpus_intervention.png`** (see `results/superseded/README.md`).
 Caption:
-1. Swapping the training corpus at the fixed 124M baseline scale, under both the old GPT-2
-   recipe and the current training recipe.
-2. Panel A is the underlying evidence: BPB-vs-GPU-hours curves; C4 never reaches the threshold
-   under either recipe.
-3. Panel B is compute-equivalent gain vs. the fixed old-recipe·OWT reference; Panel C isolates
-   the corpus-only effect within each fixed recipe.
-4. Corpus quality is **non-monotonic in release date**: C4 (2020) is censored under both
-   recipes while RefinedWeb (2023) and DCLM (2024) cross strongly.
-5. The within-recipe corpus effect differs by recipe (old GPT-2 recipe ~3.3–3.5× vs. current
-   training recipe ~1.6× on RefinedWeb/DCLM) — the corpus and training-recipe interventions
-   **interact**, so a single "value of the corpus" is recipe-dependent, not one number.
+1. Neutral-corpus BPB vs. GPU-hours, all four training corpora under both the old GPT-2
+   recipe and the current training recipe, at the 124M GPT-2 baseline scale.
+2. Dashed threshold line (1.276) = the old-recipe·OWT arm's converged BPB; an arm that never
+   reaches it is censored (its compute-to-threshold is a bound, not a value — see Figs. 2b/2c).
+3. C4 never reaches the threshold under either recipe; RefinedWeb and DCLM cross under both.
+**Recommend:** (a) blog main text — yes; (b) paper main text — yes; (c) appendix only — no.
+
+### 2b. `corpus_ceg_total.{png,pdf}` — total corpus compute-equivalent gain
+**Title:** "Corpus compute-equivalent gain vs. OWT reference."
+Script: `analysis/plot_corpus_intervention.py::fig_ceg_total`.
+Same data/eval as 2a. Total compute-equivalent gain each corpus buys vs. the fixed
+old-recipe·OWT reference arm (1×, by definition), under each recipe separately. Marker shape
+= recipe (circle = old GPT-2, square = current training); hollow markers below the 1× line
+did not reach the threshold. **Title change:** dropped "old GPT-2 recipe" as a compound
+modifier (a reader found the original three-part title — "vs. old GPT-2 recipe · OWT
+reference" — confusing; the recipe distinction is already carried by the marker-shape legend
+directly below the title).
+**Was panel B of the retired `corpus_intervention.png`.**
+Caption:
+1. Each corpus's total compute-equivalent gain vs. the old-recipe·OWT reference arm, at the
+   124M GPT-2 baseline scale, shown separately for both recipes.
+2. C4 is censored (hollow, below 1×) under both recipes; RefinedWeb and DCLM cross strongly
+   under both, more so under the current training recipe (37.9×/38.5×) than the old GPT-2
+   recipe (3.3×/3.5×) — the training-recipe intervention amplifies the corpus effect here.
+**Recommend:** (a) blog main text — yes; (b) paper main text — yes; (c) appendix only — no.
+
+### 2c. `corpus_ceg_within_recipe.{png,pdf}` — corpus-only compute-equivalent gain
+**Title:** "Corpus-only compute-equivalent gain, training recipe held fixed."
+Script: `analysis/plot_corpus_intervention.py::fig_ceg_within_recipe`.
+Same data/eval as 2a. Hold the recipe fixed and swap only the corpus (OWT → the labeled
+corpus); isolates the corpus's own contribution, no algorithm/recipe effect mixed in.
+**Title change:** the original title ("Within-recipe corpus CEG (OWT → corpus)") didn't say
+what's held fixed; a reader asked "is this algorithm gain or something?" The new title
+states explicitly that the training recipe is held fixed, and the caption repeats it.
+**Was panel C of the retired `corpus_intervention.png`.**
+Caption:
+1. Each point swaps ONLY the training corpus, holding the training recipe/algorithm fixed at
+   the value given by its marker shape (circle = old GPT-2, square = current training) — this
+   isolates the corpus's own contribution, with no algorithm effect mixed in.
+2. RefinedWeb/DCLM give a different corpus multiplier under each recipe (old GPT-2 recipe
+   ~3.3–3.5× vs. current training recipe ~1.6×): the corpus and training-recipe interventions
+   **interact**, so there is no single recipe-independent "value of the corpus".
+3. Corpus quality is **non-monotonic in release date**: C4 (2020) buys nothing over OWT
+   (2019, censored) under either recipe, while RefinedWeb (2023) and DCLM (2024) do.
 **Recommend:** (a) blog main text — yes; (b) paper main text — yes; (c) appendix only — no.
 
 ### 3. `expb_arch_curves.{png,pdf}` — architecture comparisons
-**Title:** "Bits per byte vs. GPU-hours for matched architecture comparisons."
+**Title:** "Neutral-corpus BPB vs. GPU-hours for matched architecture comparisons" (was "Bits
+per byte vs. GPU-hours..." — unified with Fig. 4's title wording, see below).
 Script: `analysis/plot_training_curves_ab.py::expb_arch`.
 Data: `results/b1_metrics/*/metrics.csv` + `results/b1_results.json`. Eval: **wiki_eval_union**
 (OWT-trained arms only).
@@ -338,7 +421,13 @@ dashed reference line at the GPT-2 bar, and a compact Δ annotation.
 (no panel here uses a "did not reach threshold" hollow marker — the open triangle marks the
 best/lowest checkpoint before BPB rose again, a different concept); replaced with an accurate
 sentence. Added y-axis headroom so the deliberately-clipped early-training curves no longer
-run flush against the panel titles.
+run flush against the panel titles. **Title unified with Fig. 4** ("Bits per byte" →
+"Neutral-corpus BPB", matching the user's suggested "neutral-corpus BPB vs GPU-hours
+for/by \<thing\>" template — two figures showing the same kind of comparison had different
+phrasing). **The open-triangle "best checkpoint" marker was hard to read as hollow** (flagged
+by the user): at its original size it competed visually with the candidate line passing
+directly through the same point. Enlarged (`s=55`→`170`) with a filled surface-colored disc
+behind it, so the hollow ring reads as a clean cutout against the line.
 Caption:
 1. Six matched comparisons — each modern architecture vs. a GPT-2 trained through the
    identical pipeline at the same size (same trainer, tokens, and batch schedule); rows =
@@ -364,7 +453,12 @@ Two panels, one per architecture (Pythia-160M (GPT-NeoX), SmolLM2-135M (Llama));
 the same architecture trained on four corpora vs. its fixed size-matched GPT-2-OWT bar. No
 floating prose in the plotting area — confirmed clean by direct pixel inspection both before
 and after this pass; only capitalization changed ("Training corpus" legend title, "Matched
-GPT-2-OWT bar" annotation).
+GPT-2-OWT bar" annotation). **Fixed a real bug this round:** censored corpora's (OWT, C4)
+per-point curve markers were filled solid, contradicting their own hollow legend entry
+("OWT (censored)" shown with a hollow marker icon) — flagged by the user ("the OWT and C4
+circles look like they should be unfilled but they are filled"). A corpus's curve now renders
+with hollow per-point markers whenever it's censored, filled when it crosses, matching its
+own legend entry exactly.
 Caption:
 1. Does the corpus effect reproduce across architectures? Each architecture (Pythia-160M,
    SmolLM2-135M) trained on four corpora vs. its fixed size-matched GPT-2-OWT bar.
@@ -385,7 +479,7 @@ Script: `analysis/plot_core_disagreement.py`.
 Data: `results/core_expb_summary.json` + `results/b1_results.json`.
 Two panels, both oriented so **up = candidate beats its size-matched GPT-2**: left "Compute
 efficiency (neutral-corpus BPB)", right "Downstream capability (CORE, 11-task mean
-accuracy)". X-axis reads "Model scale (matched Pythia / SmolLM2 pairs)" with two-line tick
+accuracy)". X-axis reads "Model scale" with two-line tick
 labels naming both families' real, different sizes at each tier (e.g. "Pythia 160M /
 SmolLM2 135M") — never a shared "small/medium/large" or merged "≈135–160M" bucket that would
 imply the two ladders are the same scale.
@@ -396,7 +490,10 @@ room for that surfaced a *second* collision (the legend row landed on top of the
 fixed that too in the same edit (suptitle pinned to `y=0.985`, legend dropped to
 `bbox_to_anchor y=0.90`). Also removed the floating "candidate better ↑" / "worse ↓" corner
 annotations on both panels: the same information is now stated once, compactly, in each
-y-axis label ("↑ = candidate better").
+y-axis label. **A later round trimmed the axis labels further** (dropped "(bits; ↑ =
+candidate better)", "(↑ = candidate better)", and "(matched Pythia / SmolLM2 pairs)"
+entirely) — the ↑-convention is stated once in the caption, and "matched Pythia / SmolLM2
+pairs" was redundant with the tick labels, which already name both families.
 Caption:
 1. BPB compute-efficiency and downstream-task capability can disagree; both panels are
    oriented so up = candidate beats its size-matched GPT-2 (identical pipeline).
@@ -411,45 +508,57 @@ Caption:
 **Recommend:** (a) blog main text — yes; (b) paper main text — yes (the metric-disagreement
 finding is a distinct, citable result); (c) appendix only — no.
 
-### 6. `method_factorial.{png,pdf}` — method figure
-**Title:** "Factorial decomposition of compute-equivalent gain" (subtitle: "Worked example:
-124M GPT-2 baseline scale, current training recipe").
-Script: `analysis/plot_method_factorial.py`.
+### 6a. `method_primitive.{png,pdf}` — the CEG primitive
+**Title:** "Compute to reach the neutral-BPB threshold."
+Script: `analysis/plot_method_factorial.py::fig_primitive`.
 Data: `results/small/ceg_newdef.json` + `results/small/small_a0d0_dense_metrics.csv`.
-Panel A · "The primitive — compute to reach the threshold": one training curve, the threshold
-line, and the crossing point. Panel B · "The 2×2 factorial and its log-space Shapley split":
-the four arms as neutral-gray boxes (old/new algorithm × old/new data, identified by their
-"A0·D0"-style text label, not by color), GPU-hours-ratio edges (data edges blue, algorithm
-edges orange — the only color used in this panel), and the Shapley summary (geometric mean of
-each intervention's two edges). Refers to "the 2×2 factorial" / "factorial experiment"
-throughout — never "core 2×2" — since this is one worked example of the same design used
-everywhere, not a larger or more privileged experiment.
-**Changed this pass:** capitalized every in-panel label/annotation for consistency (was a mix
-of sentence-case and lowercase small captions); glossed "wiki_eval" inline in the caption the
-same way `corpus_intervention.png` glosses "wiki_eval_union"; panel A's axis wording now
-matches the other three BPB-vs-GPU-hours figures ("GPU-hours (log scale)" / "Neutral-corpus
-BPB (bits/byte, lower = better)"). **Fixed a real bug:** panel B's four boxes used to be
-outlined/labeled in the same per-arm colors (`ARM_COLORS`) used for cross-figure continuity
-elsewhere in the study — which put blue on the A0D0 box *and* on the data-edge arrows, amber
-on the A1D0 box *and* near-amber on the algorithm-edge arrows, two independent color codings
-sharing hues. Reported by the user as the panel looking like several images superimposed.
-Boxes are now neutral gray/black; color in this panel means exactly one thing (data vs.
-algorithm edge).
+One training curve, the threshold line (tagged with its bare value, 1.274), and the crossing
+point — the primitive behind every compute-equivalent gain in this study: train to a fixed
+neutral-BPB threshold, read off the GPU-hours it took. Arm shown: A0·D0 (old algorithm · old
+data, the study's baseline). **The "Worked example: 124M GPT-2 baseline scale, current
+training recipe" subtitle that used to run across the top of the combined figure now lives
+only in the caption** (and in `report.md`'s surrounding text) — not repeated in the image.
+**Was panel A of the retired `method_factorial.png`.**
 Caption:
-1. How a compute-equivalent gain (CEG) is measured and decomposed, worked at the 124M
-   current-training-recipe point (no numbers invented — the multipliers are re-derived from
-   the four arms' GPU-hours).
-2. Panel A — the primitive: train to a fixed neutral-BPB threshold and read off the GPU-hours
-   (fewer = more compute-efficient).
-3. Panel B — the 2×2 factorial: horizontal edges swap data (hold algorithm fixed), vertical
-   edges swap algorithm (hold data fixed); each edge is a GPU-hours ratio.
-4. The Shapley multiplier of an intervention is the geometric mean of its two edges (both
+1. The primitive behind every compute-equivalent gain: train to a fixed neutral-BPB
+   threshold and read off the GPU-hours it took (fewer = more compute-efficient). Worked
+   example at the 124M GPT-2 baseline scale, current training recipe, old-algorithm/old-data
+   arm (A0·D0).
+2. This arm crosses the (1.274) threshold at 4.87 GPU-hours — the number that feeds every
+   ratio in Fig. 6b.
+**Recommend:** (a) blog main text — yes, near the top, before the results; (b) paper main
+text — optional, works well as a Methods-section figure; (c) appendix — acceptable
+alternative to (b) if space is tight.
+
+### 6b. `method_shapley_split.{png,pdf}` — the 2×2 factorial and Shapley split
+**Title:** "The 2×2 factorial and its log-space Shapley split."
+Script: `analysis/plot_method_factorial.py::fig_shapley_split`.
+Same data as 6a. The four arms as neutral-gray boxes (old/new algorithm × old/new data,
+identified by their "A0·D0"-style text label, not by color), GPU-hours-ratio edges (data
+edges blue, algorithm edges orange — the only color used in this figure), and the Shapley
+summary (geometric mean of each intervention's two edges). Refers to "the 2×2 factorial" /
+"factorial experiment" throughout — never "core 2×2" — since this is one worked example of
+the same design used everywhere, not a larger or more privileged experiment.
+**Fixed a real bug:** the four boxes used to be outlined/labeled in the same per-arm colors
+(`ARM_COLORS`) used for cross-figure continuity elsewhere in the study — which put blue on
+the A0D0 box *and* on the data-edge arrows, amber on the A1D0 box *and* near-amber on the
+algorithm-edge arrows, two independent color codings sharing hues. Reported by the user as
+the panel looking like several images superimposed. Boxes are now neutral gray/black; color
+in this figure means exactly one thing (data vs. algorithm edge). **Was panel B of the
+retired `method_factorial.png`.**
+Caption:
+1. How a compute-equivalent gain (CEG) is decomposed, worked at the 124M current-training-
+   recipe point (no numbers invented — the multipliers are re-derived from the four arms'
+   GPU-hours in Fig. 6a's data).
+2. Horizontal edges swap data (hold algorithm fixed), vertical edges swap algorithm (hold
+   data fixed); each edge is a GPU-hours ratio.
+3. The Shapley multiplier of an intervention is the geometric mean of its two edges (both
    orderings averaged): algorithm 13.69×, data 2.23×, total 30.5×.
-5. Intended as an early "how to read the numbers" explainer figure, not a privileged or
-   larger experiment — it is one worked example of the same factorial design used throughout.
-**Recommend:** (a) blog main text — yes, near the top, before the results (as already
-embedded in `report.md`); (b) paper main text — optional, works well as a Methods-section
-figure; (c) appendix — acceptable alternative to (b) if space is tight.
+4. Intended as an early "how to read the numbers" explainer, not a privileged or larger
+   experiment — it is one worked example of the same factorial design used throughout.
+**Recommend:** (a) blog main text — yes, near the top, before the results; (b) paper main
+text — optional, works well as a Methods-section figure; (c) appendix — acceptable
+alternative to (b) if space is tight.
 
 ## Numerical / methodological inconsistencies found (audit)
 
@@ -483,28 +592,33 @@ only — see the changelog sections above for the exhaustive list.
 ## Superseded / appendix
 - Superseded figures **live in `results/superseded/`** (retained for provenance, not
   deleted): `era_ladder.png`, `era_curves.png`, `expb_data_curves.png`, `data_ladder_expB.png`,
-  `core_expb_delta.png` — see `results/superseded/README.md` for the replacement mapping.
+  `core_expb_delta.png`, and (as of 2026-09-04) the retired combined `corpus_intervention.png`
+  and `method_factorial.png` — see `results/superseded/README.md` for the full replacement
+  mapping.
 - Appendix-only (kept at top level, not in the blog's/paper's main flow): `all_configs.png`,
   per-size `curves.png`/`sensitivity.png`, `core_*_by_task*.png`, `core_vs_scale.png`,
-  `core_arms_by_task.png`, `core_era_ladder.png`, `core_era_by_task.png`.
+  `core_arms_by_task.png`, `core_era_ladder.png`, `core_era_by_task.png`. None of these have
+  had this figure-quality treatment applied yet — see "Open question raised by the user" above.
 
 ## Verification performed this pass
 - All five regeneration commands run to completion with no errors or warnings, from
   unmodified in-repo data (`git status` confirms zero `results/*.json` or `metrics.csv`
-  changes across all three rounds — only plotting scripts and regenerated image pairs).
-- Every one of the six PNGs viewed at full resolution; every legend/annotation cluster
+  changes across all four rounds to date — only plotting scripts and regenerated image files).
+- Every one of the (now nine) PNGs viewed at full resolution; every legend/annotation cluster
   additionally viewed at 2–4× pixel crops to check for overlap that isn't visible at
-  thumbnail size — this is how all 7 bugs were actually caught (none were visible in a
-  first full-figure look; 4 of the 7 were only caught on the *second* audit pass, after
-  the user looked closely at the first round's renders and reported problems the first
-  audit had missed).
+  thumbnail size — this is how the great majority of the bugs listed above were actually
+  caught (none were visible in a first full-figure look). Two rounds in a row surfaced real
+  bugs only after the user looked closely at the previous round's renders and reported
+  specific problems the prior audit had missed (a marker convention mismatch, a hard-to-see
+  hollow marker, a confusing title, an unlabeled line style) — confirming the lesson below.
 - Every bug re-verified fixed by re-rendering and re-cropping the same region after its
   code edit.
-- All six PDFs confirmed to have a valid `%PDF-1.4` header and `%%EOF` trailer; not
-  separately rasterized (no `pdftoppm`/`pymupdf` available in this container) — see the
-  note at the top of this file on why the PNG inspection also covers PDF layout.
-- `report.md` regenerated from `make_report.py`; diff is exactly the two alt-text updates
-  described above, confirming no other drift between the report and the figures.
+- All PDFs confirmed to have a valid `%PDF-1.4` header and `%%EOF` trailer; not separately
+  rasterized (no `pdftoppm`/`pymupdf` available in this container) — see the note at the top
+  of this file on why the PNG inspection also covers PDF layout.
+- `report.md` regenerated from `make_report.py` after every round; each diff was exactly the
+  image-embed/caption text that needed to change for that round, confirming no other drift
+  between the report and the figures.
 - **Lesson for anyone extending this figure set:** a full-figure look at thumbnail size is
   not sufficient QA — every legend, marker cluster, and multi-line label needs its own
   close crop before a figure is called clean.

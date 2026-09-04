@@ -118,10 +118,16 @@ def expb_arch():
             if info.get("confounded"):
                 chs = [h for h, _ in curve(f"{B1M}/{cand}/metrics.csv")]
                 hmin = chs[cbs.index(cmin)]
-                ax.scatter([hmin], [cmin], marker="v", s=55, facecolors="none",
-                           edgecolors=ARCH[lin], linewidths=1.6, zorder=5)
+                # a filled surface-colored disc behind the hollow triangle gives it a clean
+                # "cutout" against the busy candidate line passing directly through this
+                # point — at the original small size (s=55, no backing disc) the hollow
+                # triangle was hard to read as hollow at all against the line under it
+                ax.scatter([hmin], [cmin], marker="v", s=170, facecolors=SURFACE,
+                           edgecolors="none", zorder=4)
+                ax.scatter([hmin], [cmin], marker="v", s=170, facecolors="none",
+                           edgecolors=ARCH[lin], linewidths=2.0, zorder=5)
                 ax.annotate(f"best ckpt {cmin:.3f}\n(BPB rose again after)", xy=(hmin, cmin),
-                            xytext=(6, 10), textcoords="offset points", fontsize=7, color=ARCH[lin])
+                            xytext=(8, 12), textcoords="offset points", fontsize=7.5, color=ARCH[lin])
             # verdict box: delta vs bar (and best-checkpoint delta for the runs above)
             d = info["delta"]
             txt = f"Δ = +{d:.3f} vs bar"
@@ -145,7 +151,7 @@ def expb_arch():
     for r, name in enumerate(["Pythia (GPT-NeoX, 2023)", "SmolLM2 (Llama, 2024)"]):
         axes[r, 0].annotate(name, xy=(-0.30, 0.5), xycoords="axes fraction", rotation=90,
                             ha="center", va="center", fontsize=10.5, color=INK, fontweight="bold")
-    fig.suptitle("Bits per byte vs. GPU-hours for matched architecture comparisons",
+    fig.suptitle("Neutral-corpus BPB vs. GPU-hours for matched architecture comparisons",
                  fontsize=12.5, x=0.012, ha="left", color=INK)
     fig.text(0.012, 0.006,
              "Each modern architecture vs a GPT-2 trained through the identical pipeline at the same size (OWT, 8.87B tokens, "
@@ -188,7 +194,12 @@ def expb_data_replication():
             hs, bs = zip(*pts)
             lo = min(lo, min(bs))
             crossed = min(bs) <= bar
-            ax.plot(hs, bs, color=CORP[corpus], lw=2.0, marker="o", ms=2.6)
+            # the per-point markers along the curve now carry the same filled/hollow
+            # convention as the legend swatch (crossed = filled, censored = hollow) —
+            # previously every curve used filled dots regardless of crossing, which
+            # visually contradicted the legend's hollow-censored convention
+            ax.plot(hs, bs, color=CORP[corpus], lw=2.0, marker="o", ms=2.6,
+                    markerfacecolor=(CORP[corpus] if crossed else SURFACE))
             handles.append(Line2D([], [], color=CORP[corpus], lw=2.2, marker="o", ms=6,
                                   markerfacecolor=(CORP[corpus] if crossed else SURFACE),
                                   label=corpus + ("" if crossed else "  (censored)")))

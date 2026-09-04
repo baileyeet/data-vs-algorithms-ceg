@@ -57,7 +57,7 @@ for lin, rows in ROWS.items():
                     facecolors=(SURFACE if cf else LINCOL[lin]), edgecolors=LINCOL[lin], linewidths=1.8)
 axL.annotate("Parity ±1σ (BPB noise)", xy=(0.98, BPB_SIGMA), xycoords=("axes fraction", "data"),
              ha="right", va="bottom", xytext=(0, 1), textcoords="offset points", fontsize=7.5, color=INK2)
-axL.set_ylabel("BPB advantage over matched GPT-2\n(bits; ↑ = candidate better)")
+axL.set_ylabel("BPB advantage over matched GPT-2")
 axL.set_title("Compute efficiency (neutral-corpus BPB)", fontsize=11, loc="left")
 
 # ---- Right: CORE downstream advantage (up = candidate better), ±1 stderr ----
@@ -67,13 +67,13 @@ for lin, rows in ROWS.items():
     es = [C[ck]["mean_delta_stderr"] for _, ck, _ in rows]
     axR.errorbar(xs, ys, yerr=es, color=LINCOL[lin], lw=2, marker="o", ms=8, capsize=3.5,
                  elinewidth=1.2, markeredgecolor=SURFACE, markeredgewidth=1.0, zorder=3)
-axR.set_ylabel("CORE accuracy advantage over matched GPT-2\n(↑ = candidate better)")
+axR.set_ylabel("CORE accuracy advantage over matched GPT-2")
 axR.set_title("Downstream capability (CORE, 11-task mean accuracy)", fontsize=11, loc="left")
 
 for ax in (axL, axR):
     ax.set_xticks([0, 1, 2]); ax.set_xticklabels(TIERS, fontsize=8.5)
     ax.set_xlim(-0.3, 2.3)
-    ax.set_xlabel("Model scale (matched Pythia / SmolLM2 pairs)")
+    ax.set_xlabel("Model scale")
     _style(ax)
 
 handles = [Line2D([], [], color=LINCOL[l], lw=2, marker="o", ms=8, label=LINLBL[l])
