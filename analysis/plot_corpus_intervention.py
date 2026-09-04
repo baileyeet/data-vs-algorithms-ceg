@@ -88,7 +88,10 @@ def fig_bpb_curves():
     ax.set_ylabel("Neutral-corpus BPB")
     _style(ax)
 
-    corpus_legend(fig, loc="upper center", ncol=4, bbox_to_anchor=(0.54, 0.985),
+    # legend rows sit well clear of the title now (0.995 -> 0.90 -> 0.815, not the original
+    # 0.995 -> 0.985 -> 0.895) — at the tight original spacing the "Training corpus" legend
+    # title read as running directly into the suptitle above it (flagged by the user)
+    corpus_legend(fig, loc="upper center", ncol=4, bbox_to_anchor=(0.54, 0.90),
                   columnspacing=2.0, handletextpad=0.7)
     # recipe legend: line style is the encoding here (not marker shape, as in figs 2/3), so
     # give each handle a long dash run (handlelength) - at the default handle length the
@@ -99,7 +102,7 @@ def fig_bpb_curves():
         Line2D([], [], color=INK2, lw=2.2, ls=(0, (4, 2)), label="Current training recipe"),
     ]
     fig.legend(handles=recipe_handles, frameon=False, fontsize=8.5, labelcolor=INK2,
-               loc="upper center", ncol=2, bbox_to_anchor=(0.54, 0.895),
+               loc="upper center", ncol=2, bbox_to_anchor=(0.54, 0.815),
                handlelength=3.6, columnspacing=2.2)
 
     fig.suptitle("Neutral-corpus BPB vs. GPU-hours by training corpus and recipe",
@@ -109,7 +112,7 @@ def fig_bpb_curves():
              "(“wiki_eval_union”). Dashed reference line: the neutral-BPB threshold "
              f"({THR:.3f}), defined by the old GPT-2 recipe trained on OWT.",
              fontsize=7.5, color=INK2, va="bottom", wrap=True)
-    fig.tight_layout(rect=(0, 0.06, 1, 0.85))
+    fig.tight_layout(rect=(0, 0.06, 1, 0.78))
     _savefig(fig, ROOT / "corpus_bpb_curves.png")
 
 
@@ -164,12 +167,15 @@ def recipe_censor_legend(fig, **kw):
 
 
 def fig_ceg_total():
-    fig, ax = plt.subplots(figsize=(7.6, 6.1), dpi=150)
+    fig, ax = plt.subplots(figsize=(7.6, 6.4), dpi=150)
     dotpanel(ax, lambda d, r: d["old_algo" if r == "old" else "current_arch"]["ceg_vs_a0d0"],
              "Compute-equivalent gain (×)")
-    corpus_legend(fig, loc="upper center", ncol=4, bbox_to_anchor=(0.54, 0.98),
+    # legend rows well clear of the title (0.995 -> 0.90 -> 0.81, not the original
+    # 0.995 -> 0.98 -> 0.89) — the "Training corpus" legend title used to read as running
+    # directly into the suptitle above it (flagged by the user)
+    corpus_legend(fig, loc="upper center", ncol=4, bbox_to_anchor=(0.54, 0.90),
                   columnspacing=2.0, handletextpad=0.7)
-    recipe_censor_legend(fig, loc="upper center", ncol=3, bbox_to_anchor=(0.54, 0.89),
+    recipe_censor_legend(fig, loc="upper center", ncol=3, bbox_to_anchor=(0.54, 0.81),
                          columnspacing=1.6)
     # title dropped "old GPT-2 recipe" (a mouthful as a compound modifier, and already
     # carried by the marker-shape legend below) after it was flagged as confusing
@@ -182,17 +188,17 @@ def fig_ceg_total():
              "markers below the 1× line did not reach the threshold within their compute "
              "budget — a bound, not a measured value.",
              fontsize=7.5, color=INK2, va="bottom", wrap=True)
-    fig.tight_layout(rect=(0, 0.09, 1, 0.85))
+    fig.tight_layout(rect=(0, 0.08, 1, 0.78))
     _savefig(fig, ROOT / "corpus_ceg_total.png")
 
 
 def fig_ceg_within_recipe():
-    fig, ax = plt.subplots(figsize=(7.6, 6.1), dpi=150)
+    fig, ax = plt.subplots(figsize=(7.6, 6.4), dpi=150)
     dotpanel(ax, lambda d, r: d["data_ceg_old_algo" if r == "old" else "data_ceg_current_arch"],
              "Corpus-only compute-equivalent gain (×)")
-    corpus_legend(fig, loc="upper center", ncol=4, bbox_to_anchor=(0.54, 0.98),
+    corpus_legend(fig, loc="upper center", ncol=4, bbox_to_anchor=(0.54, 0.90),
                   columnspacing=2.0, handletextpad=0.7)
-    recipe_censor_legend(fig, loc="upper center", ncol=3, bbox_to_anchor=(0.54, 0.89),
+    recipe_censor_legend(fig, loc="upper center", ncol=3, bbox_to_anchor=(0.54, 0.81),
                          columnspacing=1.6)
     # title states explicitly that the training recipe/algorithm is held fixed here, since a
     # reader asked whether this panel was showing an algorithm-CEG number (it isn't — every
@@ -208,7 +214,7 @@ def fig_ceg_within_recipe():
              "~1.6×): the corpus and training-recipe interventions interact, so there is no "
              "single recipe-independent \"value of the corpus\".",
              fontsize=7.5, color=INK2, va="bottom", wrap=True)
-    fig.tight_layout(rect=(0, 0.10, 1, 0.85))
+    fig.tight_layout(rect=(0, 0.09, 1, 0.78))
     _savefig(fig, ROOT / "corpus_ceg_within_recipe.png")
 
 

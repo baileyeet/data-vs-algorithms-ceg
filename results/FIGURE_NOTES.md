@@ -204,6 +204,26 @@ Two further bugs, unrelated to the split, were also fixed this round:
   "matched Pythia / SmolLM2 pairs" detail is redundant with the two-line tick labels, which
   already name both families explicitly.
 
+## Fifth round (2026-09-04) — two more issues from the split figures
+
+- **`method_primitive.png`: nothing in the image said what model scale it was.** Splitting
+  the combined `method_factorial.png` moved the "Worked example: 124M GPT-2 baseline scale,
+  current training recipe" text out of the image entirely (round 3's minimalism pass), down
+  into the small caption footer only. Once the figure stood alone, that turned out to remove
+  real information a reader needs from the image itself, not just restate it — flagged by the
+  user ("not clear what model or size it is"). **Fix:** added back a compact one-line
+  subtitle under the main title — "124M GPT-2 baseline scale · current training recipe" — on
+  both `method_primitive.png` and `method_shapley_split.png` (for consistency, since they're
+  the two halves of one worked example). This is narrower than what was removed: no "Worked
+  example:" framing, just the two facts (scale, recipe) a reader needs to place the figure.
+- **`corpus_ceg_total.png` / `corpus_ceg_within_recipe.png`: title ran directly into the
+  "Training corpus" legend title below it.** Both used a 0.995 → 0.98 gap between the
+  suptitle and the first legend row — about one line-height, not enough for the two to read
+  as visually separate. `corpus_bpb_curves.png` had the same issue at an even tighter 0.995 →
+  0.985. **Fix:** widened the gap on all three (now 0.995 → 0.90 → ~0.81) and grew the two
+  dot-plot figures' height slightly (6.1in → 6.4in) so the extra header space didn't compress
+  the plot area.
+
 ## Open question raised by the user, not yet acted on
 **Should the appendix-only CORE figures for the original 2×2 study (not just Exp B) also be
 included?** The user specifically asked about CORE for "everything we ran" — confirmed by
@@ -357,7 +377,9 @@ Wikipedia set; glossed inline in the figure's own caption).
 The underlying evidence: raw BPB-vs-GPU-hours curves for all four corpora (OWT gray, C4
 amber, RefinedWeb blue, DCLM green) under both recipes (old GPT-2 recipe = solid line,
 current training recipe = dashed). Threshold line tagged with its bare value (1.276); full
-description ("old GPT-2 recipe · OWT") lives in the caption, not the image.
+description ("old GPT-2 recipe · OWT") lives in the caption, not the image. **Round 5:**
+widened the gap between the title and the "Training corpus" legend row (was reading as
+running together).
 **Was panel A of the retired `corpus_intervention.png`** (see `results/superseded/README.md`).
 Caption:
 1. Neutral-corpus BPB vs. GPU-hours, all four training corpora under both the old GPT-2
@@ -376,7 +398,8 @@ old-recipe·OWT reference arm (1×, by definition), under each recipe separately
 did not reach the threshold. **Title change:** dropped "old GPT-2 recipe" as a compound
 modifier (a reader found the original three-part title — "vs. old GPT-2 recipe · OWT
 reference" — confusing; the recipe distinction is already carried by the marker-shape legend
-directly below the title).
+directly below the title). **Round 5:** widened the gap between the title and the legend rows
+(was reading as running together).
 **Was panel B of the retired `corpus_intervention.png`.**
 Caption:
 1. Each corpus's total compute-equivalent gain vs. the old-recipe·OWT reference arm, at the
@@ -394,6 +417,8 @@ corpus); isolates the corpus's own contribution, no algorithm/recipe effect mixe
 **Title change:** the original title ("Within-recipe corpus CEG (OWT → corpus)") didn't say
 what's held fixed; a reader asked "is this algorithm gain or something?" The new title
 states explicitly that the training recipe is held fixed, and the caption repeats it.
+**Round 5:** widened the gap between the title and the legend rows (was reading as running
+together).
 **Was panel C of the retired `corpus_intervention.png`.**
 Caption:
 1. Each point swaps ONLY the training corpus, holding the training recipe/algorithm fixed at
@@ -515,9 +540,11 @@ Data: `results/small/ceg_newdef.json` + `results/small/small_a0d0_dense_metrics.
 One training curve, the threshold line (tagged with its bare value, 1.274), and the crossing
 point — the primitive behind every compute-equivalent gain in this study: train to a fixed
 neutral-BPB threshold, read off the GPU-hours it took. Arm shown: A0·D0 (old algorithm · old
-data, the study's baseline). **The "Worked example: 124M GPT-2 baseline scale, current
-training recipe" subtitle that used to run across the top of the combined figure now lives
-only in the caption** (and in `report.md`'s surrounding text) — not repeated in the image.
+data, the study's baseline). Compact one-line subtitle under the title states the scale and
+recipe ("124M GPT-2 baseline scale · current training recipe") — the fuller "Worked
+example:..." framing lives in the caption only, but round 3 had dropped the scale/recipe
+facts from the image entirely, and round 5 put back a minimal version after a reader couldn't
+tell what model or size the figure was showing.
 **Was panel A of the retired `method_factorial.png`.**
 Caption:
 1. The primitive behind every compute-equivalent gain: train to a fixed neutral-BPB
@@ -544,8 +571,10 @@ the same design used everywhere, not a larger or more privileged experiment.
 the A0D0 box *and* on the data-edge arrows, amber on the A1D0 box *and* near-amber on the
 algorithm-edge arrows, two independent color codings sharing hues. Reported by the user as
 the panel looking like several images superimposed. Boxes are now neutral gray/black; color
-in this figure means exactly one thing (data vs. algorithm edge). **Was panel B of the
-retired `method_factorial.png`.**
+in this figure means exactly one thing (data vs. algorithm edge). **Round 5:** added the same
+compact "124M GPT-2 baseline scale · current training recipe" subtitle as 6a, for the same
+reason (a reader couldn't tell the model scale from either half of the split figure).
+**Was panel B of the retired `method_factorial.png`.**
 Caption:
 1. How a compute-equivalent gain (CEG) is decomposed, worked at the 124M current-training-
    recipe point (no numbers invented — the multipliers are re-derived from the four arms'

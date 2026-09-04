@@ -63,13 +63,15 @@ def fig_primitive():
 
     fig.suptitle("Compute to reach the neutral-BPB threshold",
                  fontsize=12.5, x=0.012, ha="left", color=INK, y=0.98)
+    # compact subtitle names the model scale — without it, nothing in the image says which
+    # size this worked example is at (flagged by the user: "not clear what model or size")
+    fig.text(0.012, 0.918, "124M GPT-2 baseline scale · current training recipe",
+             fontsize=9.5, color=INK2, va="top")
     fig.text(0.012, 0.006,
              "The primitive behind every compute-equivalent gain: train to a fixed neutral-BPB "
-             "threshold and read off the GPU-hours it took (fewer = more compute-efficient). "
-             "Worked example at the 124M GPT-2 baseline scale, current training recipe, "
-             "old-algorithm/old-data arm.",
+             "threshold and read off the GPU-hours it took (fewer = more compute-efficient).",
              fontsize=7.5, color=INK2, va="bottom", wrap=True)
-    fig.tight_layout(rect=(0, 0.09, 1, 0.90))
+    fig.tight_layout(rect=(0, 0.08, 1, 0.88))
     _savefig(fig, ROOT / "method_primitive.png")
 
 
@@ -132,13 +134,16 @@ def fig_shapley_split():
 
     fig.suptitle("The 2×2 factorial and its log-space Shapley split",
                  fontsize=12.5, x=0.012, ha="left", color=INK, y=0.98)
+    # compact subtitle names the model scale — matches method_primitive.png (Fig. 6a), so the
+    # two halves of the same worked example are each individually identifiable
+    fig.text(0.012, 0.918, "124M GPT-2 baseline scale · current training recipe",
+             fontsize=9.5, color=INK2, va="top")
     fig.text(0.012, 0.006,
              "Each edge is a GPU-hours ratio between two arms that differ in a single intervention; the Shapley multiplier for "
-             "an intervention is the geometric mean of its two edges (both orderings averaged). Worked example at the 124M "
-             "GPT-2 baseline scale, current training recipe. Values re-derived from the four arm GPU-hours in "
-             "results/small/ceg_newdef.json (held-out Wikipedia evaluation set, “wiki_eval”).",
+             "an intervention is the geometric mean of its two edges (both orderings averaged). Values re-derived from the "
+             "four arm GPU-hours in results/small/ceg_newdef.json (held-out Wikipedia evaluation set, “wiki_eval”).",
              fontsize=7.5, color=INK2, va="bottom", wrap=True)
-    fig.tight_layout(rect=(0, 0.08, 1, 0.90))
+    fig.tight_layout(rect=(0, 0.08, 1, 0.88))
     _savefig(fig, ROOT / "method_shapley_split.png")
 
 
